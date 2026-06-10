@@ -16,139 +16,6 @@ String _titleCase(String value) {
 }
 
 // ---------------------------------------------------------------------------
-// Department
-// ---------------------------------------------------------------------------
-
-class DepartmentRecord {
-  const DepartmentRecord({
-    required this.id,
-    required this.name,
-    required this.description,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-
-  factory DepartmentRecord.empty() {
-    return const DepartmentRecord(
-      id: null,
-      name: '',
-      description: null,
-      createdAt: null,
-      updatedAt: null,
-    );
-  }
-
-  factory DepartmentRecord.fromMap(Map<String, dynamic> data) {
-    return DepartmentRecord(
-      id: data['id']?.toString(),
-      name: (data['name'] ?? '').toString(),
-      description: _emptyToNull(data['description']?.toString()),
-      createdAt: DateTime.tryParse(data['created_at']?.toString() ?? ''),
-      updatedAt: DateTime.tryParse(data['updated_at']?.toString() ?? ''),
-    );
-  }
-
-  final String? id;
-  final String name;
-  final String? description;
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
-
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'name': name.trim(),
-      'description': _emptyToNull(description),
-    };
-  }
-
-  DepartmentRecord copyWith({
-    String? id,
-    String? name,
-    String? description,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-  }) {
-    return DepartmentRecord(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      description: description ?? this.description,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Designation
-// ---------------------------------------------------------------------------
-
-class DesignationRecord {
-  const DesignationRecord({
-    required this.id,
-    required this.departmentId,
-    required this.title,
-    required this.grade,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-
-  factory DesignationRecord.empty({String? departmentId}) {
-    return DesignationRecord(
-      id: null,
-      departmentId: departmentId,
-      title: '',
-      grade: null,
-      createdAt: null,
-      updatedAt: null,
-    );
-  }
-
-  factory DesignationRecord.fromMap(Map<String, dynamic> data) {
-    return DesignationRecord(
-      id: data['id']?.toString(),
-      departmentId: data['department_id']?.toString(),
-      title: (data['title'] ?? '').toString(),
-      grade: _emptyToNull(data['grade']?.toString()),
-      createdAt: DateTime.tryParse(data['created_at']?.toString() ?? ''),
-      updatedAt: DateTime.tryParse(data['updated_at']?.toString() ?? ''),
-    );
-  }
-
-  final String? id;
-  final String? departmentId;
-  final String title;
-  final String? grade;
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
-
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'department_id': _emptyToNull(departmentId),
-      'title': title.trim(),
-      'grade': _emptyToNull(grade),
-    };
-  }
-
-  DesignationRecord copyWith({
-    String? id,
-    String? departmentId,
-    String? title,
-    String? grade,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-  }) {
-    return DesignationRecord(
-      id: id ?? this.id,
-      departmentId: departmentId ?? this.departmentId,
-      title: title ?? this.title,
-      grade: grade ?? this.grade,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Employee
 // ---------------------------------------------------------------------------
 
@@ -254,8 +121,8 @@ class EmployeeRecord {
     required this.gender,
     required this.dob,
     required this.joiningDate,
-    required this.departmentId,
-    required this.designationId,
+    required this.department,
+    required this.designation,
     required this.managerId,
     required this.employmentType,
     required this.basicSalary,
@@ -275,8 +142,8 @@ class EmployeeRecord {
       gender: null,
       dob: null,
       joiningDate: null,
-      departmentId: null,
-      designationId: null,
+      department: null,
+      designation: null,
       managerId: null,
       employmentType: 'permanent',
       basicSalary: 0,
@@ -297,8 +164,8 @@ class EmployeeRecord {
       gender: _emptyToNull(data['gender']?.toString()),
       dob: _parseDate(data['dob']?.toString()),
       joiningDate: _parseDate(data['joining_date']?.toString()),
-      departmentId: data['department_id']?.toString(),
-      designationId: data['designation_id']?.toString(),
+      department: _emptyToNull(data['department']?.toString()),
+      designation: _emptyToNull(data['designation']?.toString()),
       managerId: data['manager_id']?.toString(),
       employmentType: (data['employment_type'] ?? 'permanent').toString(),
       basicSalary: _parseDouble(data['basic_salary']),
@@ -317,8 +184,8 @@ class EmployeeRecord {
   final String? gender;
   final DateTime? dob;
   final DateTime? joiningDate;
-  final String? departmentId;
-  final String? designationId;
+  final String? department;
+  final String? designation;
   final String? managerId;
   final String employmentType;
   final double basicSalary;
@@ -362,8 +229,8 @@ class EmployeeRecord {
       'gender': _emptyToNull(gender),
       'dob': _formatDate(dob),
       'joining_date': _formatDate(joiningDate),
-      'department_id': _emptyToNull(departmentId),
-      'designation_id': _emptyToNull(designationId),
+      'department': _emptyToNull(department),
+      'designation': _emptyToNull(designation),
       'manager_id': _emptyToNull(managerId),
       'employment_type': employmentType.trim().isEmpty
           ? 'permanent'
@@ -383,8 +250,8 @@ class EmployeeRecord {
     String? gender,
     DateTime? dob,
     DateTime? joiningDate,
-    String? departmentId,
-    String? designationId,
+    String? department,
+    String? designation,
     String? managerId,
     String? employmentType,
     double? basicSalary,
@@ -402,8 +269,8 @@ class EmployeeRecord {
       gender: gender ?? this.gender,
       dob: dob ?? this.dob,
       joiningDate: joiningDate ?? this.joiningDate,
-      departmentId: departmentId ?? this.departmentId,
-      designationId: designationId ?? this.designationId,
+      department: department ?? this.department,
+      designation: designation ?? this.designation,
       managerId: managerId ?? this.managerId,
       employmentType: employmentType ?? this.employmentType,
       basicSalary: basicSalary ?? this.basicSalary,

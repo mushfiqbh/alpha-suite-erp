@@ -31,7 +31,7 @@ class _HrViewState extends ConsumerState<HrView>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 9, vsync: this);
+    _tabController = TabController(length: 7, vsync: this);
   }
 
   @override
@@ -63,15 +63,34 @@ class _HrViewState extends ConsumerState<HrView>
               fontWeight: FontWeight.w500,
             ),
             tabs: const [
-              Tab(icon: Icon(Icons.badge_outlined, size: 18), text: 'Employees'),
-              Tab(icon: Icon(Icons.apartment_outlined, size: 18), text: 'Departments'),
-              Tab(icon: Icon(Icons.workspace_premium_outlined, size: 18), text: 'Designations'),
-              Tab(icon: Icon(Icons.schedule_outlined, size: 18), text: 'Shifts'),
-              Tab(icon: Icon(Icons.assignment_ind_outlined, size: 18), text: 'Assignments'),
-              Tab(icon: Icon(Icons.fact_check_outlined, size: 18), text: 'Attendance'),
-              Tab(icon: Icon(Icons.beach_access_outlined, size: 18), text: 'Leave Types'),
-              Tab(icon: Icon(Icons.event_busy_outlined, size: 18), text: 'Leave Requests'),
-              Tab(icon: Icon(Icons.celebration_outlined, size: 18), text: 'Holidays'),
+              Tab(
+                icon: Icon(Icons.badge_outlined, size: 18),
+                text: 'Employees',
+              ),
+              Tab(
+                icon: Icon(Icons.schedule_outlined, size: 18),
+                text: 'Shifts',
+              ),
+              Tab(
+                icon: Icon(Icons.assignment_ind_outlined, size: 18),
+                text: 'Assignments',
+              ),
+              Tab(
+                icon: Icon(Icons.fact_check_outlined, size: 18),
+                text: 'Attendance',
+              ),
+              Tab(
+                icon: Icon(Icons.beach_access_outlined, size: 18),
+                text: 'Leave Types',
+              ),
+              Tab(
+                icon: Icon(Icons.event_busy_outlined, size: 18),
+                text: 'Leave Requests',
+              ),
+              Tab(
+                icon: Icon(Icons.celebration_outlined, size: 18),
+                text: 'Holidays',
+              ),
             ],
           ),
         ),
@@ -80,8 +99,6 @@ class _HrViewState extends ConsumerState<HrView>
             controller: _tabController,
             children: const [
               _EmployeesTab(),
-              _DepartmentsTab(),
-              _DesignationsTab(),
               _ShiftsTab(),
               _AssignmentsTab(),
               _AttendanceTab(),
@@ -119,7 +136,8 @@ class _EmployeesTabState extends ConsumerState<_EmployeesTab> {
       if (status != null && e.status.toLowerCase() != status.toLowerCase()) {
         return false;
       }
-      if (dept != null && e.departmentId != dept) {
+      if (dept != null &&
+          (e.department ?? '').toLowerCase() != dept.toLowerCase()) {
         return false;
       }
       if (query.isEmpty) {
@@ -136,8 +154,9 @@ class _EmployeesTabState extends ConsumerState<_EmployeesTab> {
   Widget build(BuildContext context) {
     final state = ref.watch(employeeDirectoryProvider);
     final filtered = _filter(state);
-    final totalPages =
-        filtered.isEmpty ? 0 : (filtered.length / _rowsPerPage).ceil();
+    final totalPages = filtered.isEmpty
+        ? 0
+        : (filtered.length / _rowsPerPage).ceil();
     final safePage = totalPages == 0 ? 0 : math.min(_page, totalPages - 1);
     final pageStart = filtered.isEmpty ? 0 : safePage * _rowsPerPage + 1;
     final pageEnd = filtered.isEmpty
@@ -145,18 +164,19 @@ class _EmployeesTabState extends ConsumerState<_EmployeesTab> {
         : math.min(pageStart + _rowsPerPage - 1, filtered.length);
     final visible = filtered.isEmpty
         ? const <EmployeeRecord>[]
-        : filtered.sublist(pageStart - 1,
-            math.min(pageStart - 1 + _rowsPerPage, filtered.length));
+        : filtered.sublist(
+            pageStart - 1,
+            math.min(pageStart - 1 + _rowsPerPage, filtered.length),
+          );
 
     return _TabShell(
       searchQuery: state.searchQuery,
-      onSearch: (v) => ref.read(employeeDirectoryProvider.notifier)
-          .setSearchQuery(v),
+      onSearch: (v) =>
+          ref.read(employeeDirectoryProvider.notifier).setSearchQuery(v),
       isLoading: state.isLoading,
       isSaving: state.isSaving,
       errorMessage: state.errorMessage,
-      onRefresh: () =>
-          ref.read(employeeDirectoryProvider.notifier).refresh(),
+      onRefresh: () => ref.read(employeeDirectoryProvider.notifier).refresh(),
       filterContent: Row(
         children: [
           _FilterDropdown<String?>(
@@ -169,25 +189,29 @@ class _EmployeesTabState extends ConsumerState<_EmployeesTab> {
               DropdownMenuItem(value: 'on_leave', child: Text('On Leave')),
               DropdownMenuItem(value: 'terminated', child: Text('Terminated')),
             ],
-            onChanged: (v) => ref
-                .read(employeeDirectoryProvider.notifier)
-                .setStatusFilter(v),
+            onChanged: (v) =>
+                ref.read(employeeDirectoryProvider.notifier).setStatusFilter(v),
           ),
           const SizedBox(width: 8),
           _FilterDropdown<String?>(
             value: state.departmentFilter,
             label: 'Department',
             items: [
-              const DropdownMenuItem(value: null, child: Text('All departments')),
-              ...state.departments.map(
-                (d) => DropdownMenuItem<String?>(
-                  value: d.id,
-                  child: Text(
-                    d.name,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
+              const DropdownMenuItem(
+                value: null,
+                child: Text('All departments'),
               ),
+              ...state.employees
+                  .map((e) => e.department)
+                  .where((d) => d != null && d.isNotEmpty)
+                  .map((d) => d!)
+                  .toSet()
+                  .map(
+                    (d) => DropdownMenuItem<String?>(
+                      value: d,
+                      child: Text(d, overflow: TextOverflow.ellipsis),
+                    ),
+                  ),
             ],
             onChanged: (v) => ref
                 .read(employeeDirectoryProvider.notifier)
@@ -198,14 +222,15 @@ class _EmployeesTabState extends ConsumerState<_EmployeesTab> {
       activeFilterChips: [
         if (state.statusFilter != null)
           _ActiveFilterChip(
-            label: 'Status: ${EmployeeStatusOptions.label(state.statusFilter!)}',
+            label:
+                'Status: ${EmployeeStatusOptions.label(state.statusFilter!)}',
             onClear: () => ref
                 .read(employeeDirectoryProvider.notifier)
                 .setStatusFilter(null),
           ),
         if (state.departmentFilter != null)
           _ActiveFilterChip(
-            label: 'Dept: ${_deptName(state, state.departmentFilter!)}',
+            label: 'Dept: ${state.departmentFilter}',
             onClear: () => ref
                 .read(employeeDirectoryProvider.notifier)
                 .setDepartmentFilter(null),
@@ -232,24 +257,12 @@ class _EmployeesTabState extends ConsumerState<_EmployeesTab> {
         itemCount: visible.length,
         itemBuilder: (context, index) {
           final employee = visible[index];
-          final dept = state.departments
-              .where((d) => d.id == employee.departmentId)
-              .map((d) => d.name)
-              .cast<String?>()
-              .firstWhere((_) => true, orElse: () => null);
-          final desig = state.designations
-              .where((d) => d.id == employee.designationId)
-              .map((d) => d.title)
-              .cast<String?>()
-              .firstWhere((_) => true, orElse: () => null);
           return _EmployeeCard(
             employee: employee,
-            departmentName: dept,
-            designationTitle: desig,
-            onEdit: () => context.push(
-              AppRoutes.hrEmployeeNew,
-              extra: employee,
-            ),
+            departmentName: employee.department,
+            designationTitle: employee.designation,
+            onEdit: () =>
+                context.push(AppRoutes.hrEmployeeNew, extra: employee),
             onDelete: () => _confirmDelete(
               context,
               title: 'Delete employee?',
@@ -257,8 +270,7 @@ class _EmployeesTabState extends ConsumerState<_EmployeesTab> {
                   'This will permanently delete ${employee.fullName}. This action cannot be undone.',
               onConfirm: () async {
                 final messenger = ScaffoldMessenger.of(context);
-                final controller =
-                    ref.read(employeeDirectoryProvider.notifier);
+                final controller = ref.read(employeeDirectoryProvider.notifier);
                 await controller.deleteEmployee(employee.id!);
                 if (!mounted) return;
                 final latest = ref.read(employeeDirectoryProvider);
@@ -295,14 +307,6 @@ class _EmployeesTabState extends ConsumerState<_EmployeesTab> {
       ),
     );
   }
-}
-
-String _deptName(EmployeeDirectoryState state, String id) {
-  return state.departments
-      .where((d) => d.id == id)
-      .map((d) => d.name)
-      .cast<String>()
-      .firstWhere((_) => true, orElse: () => id);
 }
 
 class _EmployeeCard extends StatelessWidget {
@@ -375,331 +379,6 @@ class _EmployeeCard extends StatelessWidget {
 }
 
 // ===========================================================================
-// Departments tab
-// ===========================================================================
-
-class _DepartmentsTab extends ConsumerStatefulWidget {
-  const _DepartmentsTab();
-
-  @override
-  ConsumerState<_DepartmentsTab> createState() => _DepartmentsTabState();
-}
-
-class _DepartmentsTabState extends ConsumerState<_DepartmentsTab> {
-  int _page = 0;
-  static const int _rowsPerPage = 9;
-
-  List<DepartmentRecord> _filter(DepartmentDirectoryState state) {
-    final query = state.searchQuery.trim().toLowerCase();
-    return state.departments.where((d) {
-      if (query.isEmpty) return true;
-      return d.name.toLowerCase().contains(query) ||
-          (d.description ?? '').toLowerCase().contains(query);
-    }).toList();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final state = ref.watch(departmentDirectoryProvider);
-    final filtered = _filter(state);
-    final totalPages =
-        filtered.isEmpty ? 0 : (filtered.length / _rowsPerPage).ceil();
-    final safePage = totalPages == 0 ? 0 : math.min(_page, totalPages - 1);
-    final pageStart = filtered.isEmpty ? 0 : safePage * _rowsPerPage + 1;
-    final pageEnd = filtered.isEmpty
-        ? 0
-        : math.min(pageStart + _rowsPerPage - 1, filtered.length);
-    final visible = filtered.isEmpty
-        ? const <DepartmentRecord>[]
-        : filtered.sublist(pageStart - 1,
-            math.min(pageStart - 1 + _rowsPerPage, filtered.length));
-
-    return _TabShell(
-      searchQuery: state.searchQuery,
-      onSearch: (v) => ref
-          .read(departmentDirectoryProvider.notifier)
-          .setSearchQuery(v),
-      isLoading: state.isLoading,
-      isSaving: state.isSaving,
-      errorMessage: state.errorMessage,
-      onRefresh: () =>
-          ref.read(departmentDirectoryProvider.notifier).refresh(),
-      filterContent: const SizedBox.shrink(),
-      activeFilterChips: const [],
-      summary: filtered.isEmpty
-          ? (state.isLoading ? 'Loading departments...' : 'No departments found')
-          : 'Showing $pageStart-$pageEnd of ${filtered.length} departments',
-      isEmpty: filtered.isEmpty,
-      emptyTitle: 'No departments yet',
-      emptyMessage:
-          'Departments group your employees by team or function. Add one to get started.',
-      onCreate: () => context.push(AppRoutes.hrDepartmentNew),
-      gridBuilder: (crossAxisCount) => GridView.builder(
-        padding: const EdgeInsets.fromLTRB(20, 4, 20, 4),
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: crossAxisCount,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          mainAxisExtent: 140,
-        ),
-        itemCount: visible.length,
-        itemBuilder: (context, index) {
-          final dept = visible[index];
-          return _EntityCard(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF0E7490), Color(0xFF06B6D4)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            icon: Icons.apartment_outlined,
-            identity: _CardIdentity(
-              title: dept.name,
-              subtitle: dept.description ?? 'No description',
-              initials: dept.name.isNotEmpty
-                  ? dept.name.substring(0, 1).toUpperCase()
-                  : 'D',
-            ),
-            badges: const [],
-            onEdit: () => context.push(
-              AppRoutes.hrDepartmentNew,
-              extra: dept,
-            ),
-            onDelete: () => _confirmDelete(
-              context,
-              title: 'Delete department?',
-              message:
-                  'This will permanently delete ${dept.name}. This action cannot be undone.',
-              onConfirm: () async {
-                final messenger = ScaffoldMessenger.of(context);
-                final controller =
-                    ref.read(departmentDirectoryProvider.notifier);
-                await controller.deleteDepartment(dept.id!);
-                if (!mounted) return;
-                final latest = ref.read(departmentDirectoryProvider);
-                if (latest.errorMessage == null) {
-                  messenger.showSnackBar(
-                    SnackBar(
-                      content: Text('${dept.name} deleted.'),
-                      backgroundColor: const Color(0xFF10B981),
-                    ),
-                  );
-                } else {
-                  messenger.showSnackBar(
-                    SnackBar(
-                      content: Text(latest.errorMessage!),
-                      backgroundColor: Colors.red.shade600,
-                    ),
-                  );
-                }
-              },
-            ),
-          );
-        },
-      ),
-      pagination: _PaginationBar(
-        currentPage: safePage,
-        totalPages: totalPages,
-        totalItems: filtered.length,
-        onPreviousPage: totalPages == 0 || safePage == 0
-            ? null
-            : () => setState(() => _page = safePage - 1),
-        onNextPage: totalPages == 0 || safePage >= totalPages - 1
-            ? null
-            : () => setState(() => _page = safePage + 1),
-      ),
-    );
-  }
-}
-
-// ===========================================================================
-// Designations tab
-// ===========================================================================
-
-class _DesignationsTab extends ConsumerStatefulWidget {
-  const _DesignationsTab();
-
-  @override
-  ConsumerState<_DesignationsTab> createState() => _DesignationsTabState();
-}
-
-class _DesignationsTabState extends ConsumerState<_DesignationsTab> {
-  int _page = 0;
-  static const int _rowsPerPage = 9;
-
-  List<DesignationRecord> _filter(DesignationDirectoryState state) {
-    final query = state.searchQuery.trim().toLowerCase();
-    final dept = state.departmentFilter;
-    return state.designations.where((d) {
-      if (dept != null && d.departmentId != dept) {
-        return false;
-      }
-      if (query.isEmpty) return true;
-      return d.title.toLowerCase().contains(query) ||
-          (d.grade ?? '').toLowerCase().contains(query);
-    }).toList();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final state = ref.watch(designationDirectoryProvider);
-    final departments = ref.watch(employeeDirectoryProvider).departments;
-    final filtered = _filter(state);
-    final totalPages =
-        filtered.isEmpty ? 0 : (filtered.length / _rowsPerPage).ceil();
-    final safePage = totalPages == 0 ? 0 : math.min(_page, totalPages - 1);
-    final pageStart = filtered.isEmpty ? 0 : safePage * _rowsPerPage + 1;
-    final pageEnd = filtered.isEmpty
-        ? 0
-        : math.min(pageStart + _rowsPerPage - 1, filtered.length);
-    final visible = filtered.isEmpty
-        ? const <DesignationRecord>[]
-        : filtered.sublist(pageStart - 1,
-            math.min(pageStart - 1 + _rowsPerPage, filtered.length));
-
-    return _TabShell(
-      searchQuery: state.searchQuery,
-      onSearch: (v) => ref
-          .read(designationDirectoryProvider.notifier)
-          .setSearchQuery(v),
-      isLoading: state.isLoading,
-      isSaving: state.isSaving,
-      errorMessage: state.errorMessage,
-      onRefresh: () =>
-          ref.read(designationDirectoryProvider.notifier).refresh(),
-      filterContent: _FilterDropdown<String?>(
-        value: state.departmentFilter,
-        label: 'Department',
-        items: [
-          const DropdownMenuItem(value: null, child: Text('All departments')),
-          ...departments.map(
-            (d) => DropdownMenuItem<String?>(
-              value: d.id,
-              child: Text(d.name, overflow: TextOverflow.ellipsis),
-            ),
-          ),
-        ],
-        onChanged: (v) => ref
-            .read(designationDirectoryProvider.notifier)
-            .setDepartmentFilter(v),
-      ),
-      activeFilterChips: [
-        if (state.departmentFilter != null)
-          _ActiveFilterChip(
-            label:
-                'Dept: ${_deptNameDesignation(departments, state.departmentFilter!)}',
-            onClear: () => ref
-                .read(designationDirectoryProvider.notifier)
-                .setDepartmentFilter(null),
-          ),
-      ],
-      summary: filtered.isEmpty
-          ? (state.isLoading ? 'Loading designations...' : 'No designations found')
-          : 'Showing $pageStart-$pageEnd of ${filtered.length} designations',
-      isEmpty: filtered.isEmpty,
-      emptyTitle: 'No designations yet',
-      emptyMessage:
-          'Designations define job roles within departments. Add one to get started.',
-      onCreate: () => context.push(AppRoutes.hrDesignationNew),
-      gridBuilder: (crossAxisCount) => GridView.builder(
-        padding: const EdgeInsets.fromLTRB(20, 4, 20, 4),
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: crossAxisCount,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          mainAxisExtent: 140,
-        ),
-        itemCount: visible.length,
-        itemBuilder: (context, index) {
-          final d = visible[index];
-          final deptName = d.departmentId == null
-              ? null
-              : departments
-                  .where((dept) => dept.id == d.departmentId)
-                  .map((dept) => dept.name)
-                  .cast<String?>()
-                  .firstWhere((_) => true, orElse: () => null);
-          return _EntityCard(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF7C2D12), Color(0xFFF59E0B)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            icon: Icons.workspace_premium_outlined,
-            identity: _CardIdentity(
-              title: d.title,
-              subtitle: d.grade ?? 'No grade',
-              initials: d.title.isNotEmpty
-                  ? d.title.substring(0, 1).toUpperCase()
-                  : 'D',
-            ),
-            badges: [
-              if (deptName != null) _Pill(text: deptName),
-              if (d.grade != null) _Pill(text: d.grade!),
-            ],
-            onEdit: () => context.push(
-              AppRoutes.hrDesignationNew,
-              extra: d,
-            ),
-            onDelete: () => _confirmDelete(
-              context,
-              title: 'Delete designation?',
-              message:
-                  'This will permanently delete ${d.title}. This action cannot be undone.',
-              onConfirm: () async {
-                final messenger = ScaffoldMessenger.of(context);
-                final controller =
-                    ref.read(designationDirectoryProvider.notifier);
-                await controller.deleteDesignation(d.id!);
-                if (!mounted) return;
-                final latest = ref.read(designationDirectoryProvider);
-                if (latest.errorMessage == null) {
-                  messenger.showSnackBar(
-                    SnackBar(
-                      content: Text('${d.title} deleted.'),
-                      backgroundColor: const Color(0xFF10B981),
-                    ),
-                  );
-                } else {
-                  messenger.showSnackBar(
-                    SnackBar(
-                      content: Text(latest.errorMessage!),
-                      backgroundColor: Colors.red.shade600,
-                    ),
-                  );
-                }
-              },
-            ),
-          );
-        },
-      ),
-      pagination: _PaginationBar(
-        currentPage: safePage,
-        totalPages: totalPages,
-        totalItems: filtered.length,
-        onPreviousPage: totalPages == 0 || safePage == 0
-            ? null
-            : () => setState(() => _page = safePage - 1),
-        onNextPage: totalPages == 0 || safePage >= totalPages - 1
-            ? null
-            : () => setState(() => _page = safePage + 1),
-      ),
-    );
-  }
-}
-
-String _deptNameDesignation(List<DepartmentRecord> deps, String id) {
-  return deps
-      .where((d) => d.id == id)
-      .map((d) => d.name)
-      .cast<String>()
-      .firstWhere((_) => true, orElse: () => id);
-}
-
-// ===========================================================================
 // Shifts tab
 // ===========================================================================
 
@@ -727,8 +406,9 @@ class _ShiftsTabState extends ConsumerState<_ShiftsTab> {
   Widget build(BuildContext context) {
     final state = ref.watch(shiftDirectoryProvider);
     final filtered = _filter(state);
-    final totalPages =
-        filtered.isEmpty ? 0 : (filtered.length / _rowsPerPage).ceil();
+    final totalPages = filtered.isEmpty
+        ? 0
+        : (filtered.length / _rowsPerPage).ceil();
     final safePage = totalPages == 0 ? 0 : math.min(_page, totalPages - 1);
     final pageStart = filtered.isEmpty ? 0 : safePage * _rowsPerPage + 1;
     final pageEnd = filtered.isEmpty
@@ -736,8 +416,10 @@ class _ShiftsTabState extends ConsumerState<_ShiftsTab> {
         : math.min(pageStart + _rowsPerPage - 1, filtered.length);
     final visible = filtered.isEmpty
         ? const <ShiftRecord>[]
-        : filtered.sublist(pageStart - 1,
-            math.min(pageStart - 1 + _rowsPerPage, filtered.length));
+        : filtered.sublist(
+            pageStart - 1,
+            math.min(pageStart - 1 + _rowsPerPage, filtered.length),
+          );
 
     return _TabShell(
       searchQuery: state.searchQuery,
@@ -788,10 +470,7 @@ class _ShiftsTabState extends ConsumerState<_ShiftsTab> {
               _Pill(text: '${s.workingHours.toStringAsFixed(1)}h'),
               _Pill(text: 'Grace ${s.graceMinutes}m'),
             ],
-            onEdit: () => context.push(
-              AppRoutes.hrShiftNew,
-              extra: s,
-            ),
+            onEdit: () => context.push(AppRoutes.hrShiftNew, extra: s),
             onDelete: () => _confirmDelete(
               context,
               title: 'Delete shift?',
@@ -799,8 +478,7 @@ class _ShiftsTabState extends ConsumerState<_ShiftsTab> {
                   'This will permanently delete ${s.shiftName}. This action cannot be undone.',
               onConfirm: () async {
                 final messenger = ScaffoldMessenger.of(context);
-                final controller =
-                    ref.read(shiftDirectoryProvider.notifier);
+                final controller = ref.read(shiftDirectoryProvider.notifier);
                 await controller.deleteShift(s.id!);
                 if (!mounted) return;
                 final latest = ref.read(shiftDirectoryProvider);
@@ -868,8 +546,9 @@ class _AssignmentsTabState extends ConsumerState<_AssignmentsTab> {
   Widget build(BuildContext context) {
     final state = ref.watch(shiftDirectoryProvider);
     final filtered = _filter(state);
-    final totalPages =
-        filtered.isEmpty ? 0 : (filtered.length / _rowsPerPage).ceil();
+    final totalPages = filtered.isEmpty
+        ? 0
+        : (filtered.length / _rowsPerPage).ceil();
     final safePage = totalPages == 0 ? 0 : math.min(_page, totalPages - 1);
     final pageStart = filtered.isEmpty ? 0 : safePage * _rowsPerPage + 1;
     final pageEnd = filtered.isEmpty
@@ -877,8 +556,10 @@ class _AssignmentsTabState extends ConsumerState<_AssignmentsTab> {
         : math.min(pageStart + _rowsPerPage - 1, filtered.length);
     final visible = filtered.isEmpty
         ? const <EmployeeShiftRecord>[]
-        : filtered.sublist(pageStart - 1,
-            math.min(pageStart - 1 + _rowsPerPage, filtered.length));
+        : filtered.sublist(
+            pageStart - 1,
+            math.min(pageStart - 1 + _rowsPerPage, filtered.length),
+          );
 
     return _TabShell(
       searchQuery: state.searchQuery,
@@ -891,7 +572,9 @@ class _AssignmentsTabState extends ConsumerState<_AssignmentsTab> {
       filterContent: const SizedBox.shrink(),
       activeFilterChips: const [],
       summary: filtered.isEmpty
-          ? (state.isLoading ? 'Loading assignments...' : 'No assignments found')
+          ? (state.isLoading
+                ? 'Loading assignments...'
+                : 'No assignments found')
           : 'Showing $pageStart-$pageEnd of ${filtered.length} assignments',
       isEmpty: filtered.isEmpty,
       emptyTitle: 'No shift assignments yet',
@@ -931,13 +614,8 @@ class _AssignmentsTabState extends ConsumerState<_AssignmentsTab> {
                   ? empName.substring(0, 1).toUpperCase()
                   : 'A',
             ),
-            badges: [
-              if (a.effectiveTo == null) _Pill(text: 'Ongoing'),
-            ],
-            onEdit: () => context.push(
-              AppRoutes.hrEmployeeShiftNew,
-              extra: a,
-            ),
+            badges: [if (a.effectiveTo == null) _Pill(text: 'Ongoing')],
+            onEdit: () => context.push(AppRoutes.hrEmployeeShiftNew, extra: a),
             onDelete: () => _confirmDelete(
               context,
               title: 'Delete assignment?',
@@ -945,8 +623,7 @@ class _AssignmentsTabState extends ConsumerState<_AssignmentsTab> {
                   'This will permanently remove this shift assignment. This action cannot be undone.',
               onConfirm: () async {
                 final messenger = ScaffoldMessenger.of(context);
-                final controller =
-                    ref.read(shiftDirectoryProvider.notifier);
+                final controller = ref.read(shiftDirectoryProvider.notifier);
                 await controller.deleteAssignment(a.id!);
                 if (!mounted) return;
                 final latest = ref.read(shiftDirectoryProvider);
@@ -1051,8 +728,9 @@ class _AttendanceTabState extends ConsumerState<_AttendanceTab> {
   Widget build(BuildContext context) {
     final state = ref.watch(attendanceDirectoryProvider);
     final filtered = _filter(state);
-    final totalPages =
-        filtered.isEmpty ? 0 : (filtered.length / _rowsPerPage).ceil();
+    final totalPages = filtered.isEmpty
+        ? 0
+        : (filtered.length / _rowsPerPage).ceil();
     final safePage = totalPages == 0 ? 0 : math.min(_page, totalPages - 1);
     final pageStart = filtered.isEmpty ? 0 : safePage * _rowsPerPage + 1;
     final pageEnd = filtered.isEmpty
@@ -1060,8 +738,10 @@ class _AttendanceTabState extends ConsumerState<_AttendanceTab> {
         : math.min(pageStart + _rowsPerPage - 1, filtered.length);
     final visible = filtered.isEmpty
         ? const <AttendanceRecord>[]
-        : filtered.sublist(pageStart - 1,
-            math.min(pageStart - 1 + _rowsPerPage, filtered.length));
+        : filtered.sublist(
+            pageStart - 1,
+            math.min(pageStart - 1 + _rowsPerPage, filtered.length),
+          );
 
     return _TabShell(
       searchQuery: state.searchQuery,
@@ -1070,8 +750,7 @@ class _AttendanceTabState extends ConsumerState<_AttendanceTab> {
       isLoading: state.isLoading,
       isSaving: state.isSaving,
       errorMessage: state.errorMessage,
-      onRefresh: () =>
-          ref.read(attendanceDirectoryProvider.notifier).refresh(),
+      onRefresh: () => ref.read(attendanceDirectoryProvider.notifier).refresh(),
       filterContent: _FilterDropdown<String?>(
         value: state.statusFilter,
         label: 'Status',
@@ -1112,7 +791,9 @@ class _AttendanceTabState extends ConsumerState<_AttendanceTab> {
           ),
       ],
       summary: filtered.isEmpty
-          ? (state.isLoading ? 'Loading attendance...' : 'No attendance records')
+          ? (state.isLoading
+                ? 'Loading attendance...'
+                : 'No attendance records')
           : 'Showing $pageStart-$pageEnd of ${filtered.length} records',
       isEmpty: filtered.isEmpty,
       emptyTitle: 'No attendance records yet',
@@ -1150,8 +831,7 @@ class _AttendanceTabState extends ConsumerState<_AttendanceTab> {
             ),
             badges: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: statusColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8),
@@ -1181,10 +861,7 @@ class _AttendanceTabState extends ConsumerState<_AttendanceTab> {
               ),
               _Pill(text: '${r.workHours.toStringAsFixed(1)}h'),
             ],
-            onEdit: () => context.push(
-              AppRoutes.hrAttendanceNew,
-              extra: r,
-            ),
+            onEdit: () => context.push(AppRoutes.hrAttendanceNew, extra: r),
             onDelete: () => _confirmDelete(
               context,
               title: 'Delete attendance record?',
@@ -1192,8 +869,9 @@ class _AttendanceTabState extends ConsumerState<_AttendanceTab> {
                   'This will permanently remove this attendance entry. This action cannot be undone.',
               onConfirm: () async {
                 final messenger = ScaffoldMessenger.of(context);
-                final controller =
-                    ref.read(attendanceDirectoryProvider.notifier);
+                final controller = ref.read(
+                  attendanceDirectoryProvider.notifier,
+                );
                 await controller.deleteAttendance(r.id!);
                 if (!mounted) return;
                 final latest = ref.read(attendanceDirectoryProvider);
@@ -1259,8 +937,9 @@ class _LeaveTypesTabState extends ConsumerState<_LeaveTypesTab> {
   Widget build(BuildContext context) {
     final state = ref.watch(leaveTypeDirectoryProvider);
     final filtered = _filter(state);
-    final totalPages =
-        filtered.isEmpty ? 0 : (filtered.length / _rowsPerPage).ceil();
+    final totalPages = filtered.isEmpty
+        ? 0
+        : (filtered.length / _rowsPerPage).ceil();
     final safePage = totalPages == 0 ? 0 : math.min(_page, totalPages - 1);
     final pageStart = filtered.isEmpty ? 0 : safePage * _rowsPerPage + 1;
     final pageEnd = filtered.isEmpty
@@ -1268,8 +947,10 @@ class _LeaveTypesTabState extends ConsumerState<_LeaveTypesTab> {
         : math.min(pageStart + _rowsPerPage - 1, filtered.length);
     final visible = filtered.isEmpty
         ? const <LeaveTypeRecord>[]
-        : filtered.sublist(pageStart - 1,
-            math.min(pageStart - 1 + _rowsPerPage, filtered.length));
+        : filtered.sublist(
+            pageStart - 1,
+            math.min(pageStart - 1 + _rowsPerPage, filtered.length),
+          );
 
     return _TabShell(
       searchQuery: state.searchQuery,
@@ -1278,8 +959,7 @@ class _LeaveTypesTabState extends ConsumerState<_LeaveTypesTab> {
       isLoading: state.isLoading,
       isSaving: state.isSaving,
       errorMessage: state.errorMessage,
-      onRefresh: () =>
-          ref.read(leaveTypeDirectoryProvider.notifier).refresh(),
+      onRefresh: () => ref.read(leaveTypeDirectoryProvider.notifier).refresh(),
       filterContent: const SizedBox.shrink(),
       activeFilterChips: const [],
       summary: filtered.isEmpty
@@ -1323,10 +1003,7 @@ class _LeaveTypesTabState extends ConsumerState<_LeaveTypesTab> {
               _Pill(text: t.paidLabel),
               _Pill(text: '${t.daysPerYear}d'),
             ],
-            onEdit: () => context.push(
-              AppRoutes.hrLeaveTypeNew,
-              extra: t,
-            ),
+            onEdit: () => context.push(AppRoutes.hrLeaveTypeNew, extra: t),
             onDelete: () => _confirmDelete(
               context,
               title: 'Delete leave type?',
@@ -1334,8 +1011,9 @@ class _LeaveTypesTabState extends ConsumerState<_LeaveTypesTab> {
                   'This will permanently delete ${t.name}. This action cannot be undone.',
               onConfirm: () async {
                 final messenger = ScaffoldMessenger.of(context);
-                final controller =
-                    ref.read(leaveTypeDirectoryProvider.notifier);
+                final controller = ref.read(
+                  leaveTypeDirectoryProvider.notifier,
+                );
                 await controller.deleteLeaveType(t.id!);
                 if (!mounted) return;
                 final latest = ref.read(leaveTypeDirectoryProvider);
@@ -1421,7 +1099,8 @@ class _LeaveRequestsTabState extends ConsumerState<_LeaveRequestsTab> {
     final query = state.searchQuery.trim().toLowerCase();
     final status = state.approvalStatusFilter;
     return state.requests.where((r) {
-      if (status != null && r.approvalStatus.toLowerCase() != status.toLowerCase()) {
+      if (status != null &&
+          r.approvalStatus.toLowerCase() != status.toLowerCase()) {
         return false;
       }
       if (query.isEmpty) return true;
@@ -1502,8 +1181,9 @@ class _LeaveRequestsTabState extends ConsumerState<_LeaveRequestsTab> {
     final state = ref.watch(leaveRequestDirectoryProvider);
     final types = ref.watch(leaveTypeDirectoryProvider).types;
     final filtered = _filter(state);
-    final totalPages =
-        filtered.isEmpty ? 0 : (filtered.length / _rowsPerPage).ceil();
+    final totalPages = filtered.isEmpty
+        ? 0
+        : (filtered.length / _rowsPerPage).ceil();
     final safePage = totalPages == 0 ? 0 : math.min(_page, totalPages - 1);
     final pageStart = filtered.isEmpty ? 0 : safePage * _rowsPerPage + 1;
     final pageEnd = filtered.isEmpty
@@ -1511,8 +1191,10 @@ class _LeaveRequestsTabState extends ConsumerState<_LeaveRequestsTab> {
         : math.min(pageStart + _rowsPerPage - 1, filtered.length);
     final visible = filtered.isEmpty
         ? const <LeaveRequestRecord>[]
-        : filtered.sublist(pageStart - 1,
-            math.min(pageStart - 1 + _rowsPerPage, filtered.length));
+        : filtered.sublist(
+            pageStart - 1,
+            math.min(pageStart - 1 + _rowsPerPage, filtered.length),
+          );
 
     return _TabShell(
       searchQuery: state.searchQuery,
@@ -1565,8 +1247,8 @@ class _LeaveRequestsTabState extends ConsumerState<_LeaveRequestsTab> {
       ],
       summary: filtered.isEmpty
           ? (state.isLoading
-              ? 'Loading leave requests...'
-              : 'No leave requests')
+                ? 'Loading leave requests...'
+                : 'No leave requests')
           : 'Showing $pageStart-$pageEnd of ${filtered.length} requests',
       isEmpty: filtered.isEmpty,
       emptyTitle: 'No leave requests yet',
@@ -1586,7 +1268,9 @@ class _LeaveRequestsTabState extends ConsumerState<_LeaveRequestsTab> {
         itemCount: visible.length,
         itemBuilder: (context, index) {
           final r = visible[index];
-          final statusColor = LeaveApprovalStatusOptions.color(r.approvalStatus);
+          final statusColor = LeaveApprovalStatusOptions.color(
+            r.approvalStatus,
+          );
           final empName = _employeeName(r.employeeId);
           final typeName = _leaveTypeName(r.leaveTypeId, types);
           final fromText = _formatDate(r.fromDate);
@@ -1608,8 +1292,7 @@ class _LeaveRequestsTabState extends ConsumerState<_LeaveRequestsTab> {
             ),
             badges: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: statusColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8),
@@ -1639,10 +1322,7 @@ class _LeaveRequestsTabState extends ConsumerState<_LeaveRequestsTab> {
               ),
               _Pill(text: '${r.totalDays.toStringAsFixed(1)}d'),
             ],
-            onEdit: () => context.push(
-              AppRoutes.hrLeaveRequestNew,
-              extra: r,
-            ),
+            onEdit: () => context.push(AppRoutes.hrLeaveRequestNew, extra: r),
             onDelete: () => _confirmDelete(
               context,
               title: 'Delete leave request?',
@@ -1650,8 +1330,9 @@ class _LeaveRequestsTabState extends ConsumerState<_LeaveRequestsTab> {
                   'This will permanently remove this leave request. This action cannot be undone.',
               onConfirm: () async {
                 final messenger = ScaffoldMessenger.of(context);
-                final controller =
-                    ref.read(leaveRequestDirectoryProvider.notifier);
+                final controller = ref.read(
+                  leaveRequestDirectoryProvider.notifier,
+                );
                 await controller.deleteLeaveRequest(r.id!);
                 if (!mounted) return;
                 final latest = ref.read(leaveRequestDirectoryProvider);
@@ -1685,8 +1366,11 @@ class _LeaveRequestsTabState extends ConsumerState<_LeaveRequestsTab> {
                           color: Colors.white.withValues(alpha: 0.18),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Icon(Icons.close_rounded,
-                            color: Colors.white, size: 16),
+                        child: const Icon(
+                          Icons.close_rounded,
+                          color: Colors.white,
+                          size: 16,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 4),
@@ -1701,8 +1385,11 @@ class _LeaveRequestsTabState extends ConsumerState<_LeaveRequestsTab> {
                           color: Colors.white.withValues(alpha: 0.28),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Icon(Icons.check_rounded,
-                            color: Colors.white, size: 16),
+                        child: const Icon(
+                          Icons.check_rounded,
+                          color: Colors.white,
+                          size: 16,
+                        ),
                       ),
                     ),
                   ]
@@ -1757,8 +1444,9 @@ class _HolidaysTabState extends ConsumerState<_HolidaysTab> {
   Widget build(BuildContext context) {
     final state = ref.watch(holidayDirectoryProvider);
     final filtered = _filter(state);
-    final totalPages =
-        filtered.isEmpty ? 0 : (filtered.length / _rowsPerPage).ceil();
+    final totalPages = filtered.isEmpty
+        ? 0
+        : (filtered.length / _rowsPerPage).ceil();
     final safePage = totalPages == 0 ? 0 : math.min(_page, totalPages - 1);
     final pageStart = filtered.isEmpty ? 0 : safePage * _rowsPerPage + 1;
     final pageEnd = filtered.isEmpty
@@ -1766,8 +1454,10 @@ class _HolidaysTabState extends ConsumerState<_HolidaysTab> {
         : math.min(pageStart + _rowsPerPage - 1, filtered.length);
     final visible = filtered.isEmpty
         ? const <HolidayRecord>[]
-        : filtered.sublist(pageStart - 1,
-            math.min(pageStart - 1 + _rowsPerPage, filtered.length));
+        : filtered.sublist(
+            pageStart - 1,
+            math.min(pageStart - 1 + _rowsPerPage, filtered.length),
+          );
 
     return _TabShell(
       searchQuery: state.searchQuery,
@@ -1809,11 +1499,9 @@ class _HolidaysTabState extends ConsumerState<_HolidaysTab> {
       activeFilterChips: [
         if (state.typeFilter != null)
           _ActiveFilterChip(
-            label:
-                'Type: ${HolidayTypeOptions.label(state.typeFilter!)}',
-            onClear: () => ref
-                .read(holidayDirectoryProvider.notifier)
-                .setTypeFilter(null),
+            label: 'Type: ${HolidayTypeOptions.label(state.typeFilter!)}',
+            onClear: () =>
+                ref.read(holidayDirectoryProvider.notifier).setTypeFilter(null),
           ),
       ],
       summary: filtered.isEmpty
@@ -1853,8 +1541,7 @@ class _HolidaysTabState extends ConsumerState<_HolidaysTab> {
             ),
             badges: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: h.typeColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8),
@@ -1883,10 +1570,7 @@ class _HolidaysTabState extends ConsumerState<_HolidaysTab> {
                 ),
               ),
             ],
-            onEdit: () => context.push(
-              AppRoutes.hrHolidayNew,
-              extra: h,
-            ),
+            onEdit: () => context.push(AppRoutes.hrHolidayNew, extra: h),
             onDelete: () => _confirmDelete(
               context,
               title: 'Delete holiday?',
@@ -1894,8 +1578,7 @@ class _HolidaysTabState extends ConsumerState<_HolidaysTab> {
                   'This will permanently delete ${h.name}. This action cannot be undone.',
               onConfirm: () async {
                 final messenger = ScaffoldMessenger.of(context);
-                final controller =
-                    ref.read(holidayDirectoryProvider.notifier);
+                final controller = ref.read(holidayDirectoryProvider.notifier);
                 await controller.deleteHoliday(h.id!);
                 if (!mounted) return;
                 final latest = ref.read(holidayDirectoryProvider);
@@ -1968,10 +1651,7 @@ class SearchBarSection extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(14, 4, 8, 4),
       child: Row(
         children: [
-          const Icon(
-            Icons.search_rounded,
-            color: Color(0xFF94A3B8),
-          ),
+          const Icon(Icons.search_rounded, color: Color(0xFF94A3B8)),
           const SizedBox(width: 8),
           Expanded(
             child: TextField(
@@ -2104,8 +1784,11 @@ class _TabShell extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.error_outline,
-                        color: Color(0xFFB91C1C), size: 18),
+                    const Icon(
+                      Icons.error_outline,
+                      color: Color(0xFFB91C1C),
+                      size: 18,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -2196,12 +1879,12 @@ class _EntityCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
               gradient: gradient,
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(15)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(15),
+              ),
             ),
             child: Row(
               children: [
@@ -2239,11 +1922,7 @@ class _EntityCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   if (badges.isNotEmpty)
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
-                      children: badges,
-                    )
+                    Wrap(spacing: 6, runSpacing: 6, children: badges)
                   else
                     Text(
                       identity.subtitle,
@@ -2568,9 +2247,7 @@ Future<void> _confirmDelete(
   final result = await showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Text(title),
       content: Text(message),
       actions: [

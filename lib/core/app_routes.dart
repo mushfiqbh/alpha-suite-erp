@@ -11,8 +11,6 @@ class AppRoutes {
   static const productNew = '/products/new';
   static const hr = '/hr';
   static const hrEmployeeNew = '/hr/employees/new';
-  static const hrDepartmentNew = '/hr/departments/new';
-  static const hrDesignationNew = '/hr/designations/new';
   static const hrShiftNew = '/hr/shifts/new';
   static const hrEmployeeShiftNew = '/hr/employee-shifts/new';
   static const hrAttendanceNew = '/hr/attendance/new';

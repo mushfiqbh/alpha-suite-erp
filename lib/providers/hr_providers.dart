@@ -27,303 +27,12 @@ bool _supabaseReady() {
 SupabaseClient get _client => Supabase.instance.client;
 
 String _nextCode(String prefix) {
-  final token = DateTime.now().millisecondsSinceEpoch.toRadixString(36).toUpperCase();
+  final token = DateTime.now().millisecondsSinceEpoch
+      .toRadixString(36)
+      .toUpperCase();
   final compact = token.length > 6 ? token.substring(token.length - 6) : token;
   return '$prefix-$compact';
 }
-
-// ===========================================================================
-// Departments
-// ===========================================================================
-
-class DepartmentDirectoryState {
-  const DepartmentDirectoryState({
-    required this.departments,
-    required this.isLoading,
-    required this.isSaving,
-    required this.searchQuery,
-    this.errorMessage,
-  });
-
-  factory DepartmentDirectoryState.initial() => const DepartmentDirectoryState(
-        departments: <DepartmentRecord>[],
-        isLoading: false,
-        isSaving: false,
-        searchQuery: '',
-      );
-
-  final List<DepartmentRecord> departments;
-  final bool isLoading;
-  final bool isSaving;
-  final String searchQuery;
-  final String? errorMessage;
-
-  DepartmentDirectoryState copyWith({
-    List<DepartmentRecord>? departments,
-    bool? isLoading,
-    bool? isSaving,
-    String? searchQuery,
-    String? errorMessage,
-    bool clearError = false,
-  }) {
-    return DepartmentDirectoryState(
-      departments: departments ?? this.departments,
-      isLoading: isLoading ?? this.isLoading,
-      isSaving: isSaving ?? this.isSaving,
-      searchQuery: searchQuery ?? this.searchQuery,
-      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
-    );
-  }
-}
-
-class DepartmentDirectoryController
-    extends StateNotifier<DepartmentDirectoryState> {
-  DepartmentDirectoryController() : super(DepartmentDirectoryState.initial()) {
-    refresh();
-  }
-
-  Future<void> refresh() async {
-    if (!_supabaseReady()) {
-      state = state.copyWith(
-        isLoading: false,
-        departments: const <DepartmentRecord>[],
-        errorMessage:
-            'Supabase is not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY to load departments.',
-      );
-      return;
-    }
-    state = state.copyWith(isLoading: true, clearError: true);
-    try {
-      final data = await _client.from('departments').select().order('name');
-      state = state.copyWith(
-        isLoading: false,
-        departments: List<Map<String, dynamic>>.from(data)
-            .map(DepartmentRecord.fromMap)
-            .toList(),
-        clearError: true,
-      );
-    } catch (error) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: _formatError(error, 'Unable to load departments.'),
-      );
-    }
-  }
-
-  void setSearchQuery(String query) {
-    state = state.copyWith(searchQuery: query);
-  }
-
-  Future<void> saveDepartment(DepartmentRecord record) async {
-    if (!_supabaseReady()) {
-      state = state.copyWith(
-        errorMessage:
-            'Supabase is not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY to save departments.',
-      );
-      return;
-    }
-    state = state.copyWith(isSaving: true, clearError: true);
-    try {
-      final payload = record.toMap();
-      if (record.id == null) {
-        await _client.from('departments').insert(payload);
-      } else {
-        await _client.from('departments').update(payload).eq('id', record.id!);
-      }
-      await refresh();
-    } catch (error) {
-      state = state.copyWith(
-        isSaving: false,
-        errorMessage: _formatError(error, 'Unable to save department.'),
-      );
-      return;
-    } finally {
-      state = state.copyWith(isSaving: false);
-    }
-  }
-
-  Future<void> deleteDepartment(String id) async {
-    if (!_supabaseReady()) {
-      state = state.copyWith(
-        errorMessage:
-            'Supabase is not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY to delete departments.',
-      );
-      return;
-    }
-    state = state.copyWith(isSaving: true, clearError: true);
-    try {
-      await _client.from('departments').delete().eq('id', id);
-      await refresh();
-    } catch (error) {
-      state = state.copyWith(
-        isSaving: false,
-        errorMessage: _formatError(error, 'Unable to delete department.'),
-      );
-      return;
-    } finally {
-      state = state.copyWith(isSaving: false);
-    }
-  }
-}
-
-final departmentDirectoryProvider = StateNotifierProvider<
-    DepartmentDirectoryController, DepartmentDirectoryState>((ref) {
-  return DepartmentDirectoryController();
-});
-
-// ===========================================================================
-// Designations
-// ===========================================================================
-
-class DesignationDirectoryState {
-  const DesignationDirectoryState({
-    required this.designations,
-    required this.isLoading,
-    required this.isSaving,
-    required this.searchQuery,
-    required this.departmentFilter,
-    this.errorMessage,
-  });
-
-  factory DesignationDirectoryState.initial() => const DesignationDirectoryState(
-        designations: <DesignationRecord>[],
-        isLoading: false,
-        isSaving: false,
-        searchQuery: '',
-        departmentFilter: null,
-      );
-
-  final List<DesignationRecord> designations;
-  final bool isLoading;
-  final bool isSaving;
-  final String searchQuery;
-  final String? departmentFilter;
-  final String? errorMessage;
-
-  DesignationDirectoryState copyWith({
-    List<DesignationRecord>? designations,
-    bool? isLoading,
-    bool? isSaving,
-    String? searchQuery,
-    String? departmentFilter,
-    bool clearDepartmentFilter = false,
-    String? errorMessage,
-    bool clearError = false,
-  }) {
-    return DesignationDirectoryState(
-      designations: designations ?? this.designations,
-      isLoading: isLoading ?? this.isLoading,
-      isSaving: isSaving ?? this.isSaving,
-      searchQuery: searchQuery ?? this.searchQuery,
-      departmentFilter:
-          clearDepartmentFilter ? null : (departmentFilter ?? this.departmentFilter),
-      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
-    );
-  }
-}
-
-class DesignationDirectoryController
-    extends StateNotifier<DesignationDirectoryState> {
-  DesignationDirectoryController() : super(DesignationDirectoryState.initial()) {
-    refresh();
-  }
-
-  Future<void> refresh() async {
-    if (!_supabaseReady()) {
-      state = state.copyWith(
-        isLoading: false,
-        designations: const <DesignationRecord>[],
-        errorMessage:
-            'Supabase is not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY to load designations.',
-      );
-      return;
-    }
-    state = state.copyWith(isLoading: true, clearError: true);
-    try {
-      final data = await _client.from('designations').select().order('title');
-      state = state.copyWith(
-        isLoading: false,
-        designations: List<Map<String, dynamic>>.from(data)
-            .map(DesignationRecord.fromMap)
-            .toList(),
-        clearError: true,
-      );
-    } catch (error) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: _formatError(error, 'Unable to load designations.'),
-      );
-    }
-  }
-
-  void setSearchQuery(String query) {
-    state = state.copyWith(searchQuery: query);
-  }
-
-  void setDepartmentFilter(String? departmentId) {
-    if (departmentId == null || departmentId.isEmpty) {
-      state = state.copyWith(clearDepartmentFilter: true);
-    } else {
-      state = state.copyWith(departmentFilter: departmentId);
-    }
-  }
-
-  Future<void> saveDesignation(DesignationRecord record) async {
-    if (!_supabaseReady()) {
-      state = state.copyWith(
-        errorMessage:
-            'Supabase is not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY to save designations.',
-      );
-      return;
-    }
-    state = state.copyWith(isSaving: true, clearError: true);
-    try {
-      final payload = record.toMap();
-      if (record.id == null) {
-        await _client.from('designations').insert(payload);
-      } else {
-        await _client.from('designations').update(payload).eq('id', record.id!);
-      }
-      await refresh();
-    } catch (error) {
-      state = state.copyWith(
-        isSaving: false,
-        errorMessage: _formatError(error, 'Unable to save designation.'),
-      );
-      return;
-    } finally {
-      state = state.copyWith(isSaving: false);
-    }
-  }
-
-  Future<void> deleteDesignation(String id) async {
-    if (!_supabaseReady()) {
-      state = state.copyWith(
-        errorMessage:
-            'Supabase is not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY to delete designations.',
-      );
-      return;
-    }
-    state = state.copyWith(isSaving: true, clearError: true);
-    try {
-      await _client.from('designations').delete().eq('id', id);
-      await refresh();
-    } catch (error) {
-      state = state.copyWith(
-        isSaving: false,
-        errorMessage: _formatError(error, 'Unable to delete designation.'),
-      );
-      return;
-    } finally {
-      state = state.copyWith(isSaving: false);
-    }
-  }
-}
-
-final designationDirectoryProvider = StateNotifierProvider<
-    DesignationDirectoryController, DesignationDirectoryState>((ref) {
-  return DesignationDirectoryController();
-});
 
 // ===========================================================================
 // Employees
@@ -332,8 +41,6 @@ final designationDirectoryProvider = StateNotifierProvider<
 class EmployeeDirectoryState {
   const EmployeeDirectoryState({
     required this.employees,
-    required this.departments,
-    required this.designations,
     required this.isLoading,
     required this.isSaving,
     required this.searchQuery,
@@ -343,19 +50,15 @@ class EmployeeDirectoryState {
   });
 
   factory EmployeeDirectoryState.initial() => const EmployeeDirectoryState(
-        employees: <EmployeeRecord>[],
-        departments: <DepartmentRecord>[],
-        designations: <DesignationRecord>[],
-        isLoading: false,
-        isSaving: false,
-        searchQuery: '',
-        statusFilter: null,
-        departmentFilter: null,
-      );
+    employees: <EmployeeRecord>[],
+    isLoading: false,
+    isSaving: false,
+    searchQuery: '',
+    statusFilter: null,
+    departmentFilter: null,
+  );
 
   final List<EmployeeRecord> employees;
-  final List<DepartmentRecord> departments;
-  final List<DesignationRecord> designations;
   final bool isLoading;
   final bool isSaving;
   final String searchQuery;
@@ -365,8 +68,6 @@ class EmployeeDirectoryState {
 
   EmployeeDirectoryState copyWith({
     List<EmployeeRecord>? employees,
-    List<DepartmentRecord>? departments,
-    List<DesignationRecord>? designations,
     bool? isLoading,
     bool? isSaving,
     String? searchQuery,
@@ -379,21 +80,22 @@ class EmployeeDirectoryState {
   }) {
     return EmployeeDirectoryState(
       employees: employees ?? this.employees,
-      departments: departments ?? this.departments,
-      designations: designations ?? this.designations,
       isLoading: isLoading ?? this.isLoading,
       isSaving: isSaving ?? this.isSaving,
       searchQuery: searchQuery ?? this.searchQuery,
-      statusFilter:
-          clearStatusFilter ? null : (statusFilter ?? this.statusFilter),
-      departmentFilter:
-          clearDepartmentFilter ? null : (departmentFilter ?? this.departmentFilter),
+      statusFilter: clearStatusFilter
+          ? null
+          : (statusFilter ?? this.statusFilter),
+      departmentFilter: clearDepartmentFilter
+          ? null
+          : (departmentFilter ?? this.departmentFilter),
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     );
   }
 }
 
-class EmployeeDirectoryController extends StateNotifier<EmployeeDirectoryState> {
+class EmployeeDirectoryController
+    extends StateNotifier<EmployeeDirectoryState> {
   EmployeeDirectoryController() : super(EmployeeDirectoryState.initial()) {
     refresh();
   }
@@ -403,8 +105,6 @@ class EmployeeDirectoryController extends StateNotifier<EmployeeDirectoryState> 
       state = state.copyWith(
         isLoading: false,
         employees: const <EmployeeRecord>[],
-        departments: const <DepartmentRecord>[],
-        designations: const <DesignationRecord>[],
         errorMessage:
             'Supabase is not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY to load employees.',
       );
@@ -417,33 +117,11 @@ class EmployeeDirectoryController extends StateNotifier<EmployeeDirectoryState> 
           .select()
           .order('created_at', ascending: false);
 
-      List<DepartmentRecord> departments = const <DepartmentRecord>[];
-      try {
-        final deptData = await _client.from('departments').select().order('name');
-        departments = List<Map<String, dynamic>>.from(deptData)
-            .map(DepartmentRecord.fromMap)
-            .toList();
-      } catch (_) {
-        departments = const <DepartmentRecord>[];
-      }
-
-      List<DesignationRecord> designations = const <DesignationRecord>[];
-      try {
-        final desigData = await _client.from('designations').select().order('title');
-        designations = List<Map<String, dynamic>>.from(desigData)
-            .map(DesignationRecord.fromMap)
-            .toList();
-      } catch (_) {
-        designations = const <DesignationRecord>[];
-      }
-
       state = state.copyWith(
         isLoading: false,
-        employees: List<Map<String, dynamic>>.from(employees)
-            .map(EmployeeRecord.fromMap)
-            .toList(),
-        departments: departments,
-        designations: designations,
+        employees: List<Map<String, dynamic>>.from(
+          employees,
+        ).map(EmployeeRecord.fromMap).toList(),
         clearError: true,
       );
     } catch (error) {
@@ -466,11 +144,11 @@ class EmployeeDirectoryController extends StateNotifier<EmployeeDirectoryState> 
     }
   }
 
-  void setDepartmentFilter(String? departmentId) {
-    if (departmentId == null || departmentId.isEmpty) {
+  void setDepartmentFilter(String? department) {
+    if (department == null || department.isEmpty) {
       state = state.copyWith(clearDepartmentFilter: true);
     } else {
-      state = state.copyWith(departmentFilter: departmentId);
+      state = state.copyWith(departmentFilter: department);
     }
   }
 
@@ -530,10 +208,11 @@ class EmployeeDirectoryController extends StateNotifier<EmployeeDirectoryState> 
 }
 
 final employeeDirectoryProvider =
-    StateNotifierProvider<EmployeeDirectoryController, EmployeeDirectoryState>(
-        (ref) {
-  return EmployeeDirectoryController();
-});
+    StateNotifierProvider<EmployeeDirectoryController, EmployeeDirectoryState>((
+      ref,
+    ) {
+      return EmployeeDirectoryController();
+    });
 
 // ===========================================================================
 // Shifts
@@ -551,13 +230,13 @@ class ShiftDirectoryState {
   });
 
   factory ShiftDirectoryState.initial() => const ShiftDirectoryState(
-        shifts: <ShiftRecord>[],
-        assignments: <EmployeeShiftRecord>[],
-        employees: <EmployeeRecord>[],
-        isLoading: false,
-        isSaving: false,
-        searchQuery: '',
-      );
+    shifts: <ShiftRecord>[],
+    assignments: <EmployeeShiftRecord>[],
+    employees: <EmployeeRecord>[],
+    isLoading: false,
+    isSaving: false,
+    searchQuery: '',
+  );
 
   final List<ShiftRecord> shifts;
   final List<EmployeeShiftRecord> assignments;
@@ -609,30 +288,33 @@ class ShiftDirectoryController extends StateNotifier<ShiftDirectoryState> {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final shifts = await _client.from('shifts').select().order('shift_name');
-      final assignments =
-          await _client.from('employee_shifts').select().order('effective_from', ascending: false);
+      final assignments = await _client
+          .from('employee_shifts')
+          .select()
+          .order('effective_from', ascending: false);
       List<EmployeeRecord> employees = const <EmployeeRecord>[];
       try {
         final empData = await _client
             .from('employees')
             .select(
-                'id, employee_code, first_name, last_name, email, phone, gender, dob, joining_date, department_id, designation_id, manager_id, employment_type, basic_salary, status, created_at, updated_at')
+              'id, employee_code, first_name, last_name, email, phone, gender, dob, joining_date, department_id, designation_id, manager_id, employment_type, basic_salary, status, created_at, updated_at',
+            )
             .order('first_name');
-        employees = List<Map<String, dynamic>>.from(empData)
-            .map(EmployeeRecord.fromMap)
-            .toList();
+        employees = List<Map<String, dynamic>>.from(
+          empData,
+        ).map(EmployeeRecord.fromMap).toList();
       } catch (_) {
         employees = const <EmployeeRecord>[];
       }
 
       state = state.copyWith(
         isLoading: false,
-        shifts: List<Map<String, dynamic>>.from(shifts)
-            .map(ShiftRecord.fromMap)
-            .toList(),
-        assignments: List<Map<String, dynamic>>.from(assignments)
-            .map(EmployeeShiftRecord.fromMap)
-            .toList(),
+        shifts: List<Map<String, dynamic>>.from(
+          shifts,
+        ).map(ShiftRecord.fromMap).toList(),
+        assignments: List<Map<String, dynamic>>.from(
+          assignments,
+        ).map(EmployeeShiftRecord.fromMap).toList(),
         employees: employees,
         clearError: true,
       );
@@ -713,7 +395,10 @@ class ShiftDirectoryController extends StateNotifier<ShiftDirectoryState> {
       if (record.id == null) {
         await _client.from('employee_shifts').insert(payload);
       } else {
-        await _client.from('employee_shifts').update(payload).eq('id', record.id!);
+        await _client
+            .from('employee_shifts')
+            .update(payload)
+            .eq('id', record.id!);
       }
       await refresh();
     } catch (error) {
@@ -753,8 +438,8 @@ class ShiftDirectoryController extends StateNotifier<ShiftDirectoryState> {
 
 final shiftDirectoryProvider =
     StateNotifierProvider<ShiftDirectoryController, ShiftDirectoryState>((ref) {
-  return ShiftDirectoryController();
-});
+      return ShiftDirectoryController();
+    });
 
 // ===========================================================================
 // HR KPI
@@ -763,8 +448,7 @@ final shiftDirectoryProvider =
 /// Active employee count for the dashboard "Employees" KPI. Reads
 /// from `public.employees` where `status = 'active'`. Returns 0 if
 /// Supabase isn't configured or the user isn't allowed to read it.
-class ActiveHrEmployeeCountController
-    extends StateNotifier<AsyncValue<int>> {
+class ActiveHrEmployeeCountController extends StateNotifier<AsyncValue<int>> {
   ActiveHrEmployeeCountController() : super(const AsyncValue.loading()) {
     _load();
   }
@@ -789,7 +473,9 @@ class ActiveHrEmployeeCountController
   Future<void> refresh() => _load();
 }
 
-final activeHrEmployeeCountProvider = StateNotifierProvider<
-    ActiveHrEmployeeCountController, AsyncValue<int>>((ref) {
-  return ActiveHrEmployeeCountController();
-});
+final activeHrEmployeeCountProvider =
+    StateNotifierProvider<ActiveHrEmployeeCountController, AsyncValue<int>>((
+      ref,
+    ) {
+      return ActiveHrEmployeeCountController();
+    });

@@ -29,8 +29,8 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
   late final TextEditingController _phoneController;
   late final TextEditingController _salaryController;
 
-  String? _departmentId;
-  String? _designationId;
+  late final TextEditingController _departmentController;
+  late final TextEditingController _designationController;
   String? _managerId;
   String? _gender;
   String? _employmentType;
@@ -47,16 +47,18 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
     _firstNameController = TextEditingController(
       text: existing?.firstName ?? '',
     );
-    _lastNameController = TextEditingController(
-      text: existing?.lastName ?? '',
-    );
+    _lastNameController = TextEditingController(text: existing?.lastName ?? '');
     _emailController = TextEditingController(text: existing?.email ?? '');
     _phoneController = TextEditingController(text: existing?.phone ?? '');
     _salaryController = TextEditingController(
       text: existing == null ? '' : existing.basicSalary.toStringAsFixed(0),
     );
-    _departmentId = existing?.departmentId;
-    _designationId = existing?.designationId;
+    _departmentController = TextEditingController(
+      text: existing?.department ?? '',
+    );
+    _designationController = TextEditingController(
+      text: existing?.designation ?? '',
+    );
     _managerId = existing?.managerId;
     _gender = existing?.gender;
     _employmentType = existing?.employmentType ?? 'permanent';
@@ -72,8 +74,8 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
     _emailController.text = existing.email ?? '';
     _phoneController.text = existing.phone ?? '';
     _salaryController.text = existing.basicSalary.toStringAsFixed(0);
-    _departmentId = existing.departmentId;
-    _designationId = existing.designationId;
+    _departmentController.text = existing.department ?? '';
+    _designationController.text = existing.designation ?? '';
     _managerId = existing.managerId;
     _gender = existing.gender;
     _employmentType = existing.employmentType;
@@ -108,6 +110,8 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
     _emailController.dispose();
     _phoneController.dispose();
     _salaryController.dispose();
+    _departmentController.dispose();
+    _designationController.dispose();
     super.dispose();
   }
 
@@ -154,8 +158,8 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
       gender: _gender,
       dob: _dob,
       joiningDate: _joiningDate,
-      departmentId: _departmentId,
-      designationId: _designationId,
+      department: _trimOrNull(_departmentController),
+      designation: _trimOrNull(_designationController),
       managerId: _managerId,
       employmentType: _employmentType ?? 'permanent',
       basicSalary: salary,
@@ -213,28 +217,14 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(employeeDirectoryProvider);
-    final departments = state.departments;
-    final allDesignations = state.designations;
     final employees = state.employees;
     final existing = _initialExisting;
     final isEdit = existing != null;
-
-    // Filter designations by selected department
-    final filteredDesignations = _departmentId == null
-        ? allDesignations
-        : allDesignations
-              .where((d) => d.departmentId == _departmentId)
-              .toList();
 
     // Manager candidates: all employees except the one being edited
     final managerCandidates = existing == null
         ? employees
         : employees.where((e) => e.id != existing.id).toList();
-
-    // If department changed, clear the designation (incompatible)
-    final designationOptions = filteredDesignations
-        .where((d) => _designationId == null || d.id == _designationId || d.departmentId == _departmentId)
-        .toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -316,7 +306,9 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
                   const SizedBox(height: 12),
                   _TextInput(
                     controller: _codeController,
-                    label: isEdit ? 'Employee Code' : 'Employee Code (auto-generated if blank)',
+                    label: isEdit
+                        ? 'Employee Code'
+                        : 'Employee Code (auto-generated if blank)',
                     hintText: 'EMP-0001',
                   ),
                   const SizedBox(height: 14),
@@ -392,19 +384,27 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      Expanded(child: _DateInput(
-                        label: 'Date of Birth',
-                        value: _dob,
-                        onTap: () => _pickDate(isDob: true),
-                        onClear: _dob == null ? null : () => setState(() => _dob = null),
-                      )),
+                      Expanded(
+                        child: _DateInput(
+                          label: 'Date of Birth',
+                          value: _dob,
+                          onTap: () => _pickDate(isDob: true),
+                          onClear: _dob == null
+                              ? null
+                              : () => setState(() => _dob = null),
+                        ),
+                      ),
                       const SizedBox(width: 12),
-                      Expanded(child: _DateInput(
-                        label: 'Joining Date',
-                        value: _joiningDate,
-                        onTap: () => _pickDate(isDob: false),
-                        onClear: _joiningDate == null ? null : () => setState(() => _joiningDate = null),
-                      )),
+                      Expanded(
+                        child: _DateInput(
+                          label: 'Joining Date',
+                          value: _joiningDate,
+                          onTap: () => _pickDate(isDob: false),
+                          onClear: _joiningDate == null
+                              ? null
+                              : () => setState(() => _joiningDate = null),
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 22),
@@ -413,45 +413,18 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
                   Row(
                     children: [
                       Expanded(
-                        child: _DropdownInput<String>(
+                        child: _TextInput(
+                          controller: _departmentController,
                           label: 'Department',
-                          value: _departmentId,
-                          items: departments
-                              .map(
-                                (d) => DropdownMenuItem<String>(
-                                  value: d.id,
-                                  child: Text(d.name),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: (value) => setState(() {
-                            _departmentId = value;
-                            // Reset designation if it does not belong to the new department
-                            if (_designationId != null) {
-                              final stillValid = filteredDesignations
-                                  .any((d) => d.id == _designationId);
-                              if (!stillValid) {
-                                _designationId = null;
-                              }
-                            }
-                          }),
+                          hintText: 'e.g. Engineering, Marketing',
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: _DropdownInput<String>(
+                        child: _TextInput(
+                          controller: _designationController,
                           label: 'Designation',
-                          value: _designationId,
-                          items: designationOptions
-                              .map(
-                                (d) => DropdownMenuItem<String>(
-                                  value: d.id,
-                                  child: Text(d.title),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: (value) =>
-                              setState(() => _designationId = value),
+                          hintText: 'e.g. Senior Engineer, Manager',
                         ),
                       ),
                     ],
@@ -574,9 +547,7 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
                         ),
                       )
                     : const Icon(Icons.save_outlined),
-                label: Text(
-                  _isSubmitting ? 'Saving...' : 'Save Employee',
-                ),
+                label: Text(_isSubmitting ? 'Saving...' : 'Save Employee'),
               ),
             ],
           ),

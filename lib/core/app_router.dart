@@ -21,8 +21,6 @@ import 'package:erp/screens/auth/splash_view.dart';
 import 'package:erp/screens/dashboard/dashboard_view.dart';
 import 'package:erp/screens/account/account_view.dart';
 import 'package:erp/screens/hr/attendance_form_page.dart';
-import 'package:erp/screens/hr/department_form_page.dart';
-import 'package:erp/screens/hr/designation_form_page.dart';
 import 'package:erp/screens/hr/employee_form_page.dart';
 import 'package:erp/screens/hr/employee_shift_form_page.dart';
 import 'package:erp/screens/hr/holiday_form_page.dart';
@@ -115,22 +113,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => EmployeeFormPage(
               existing: state.extra is EmployeeRecord
                   ? state.extra as EmployeeRecord
-                  : null,
-            ),
-          ),
-          GoRoute(
-            path: AppRoutes.hrDepartmentNew,
-            builder: (context, state) => DepartmentFormPage(
-              existing: state.extra is DepartmentRecord
-                  ? state.extra as DepartmentRecord
-                  : null,
-            ),
-          ),
-          GoRoute(
-            path: AppRoutes.hrDesignationNew,
-            builder: (context, state) => DesignationFormPage(
-              existing: state.extra is DesignationRecord
-                  ? state.extra as DesignationRecord
                   : null,
             ),
           ),
