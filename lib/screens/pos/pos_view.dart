@@ -511,63 +511,6 @@ class _PosViewState extends ConsumerState<PosView> {
               ),
             )
           : null,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        titleSpacing: 16,
-        title: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF6D5EF7), Color(0xFF4F46E5)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(
-                Icons.point_of_sale_rounded,
-                color: Colors.white,
-                size: 22,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'New Sale',
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF0F172A),
-                    ),
-                  ),
-                  Text(
-                    customer == null
-                        ? 'Pick a customer to start a sale'
-                        : 'Selling to ${customer.displayName}',
-                    style: const TextStyle(
-                      color: Color(0xFF64748B),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: const [],
-      ),
       body: isDesktop
           ? _buildDesktopLayout(
               context: context,
@@ -623,18 +566,6 @@ class _PosViewState extends ConsumerState<PosView> {
                     setState(() => _localSearch = value);
                   },
                   onClear: () => setState(() => _localSearch = ''),
-                ),
-                const SizedBox(height: 14),
-                _FilterChips(
-                  state: productState,
-                  selectedStatus: _localStatusFilter,
-                  selectedCategory: _localCategoryFilter,
-                  onStatusChanged: (value) {
-                    setState(() => _localStatusFilter = value);
-                  },
-                  onCategoryChanged: (value) {
-                    setState(() => _localCategoryFilter = value);
-                  },
                 ),
                 const SizedBox(height: 18),
                 _ProductGrid(products: products, onAdd: _addProduct),
@@ -701,18 +632,6 @@ class _PosViewState extends ConsumerState<PosView> {
               setState(() => _localSearch = value);
             },
             onClear: () => setState(() => _localSearch = ''),
-          ),
-          const SizedBox(height: 12),
-          _FilterChips(
-            state: productState,
-            selectedStatus: _localStatusFilter,
-            selectedCategory: _localCategoryFilter,
-            onStatusChanged: (value) {
-              setState(() => _localStatusFilter = value);
-            },
-            onCategoryChanged: (value) {
-              setState(() => _localCategoryFilter = value);
-            },
           ),
           const SizedBox(height: 16),
           _ProductGrid(products: products, onAdd: _addProduct),
@@ -820,15 +739,6 @@ class _CustomerBanner extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    'No customer selected',
-                    style: GoogleFonts.poppins(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF0F172A),
-                    ),
-                  ),
-                  const SizedBox(height: 2),
                   const Text(
                     'Pick a customer to start a sale.',
                     style: TextStyle(
@@ -861,7 +771,6 @@ class _CustomerBanner extends StatelessWidget {
     }
 
     final c = customer!;
-    final statusColor = CustomerStatusOptions.color(c.status);
 
     return Container(
       width: double.infinity,
@@ -918,29 +827,6 @@ class _CustomerBanner extends StatelessWidget {
                           color: Colors.white,
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: statusColor.withValues(alpha: 0.18),
-                        borderRadius: BorderRadius.circular(999),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.6),
-                        ),
-                      ),
-                      child: Text(
-                        CustomerStatusOptions.label(c.status),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.4,
                         ),
                       ),
                     ),
@@ -1084,135 +970,6 @@ class _ProductSearchBar extends StatelessWidget {
   }
 }
 
-class _FilterChips extends StatelessWidget {
-  const _FilterChips({
-    required this.state,
-    required this.selectedStatus,
-    required this.selectedCategory,
-    required this.onStatusChanged,
-    required this.onCategoryChanged,
-  });
-
-  final ProductDirectoryState state;
-  final String? selectedStatus;
-  final String? selectedCategory;
-  final ValueChanged<String?> onStatusChanged;
-  final ValueChanged<String?> onCategoryChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final statuses = ProductStatusOptions.values;
-    final categories = state.availableCategories;
-    final hasAnyChip = selectedStatus != null || selectedCategory != null;
-
-    return SizedBox(
-      height: 38,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        children: [
-          if (hasAnyChip)
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: _ChipButton(
-                label: 'Clear filters',
-                icon: Icons.filter_alt_off_rounded,
-                color: const Color(0xFFDC2626),
-                onTap: () {
-                  onStatusChanged(null);
-                  onCategoryChanged(null);
-                },
-              ),
-            ),
-          ...statuses.map((status) {
-            return Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: _ChipButton(
-                label: ProductStatusOptions.label(status),
-                selected: selectedStatus == status,
-                onTap: () =>
-                    onStatusChanged(selectedStatus == status ? null : status),
-              ),
-            );
-          }),
-          if (categories.isNotEmpty) ...[
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 4),
-              child: VerticalDivider(width: 1, color: Color(0xFFE2E8F0)),
-            ),
-            ...categories.map((category) {
-              return Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: _ChipButton(
-                  label: category,
-                  selected: selectedCategory == category,
-                  onTap: () => onCategoryChanged(
-                    selectedCategory == category ? null : category,
-                  ),
-                ),
-              );
-            }),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _ChipButton extends StatelessWidget {
-  const _ChipButton({
-    required this.label,
-    required this.onTap,
-    this.selected = false,
-    this.icon,
-    this.color,
-  });
-
-  final String label;
-  final VoidCallback onTap;
-  final bool selected;
-  final IconData? icon;
-  final Color? color;
-
-  @override
-  Widget build(BuildContext context) {
-    final base = color ?? const Color(0xFF4F46E5);
-    return Material(
-      color: selected ? base : Colors.white,
-      borderRadius: BorderRadius.circular(999),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(999),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(
-              color: selected ? base : const Color(0xFFE2E8F0),
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (icon != null) ...[
-                Icon(icon, size: 14, color: selected ? Colors.white : base),
-                const SizedBox(width: 6),
-              ],
-              Text(
-                label,
-                style: TextStyle(
-                  color: selected ? Colors.white : const Color(0xFF334155),
-                  fontWeight: FontWeight.w600,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _ProductGrid extends StatelessWidget {
   const _ProductGrid({required this.products, required this.onAdd});
 
@@ -1274,7 +1031,7 @@ class _ProductGrid extends StatelessWidget {
             crossAxisCount: crossAxisCount,
             mainAxisSpacing: 12,
             crossAxisSpacing: 10,
-            mainAxisExtent: 196,
+            mainAxisExtent: 110,
           ),
           itemCount: products.length,
           itemBuilder: (context, index) {
@@ -1304,7 +1061,7 @@ class _SalesProductCard extends ConsumerWidget {
     final stockRemaining = product.stock - inCart;
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+      padding: const EdgeInsets.fromLTRB(14, 12, 12, 0),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
@@ -1368,17 +1125,6 @@ class _SalesProductCard extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            product.subtitle,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: Color(0xFF64748B),
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const Spacer(),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [

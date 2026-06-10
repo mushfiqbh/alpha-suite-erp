@@ -76,9 +76,9 @@ class _AppShellState extends ConsumerState<AppShell> {
       route: AppRoutes.dashboard,
     ),
     ShellNavItem(
-      label: 'Customers',
+      label: 'POS',
       icon: Icons.groups_rounded,
-      route: AppRoutes.customers,
+      route: AppRoutes.pos,
     ),
     ShellNavItem(
       label: 'Products',
@@ -124,8 +124,6 @@ class _AppShellState extends ConsumerState<AppShell> {
         return 'Sales';
       case AppRoutes.pos:
         return 'Point of Sale';
-      case AppRoutes.crm:
-        return 'Customers';
       case AppRoutes.customers:
         return 'Customers';
       case AppRoutes.customerNew:

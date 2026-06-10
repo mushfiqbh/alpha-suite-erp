@@ -5,7 +5,6 @@ class AppRoutes {
   static const inventory = '/inventory';
   static const sales = '/sales';
   static const pos = '/pos';
-  static const crm = '/crm';
   static const customers = '/customers';
   static const customerNew = '/customers/new';
   static const products = '/products';

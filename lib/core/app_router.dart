@@ -30,7 +30,6 @@ import 'package:erp/screens/hr/hr_view.dart';
 import 'package:erp/screens/hr/leave_request_form_page.dart';
 import 'package:erp/screens/hr/leave_type_form_page.dart';
 import 'package:erp/screens/hr/shift_form_page.dart';
-import 'package:erp/screens/inventory/inventory_view.dart';
 import 'package:erp/screens/pos/pos_view.dart';
 import 'package:erp/screens/sales/sales_list_view.dart';
 import 'package:erp/screens/admin/users_management_view.dart';
@@ -76,20 +75,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const DashboardScreen(),
           ),
           GoRoute(
-            path: AppRoutes.inventory,
-            builder: (context, state) => const InventoryView(),
-          ),
-          GoRoute(
             path: AppRoutes.sales,
             builder: (context, state) => const SalesListView(),
           ),
           GoRoute(
             path: AppRoutes.pos,
             builder: (context, state) => const PosView(),
-          ),
-          GoRoute(
-            path: AppRoutes.crm,
-            builder: (context, state) => const CustomerManagementView(),
           ),
           GoRoute(
             path: AppRoutes.customers,
