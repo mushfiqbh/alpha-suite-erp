@@ -136,10 +136,6 @@ class _AppShellState extends ConsumerState<AppShell> {
         return 'HR Management';
       case AppRoutes.hrEmployeeNew:
         return 'Employee Details';
-      case AppRoutes.hrShiftNew:
-        return 'Shift Details';
-      case AppRoutes.hrEmployeeShiftNew:
-        return 'Shift Assignment';
       case AppRoutes.users:
         return 'User Management';
       case AppRoutes.account:
