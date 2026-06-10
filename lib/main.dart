@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:erp/core/app_router.dart';
 import 'package:erp/core/app_theme.dart';
 import 'package:erp/core/supabase_config.dart';
+import 'package:erp/services/update_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> main() async {
@@ -20,6 +21,9 @@ Future<void> main() async {
       print('[main] Supabase.initialize failed: $error');
     }
   }
+
+  // Automatically check for updates on app launch
+  UpdateService().checkForUpdates();
 
   runApp(const ProviderScope(child: MyApp()));
 }

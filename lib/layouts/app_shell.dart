@@ -90,6 +90,7 @@ class _AppShellState extends ConsumerState<AppShell> {
       icon: Icons.point_of_sale_outlined,
       route: AppRoutes.sales,
     ),
+    ShellNavItem(label: 'HR', icon: Icons.badge_outlined, route: AppRoutes.hr),
     ShellNavItem(
       label: 'Account',
       icon: Icons.person_outline,
