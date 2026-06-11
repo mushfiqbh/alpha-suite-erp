@@ -14,6 +14,7 @@ class PermissionService {
       AppRoutes.customerNew,
       AppRoutes.products,
       AppRoutes.productNew,
+      AppRoutes.stockOut,
       AppRoutes.hr,
       AppRoutes.hrEmployeeNew,
       AppRoutes.hrAttendanceNew,
@@ -28,6 +29,7 @@ class PermissionService {
       AppRoutes.customerNew,
       AppRoutes.products,
       AppRoutes.productNew,
+      AppRoutes.stockOut,
     },
     UserRole.sales: {
       AppRoutes.dashboard,
@@ -37,6 +39,7 @@ class PermissionService {
       AppRoutes.customerNew,
       AppRoutes.products,
       AppRoutes.productNew,
+      AppRoutes.stockOut,
     },
     UserRole.hr: {
       AppRoutes.dashboard,

@@ -63,7 +63,7 @@ class _HrViewState extends ConsumerState<HrView>
               ),
               Tab(
                 icon: Icon(Icons.table_chart_outlined, size: 18),
-                text: 'Attendance',
+                text: 'Attendance Sheet',
               ),
               Tab(
                 icon: Icon(Icons.person_add_alt_1_rounded, size: 18),
