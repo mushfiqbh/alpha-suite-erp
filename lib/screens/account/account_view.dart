@@ -23,7 +23,7 @@ class AccountView extends ConsumerWidget {
     final avatarUrl = authState.avatarUrl;
     final initials = email.isNotEmpty ? email[0].toUpperCase() : 'A';
 
-    void _showEditProfileModal(BuildContext context, WidgetRef ref) {
+    void showEditProfileModal(BuildContext context, WidgetRef ref) {
       final nameController = TextEditingController(text: userName ?? '');
       final formKey = GlobalKey<FormState>();
       ValueNotifier<Uint8List?> avatarBytes = ValueNotifier(null);
@@ -347,7 +347,7 @@ class AccountView extends ConsumerWidget {
                             iconBgColor: const Color(0xFFFEF3C7),
                             title: 'Edit Profile',
                             subtitle: 'Update your full name',
-                            onTap: () => _showEditProfileModal(context, ref),
+                            onTap: () => showEditProfileModal(context, ref),
                           ),
                           if (role == UserRole.admin) ...[
                             const SizedBox(height: 12),

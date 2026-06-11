@@ -274,7 +274,7 @@ class _StockOutViewState extends ConsumerState<StockOutView> {
                   ),
                 ),
                 Text(
-                  '${product.unit}',
+                  product.unit,
                   style: GoogleFonts.inter(
                     fontSize: 11,
                     color: const Color(0xFF9E9BB8),

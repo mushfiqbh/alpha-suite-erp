@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:erp/core/app_routes.dart';
 import 'package:erp/providers/auth_providers.dart';
+import 'package:erp/providers/update_providers.dart';
 import 'package:erp/services/permission_service.dart';
 
 class ShellNavItem {
@@ -146,10 +147,27 @@ class _AppShellState extends ConsumerState<AppShell> {
     }
   }
 
+  Future<void> _onCheckUpdates() async {
+    await ref.read(updateProvider.notifier).checkForUpdates();
+    final state = ref.read(updateProvider);
+    if (state.message != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(state.message!),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      // Reset after showing
+      ref.read(updateProvider.notifier).clearMessage();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final permissionService = ref.watch(permissionServiceProvider);
     final role = ref.watch(roleProvider);
+    final updateState = ref.watch(updateProvider);
 
     final currentLocation = GoRouterState.of(context).uri.path;
     final isDesktop = _isDesktop(context);
@@ -197,6 +215,8 @@ class _AppShellState extends ConsumerState<AppShell> {
                   selectedRoute: currentLocation,
                   roleAbbreviation: roleAbbreviation,
                   roleLabel: roleLabel,
+                  updateState: updateState,
+                  onCheckUpdates: _onCheckUpdates,
                   onNavigate: (route) => _navigateTo(context, route),
                   onLogout: () async {
                     await ref.read(authProvider.notifier).logout();
@@ -224,6 +244,8 @@ class _AppShellState extends ConsumerState<AppShell> {
                   selectedRoute: currentLocation,
                   roleAbbreviation: roleAbbreviation,
                   roleLabel: roleLabel,
+                  updateState: updateState,
+                  onCheckUpdates: _onCheckUpdates,
                   onToggleCollapse: () {
                     setState(() {
                       _isSidebarCollapsed = !_isSidebarCollapsed;
@@ -430,6 +452,8 @@ class _SidebarPanel extends StatelessWidget {
     required this.roleLabel,
     required this.onNavigate,
     required this.onLogout,
+    required this.updateState,
+    required this.onCheckUpdates,
     this.onToggleCollapse,
   });
 
@@ -441,6 +465,8 @@ class _SidebarPanel extends StatelessWidget {
   final ValueChanged<String> onNavigate;
   final Future<void> Function() onLogout;
   final VoidCallback? onToggleCollapse;
+  final UpdateState updateState;
+  final VoidCallback onCheckUpdates;
 
   @override
   Widget build(BuildContext context) {
@@ -577,7 +603,9 @@ class _SidebarPanel extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
+                      _UpdateStatusIcon(status: updateState.status),
+                      const SizedBox(height: 4),
                       IconButton(
                         tooltip: 'Sign out',
                         onPressed: onLogout,
@@ -620,11 +648,22 @@ class _SidebarPanel extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(height: 3),
-                              Text(
-                                'v2.4.0',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade600,
+                              GestureDetector(
+                                onTap: onCheckUpdates,
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      updateState.appVersion,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    _UpdateStatusIndicator(
+                                      status: updateState.status,
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
@@ -731,5 +770,126 @@ class _MobileNavigationBar extends StatelessWidget {
           )
           .toList(),
     );
+  }
+}
+
+/// Shown in the expanded sidebar — a small label next to the version text.
+class _UpdateStatusIndicator extends StatelessWidget {
+  const _UpdateStatusIndicator({required this.status});
+
+  final UpdateStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    switch (status) {
+      case UpdateStatus.idle:
+        return Icon(
+          Icons.system_update_outlined,
+          size: 14,
+          color: Colors.grey.shade500,
+        );
+      case UpdateStatus.checking:
+        return SizedBox(
+          width: 14,
+          height: 14,
+          child: CircularProgressIndicator(
+            strokeWidth: 1.5,
+            color: Colors.indigo.shade600,
+          ),
+        );
+      case UpdateStatus.upToDate:
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.check_circle, size: 14, color: Colors.green.shade600),
+            const SizedBox(width: 3),
+            Text(
+              'Up to date',
+              style: TextStyle(fontSize: 10, color: Colors.green.shade700),
+            ),
+          ],
+        );
+      case UpdateStatus.updateAvailable:
+      case UpdateStatus.downloading:
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 14,
+              height: 14,
+              child: CircularProgressIndicator(
+                strokeWidth: 1.5,
+                color: Colors.orange.shade600,
+              ),
+            ),
+            const SizedBox(width: 3),
+            Text(
+              'Updating...',
+              style: TextStyle(fontSize: 10, color: Colors.orange.shade700),
+            ),
+          ],
+        );
+      case UpdateStatus.installing:
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.system_update, size: 14, color: Colors.orange.shade600),
+            const SizedBox(width: 3),
+            Text(
+              'Installing',
+              style: TextStyle(fontSize: 10, color: Colors.orange.shade700),
+            ),
+          ],
+        );
+      case UpdateStatus.error:
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.error_outline, size: 14, color: Colors.red.shade500),
+            const SizedBox(width: 3),
+            Text(
+              'Failed',
+              style: TextStyle(fontSize: 10, color: Colors.red.shade600),
+            ),
+          ],
+        );
+    }
+  }
+}
+
+/// Shown in the compact sidebar — a small icon button below the avatar.
+class _UpdateStatusIcon extends StatelessWidget {
+  const _UpdateStatusIcon({required this.status});
+
+  final UpdateStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    switch (status) {
+      case UpdateStatus.idle:
+        return const Icon(
+          Icons.system_update_outlined,
+          size: 18,
+          color: Color(0xFF64748B),
+        );
+      case UpdateStatus.checking:
+      case UpdateStatus.downloading:
+        return const SizedBox(
+          width: 18,
+          height: 18,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        );
+      case UpdateStatus.upToDate:
+        return Icon(Icons.check_circle, size: 18, color: Colors.green.shade600);
+      case UpdateStatus.updateAvailable:
+      case UpdateStatus.installing:
+        return Icon(
+          Icons.system_update,
+          size: 18,
+          color: Colors.orange.shade600,
+        );
+      case UpdateStatus.error:
+        return Icon(Icons.error_outline, size: 18, color: Colors.red.shade500);
+    }
   }
 }
