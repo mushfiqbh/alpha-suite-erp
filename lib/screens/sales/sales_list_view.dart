@@ -41,11 +41,6 @@ class _SalesListViewState extends ConsumerState<SalesListView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _Header(
-            onRefresh: () =>
-                ref.read(recentSalesOrdersProvider.notifier).refresh(),
-          ),
-          const SizedBox(height: 18),
           _FiltersBar(
             search: _search,
             paymentFilter: _paymentFilter,
@@ -59,6 +54,8 @@ class _SalesListViewState extends ConsumerState<SalesListView> {
               _paymentFilter = null;
               _salesStatusFilter = null;
             }),
+            onRefresh: () =>
+                ref.read(recentSalesOrdersProvider.notifier).refresh(),
           ),
           const SizedBox(height: 18),
           Expanded(
@@ -131,6 +128,9 @@ class _SalesListViewState extends ConsumerState<SalesListView> {
                 money: _money,
                 dateTime: _dateTime,
                 onTapOrder: (order) => _showOrderDetails(context, order),
+                onMarkPaymentDone: (orderId) => ref
+                    .read(recentSalesOrdersProvider.notifier)
+                    .markPaymentDone(orderId),
               ),
             )
           else
@@ -141,6 +141,9 @@ class _SalesListViewState extends ConsumerState<SalesListView> {
                 money: _money,
                 dateTime: _dateTime,
                 onTapOrder: (order) => _showOrderDetails(context, order),
+                onMarkPaymentDone: (orderId) => ref
+                    .read(recentSalesOrdersProvider.notifier)
+                    .markPaymentDone(orderId),
               ),
             ),
         ],
@@ -177,55 +180,6 @@ class _SalesListViewState extends ConsumerState<SalesListView> {
   }
 }
 
-class _Header extends StatelessWidget {
-  const _Header({required this.onRefresh});
-
-  final Future<void> Function() onRefresh;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Sales',
-                style: GoogleFonts.poppins(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF0F172A),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Track all invoices and payments recorded from the POS.',
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  color: const Color(0xFF64748B),
-                ),
-              ),
-            ],
-          ),
-        ),
-        FilledButton.icon(
-          onPressed: onRefresh,
-          style: FilledButton.styleFrom(
-            backgroundColor: const Color(0xFF4F46E5),
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          icon: const Icon(Icons.refresh_rounded, size: 18),
-          label: const Text('Refresh'),
-        ),
-      ],
-    );
-  }
-}
-
 class _FiltersBar extends StatelessWidget {
   const _FiltersBar({
     required this.search,
@@ -235,6 +189,7 @@ class _FiltersBar extends StatelessWidget {
     required this.onPaymentChanged,
     required this.onSalesStatusChanged,
     required this.onClear,
+    required this.onRefresh,
   });
 
   final String search;
@@ -244,12 +199,10 @@ class _FiltersBar extends StatelessWidget {
   final ValueChanged<String?> onPaymentChanged;
   final ValueChanged<String?> onSalesStatusChanged;
   final VoidCallback onClear;
+  final Future<void> Function() onRefresh;
 
   @override
   Widget build(BuildContext context) {
-    final hasFilter =
-        search.isNotEmpty || paymentFilter != null || salesStatusFilter != null;
-
     return Wrap(
       spacing: 12,
       runSpacing: 12,
@@ -291,93 +244,19 @@ class _FiltersBar extends StatelessWidget {
             style: GoogleFonts.inter(fontSize: 13),
           ),
         ),
-        _FilterDropdown<String>(
-          label: 'Payment',
-          value: paymentFilter,
-          items: const [
-            DropdownMenuItem(value: 'PAID', child: Text('Paid')),
-            DropdownMenuItem(value: 'PARTIAL', child: Text('Partial')),
-            DropdownMenuItem(value: 'UNPAID', child: Text('Unpaid')),
-          ],
-          onChanged: onPaymentChanged,
-        ),
-        _FilterDropdown<String>(
-          label: 'Status',
-          value: salesStatusFilter,
-          items: const [
-            DropdownMenuItem(value: 'DRAFT', child: Text('Draft')),
-            DropdownMenuItem(value: 'CONFIRMED', child: Text('Confirmed')),
-            DropdownMenuItem(value: 'FULFILLED', child: Text('Fulfilled')),
-            DropdownMenuItem(value: 'CANCELLED', child: Text('Cancelled')),
-            DropdownMenuItem(value: 'COMPLETED', child: Text('Completed')),
-          ],
-          onChanged: onSalesStatusChanged,
-        ),
-        if (hasFilter)
-          TextButton.icon(
-            onPressed: onClear,
-            icon: const Icon(Icons.close_rounded, size: 16),
-            label: const Text('Clear filters'),
-            style: TextButton.styleFrom(
-              foregroundColor: const Color(0xFFDC2626),
+        FilledButton.icon(
+          onPressed: onRefresh,
+          style: FilledButton.styleFrom(
+            backgroundColor: const Color(0xFF4F46E5),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
           ),
+          icon: const Icon(Icons.refresh_rounded, size: 18),
+          label: const Text('Refresh'),
+        ),
       ],
-    );
-  }
-}
-
-class _FilterDropdown<T> extends StatelessWidget {
-  const _FilterDropdown({
-    required this.label,
-    required this.value,
-    required this.items,
-    required this.onChanged,
-  });
-
-  final String label;
-  final T? value;
-  final List<DropdownMenuItem<T>> items;
-  final ValueChanged<T?> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '$label:',
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: const Color(0xFF475569),
-            ),
-          ),
-          const SizedBox(width: 8),
-          DropdownButton<T>(
-            value: value,
-            items: [
-              DropdownMenuItem<T>(value: null, child: const Text('All')),
-              ...items,
-            ],
-            onChanged: onChanged,
-            underline: const SizedBox.shrink(),
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: const Color(0xFF0F172A),
-            ),
-            icon: const Icon(Icons.expand_more_rounded, size: 18),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -473,6 +352,7 @@ class _SalesOrdersTable extends StatelessWidget {
     required this.money,
     required this.dateTime,
     required this.onTapOrder,
+    required this.onMarkPaymentDone,
   });
 
   final List<SalesOrderRecord> orders;
@@ -480,6 +360,7 @@ class _SalesOrdersTable extends StatelessWidget {
   final MoneyFormatter money;
   final DateTimeFormatter dateTime;
   final ValueChanged<SalesOrderRecord> onTapOrder;
+  final Future<void> Function(String orderId) onMarkPaymentDone;
 
   String _customerNameFor(SalesOrderRecord order) {
     final id = order.customerId;
@@ -572,10 +453,30 @@ class _SalesOrdersTable extends StatelessWidget {
                     DataCell(_PaymentChip(status: order.paymentStatus)),
                     DataCell(_SalesStatusChip(status: order.salesStatus)),
                     DataCell(
-                      const Icon(
-                        Icons.chevron_right_rounded,
-                        color: Color(0xFF94A3B8),
-                      ),
+                      order.paymentStatus.toUpperCase() == 'UNPAID'
+                          ? FilledButton(
+                              onPressed: () =>
+                                  onMarkPaymentDone(order.id ?? ''),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: const Color(0xFF10B981),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: const Text(
+                                'Pay',
+                                style: TextStyle(fontSize: 11),
+                              ),
+                            )
+                          : const Icon(
+                              Icons.check_circle_rounded,
+                              color: Color(0xFF10B981),
+                              size: 20,
+                            ),
                     ),
                   ],
                 ),
@@ -594,6 +495,7 @@ class _SalesOrdersCards extends StatelessWidget {
     required this.money,
     required this.dateTime,
     required this.onTapOrder,
+    required this.onMarkPaymentDone,
   });
 
   final List<SalesOrderRecord> orders;
@@ -601,6 +503,7 @@ class _SalesOrdersCards extends StatelessWidget {
   final MoneyFormatter money;
   final DateTimeFormatter dateTime;
   final ValueChanged<SalesOrderRecord> onTapOrder;
+  final Future<void> Function(String orderId) onMarkPaymentDone;
 
   String _customerNameFor(SalesOrderRecord order) {
     final id = order.customerId;
@@ -678,7 +581,24 @@ class _SalesOrdersCards extends StatelessWidget {
                     runSpacing: 8,
                     children: [
                       _PaymentChip(status: order.paymentStatus),
-                      _SalesStatusChip(status: order.salesStatus),
+                      if (order.paymentStatus.toUpperCase() == 'UNPAID')
+                        FilledButton(
+                          onPressed: () => onMarkPaymentDone(order.id ?? ''),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFF10B981),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 4,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            'Payment Done',
+                            style: TextStyle(fontSize: 11),
+                          ),
+                        ),
                     ],
                   ),
                 ],
@@ -861,7 +781,29 @@ class _OrderDetailsSheet extends ConsumerWidget {
                       runSpacing: 8,
                       children: [
                         _PaymentChip(status: order.paymentStatus),
-                        _SalesStatusChip(status: order.salesStatus),
+                        if (order.paymentStatus.toUpperCase() == 'UNPAID')
+                          FilledButton(
+                            onPressed: () {
+                              ref
+                                  .read(recentSalesOrdersProvider.notifier)
+                                  .markPaymentDone(order.id ?? '');
+                              Navigator.of(context).pop();
+                            },
+                            style: FilledButton.styleFrom(
+                              backgroundColor: const Color(0xFF10B981),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 6,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: const Text(
+                              'Payment Done',
+                              style: TextStyle(fontSize: 12),
+                            ),
+                          ),
                       ],
                     ),
                     const SizedBox(height: 20),

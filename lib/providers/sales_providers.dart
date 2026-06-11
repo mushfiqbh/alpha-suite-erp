@@ -7,10 +7,7 @@ import 'package:erp/services/sales_service.dart';
 
 /// A single line in the cart.
 class CartItem {
-  const CartItem({
-    required this.product,
-    required this.quantity,
-  });
+  const CartItem({required this.product, required this.quantity});
 
   final ProductRecord product;
   final int quantity;
@@ -18,10 +15,7 @@ class CartItem {
   double get lineSubtotal => product.price * quantity;
 
   CartItem copyWith({int? quantity}) {
-    return CartItem(
-      product: product,
-      quantity: quantity ?? this.quantity,
-    );
+    return CartItem(product: product, quantity: quantity ?? this.quantity);
   }
 }
 
@@ -41,8 +35,8 @@ class SalesSelectionController extends StateNotifier<CustomerRecord?> {
 
 final salesSelectionProvider =
     StateNotifierProvider<SalesSelectionController, CustomerRecord?>(
-  (ref) => SalesSelectionController(),
-);
+      (ref) => SalesSelectionController(),
+    );
 
 /// Cart state: list of [CartItem], derived totals, mock checkout helpers.
 class CartController extends StateNotifier<List<CartItem>> {
@@ -57,7 +51,10 @@ class CartController extends StateNotifier<List<CartItem>> {
 
     final index = state.indexWhere((item) => item.product.id == product.id);
     if (index == -1) {
-      state = <CartItem>[...state, CartItem(product: product, quantity: clamped)];
+      state = <CartItem>[
+        ...state,
+        CartItem(product: product, quantity: clamped),
+      ];
       return;
     }
 
@@ -117,8 +114,9 @@ class CartController extends StateNotifier<List<CartItem>> {
   }
 }
 
-final cartProvider =
-    StateNotifierProvider<CartController, List<CartItem>>((ref) {
+final cartProvider = StateNotifierProvider<CartController, List<CartItem>>((
+  ref,
+) {
   return CartController();
 });
 
@@ -160,8 +158,10 @@ final salesServiceProvider = Provider<SalesService>((ref) {
 
 /// Most recent sales orders, newest first. Refreshed manually via
 /// [recentSalesOrdersProvider.notifier] or by invalidating the provider.
-class RecentSalesOrdersController extends StateNotifier<AsyncValue<List<SalesOrderRecord>>> {
-  RecentSalesOrdersController(this._service) : super(const AsyncValue.loading()) {
+class RecentSalesOrdersController
+    extends StateNotifier<AsyncValue<List<SalesOrderRecord>>> {
+  RecentSalesOrdersController(this._service)
+    : super(const AsyncValue.loading()) {
     refresh();
   }
 
@@ -176,17 +176,54 @@ class RecentSalesOrdersController extends StateNotifier<AsyncValue<List<SalesOrd
       state = AsyncValue.error(error, stack);
     }
   }
+
+  Future<void> markPaymentDone(String orderId) async {
+    try {
+      await _service.markPaymentDone(orderId);
+      // Update local state in-place to avoid a loading spinner flash.
+      state = state.whenData((orders) {
+        return orders.map((order) {
+          if (order.id != orderId) return order;
+          return SalesOrderRecord(
+            id: order.id,
+            invoiceNo: order.invoiceNo,
+            customerId: order.customerId,
+            orderDate: order.orderDate,
+            dueDate: order.dueDate,
+            subtotal: order.subtotal,
+            discountAmount: order.discountAmount,
+            taxAmount: order.taxAmount,
+            shippingAmount: order.shippingAmount,
+            grandTotal: order.grandTotal,
+            paidAmount: order.grandTotal,
+            dueAmount: 0,
+            paymentStatus: 'PAID',
+            salesStatus: order.salesStatus,
+            notes: order.notes,
+            createdBy: order.createdBy,
+            createdAt: order.createdAt,
+            updatedAt: DateTime.now(),
+          );
+        }).toList();
+      });
+    } catch (error, stack) {
+      state = AsyncValue.error(error, stack);
+    }
+  }
 }
 
 final recentSalesOrdersProvider =
-    StateNotifierProvider<RecentSalesOrdersController, AsyncValue<List<SalesOrderRecord>>>((ref) {
-  return RecentSalesOrdersController(ref.watch(salesServiceProvider));
-});
+    StateNotifierProvider<
+      RecentSalesOrdersController,
+      AsyncValue<List<SalesOrderRecord>>
+    >((ref) {
+      return RecentSalesOrdersController(ref.watch(salesServiceProvider));
+    });
 
 /// Line items for a single sales order, loaded on demand by the
 /// sales list view when a row is expanded.
 final salesOrderItemsProvider = FutureProvider.family
     .autoDispose<List<SalesOrderItemRecord>, String>((ref, orderId) {
-  final service = ref.watch(salesServiceProvider);
-  return service.listOrderItems(orderId);
-});
+      final service = ref.watch(salesServiceProvider);
+      return service.listOrderItems(orderId);
+    });
