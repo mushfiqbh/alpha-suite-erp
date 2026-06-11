@@ -143,65 +143,8 @@ class _EmployeesTabState extends ConsumerState<_EmployeesTab> {
       isSaving: state.isSaving,
       errorMessage: state.errorMessage,
       onRefresh: () => ref.read(employeeDirectoryProvider.notifier).refresh(),
-      filterContent: Row(
-        children: [
-          _FilterDropdown<String?>(
-            value: state.statusFilter,
-            label: 'Status',
-            items: const [
-              DropdownMenuItem(value: null, child: Text('All statuses')),
-              DropdownMenuItem(value: 'active', child: Text('Active')),
-              DropdownMenuItem(value: 'inactive', child: Text('Inactive')),
-              DropdownMenuItem(value: 'on_leave', child: Text('On Leave')),
-              DropdownMenuItem(value: 'terminated', child: Text('Terminated')),
-            ],
-            onChanged: (v) =>
-                ref.read(employeeDirectoryProvider.notifier).setStatusFilter(v),
-          ),
-          const SizedBox(width: 8),
-          _FilterDropdown<String?>(
-            value: state.departmentFilter,
-            label: 'Department',
-            items: [
-              const DropdownMenuItem(
-                value: null,
-                child: Text('All departments'),
-              ),
-              ...state.employees
-                  .map((e) => e.department)
-                  .where((d) => d != null && d.isNotEmpty)
-                  .map((d) => d!)
-                  .toSet()
-                  .map(
-                    (d) => DropdownMenuItem<String?>(
-                      value: d,
-                      child: Text(d, overflow: TextOverflow.ellipsis),
-                    ),
-                  ),
-            ],
-            onChanged: (v) => ref
-                .read(employeeDirectoryProvider.notifier)
-                .setDepartmentFilter(v),
-          ),
-        ],
-      ),
-      activeFilterChips: [
-        if (state.statusFilter != null)
-          _ActiveFilterChip(
-            label:
-                'Status: ${EmployeeStatusOptions.label(state.statusFilter!)}',
-            onClear: () => ref
-                .read(employeeDirectoryProvider.notifier)
-                .setStatusFilter(null),
-          ),
-        if (state.departmentFilter != null)
-          _ActiveFilterChip(
-            label: 'Dept: ${state.departmentFilter}',
-            onClear: () => ref
-                .read(employeeDirectoryProvider.notifier)
-                .setDepartmentFilter(null),
-          ),
-      ],
+      filterContent: const SizedBox.shrink(),
+      activeFilterChips: const <Widget>[],
       summary: filtered.isEmpty
           ? (state.isLoading ? 'Loading employees...' : 'No employees found')
           : 'Showing $pageStart-$pageEnd of ${filtered.length} employees',
@@ -216,9 +159,9 @@ class _EmployeesTabState extends ConsumerState<_EmployeesTab> {
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: crossAxisCount,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          mainAxisExtent: 168,
+          mainAxisSpacing: 8,
+          crossAxisSpacing: 8,
+          mainAxisExtent: 80,
         ),
         itemCount: visible.length,
         itemBuilder: (context, index) {
@@ -293,53 +236,137 @@ class _EmployeeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusColor = EmployeeStatusOptions.color(employee.status);
-    return _EntityCard(
-      gradient: const LinearGradient(
-        colors: [Color(0xFF1E3A8A), Color(0xFF4F46E5)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
-      icon: Icons.person_outline,
-      identity: _CardIdentity(
-        title: employee.fullName,
-        subtitle: employee.employeeCode,
-        initials: employee.initials,
-      ),
-      badges: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          decoration: BoxDecoration(
-            color: statusColor.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(8),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: statusColor,
-                  shape: BoxShape.circle,
-                ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Row(
+        children: [
+          Container(
+            width: 6,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF1E3A8A), Color(0xFF4F46E5)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
               ),
-              const SizedBox(width: 6),
-              Text(
-                EmployeeStatusOptions.label(employee.status),
-                style: GoogleFonts.inter(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: statusColor,
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
-        if (departmentName != null) _Pill(text: departmentName!),
-        if (designationTitle != null) _Pill(text: designationTitle!),
-      ],
-      onEdit: onEdit,
-      onDelete: onDelete,
+          const SizedBox(width: 10),
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF1E3A8A), Color(0xFF4F46E5)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            alignment: Alignment.center,
+            child: Icon(Icons.badge_outlined, color: Colors.white, size: 18),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          employee.fullName,
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF0F172A),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: statusColor,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 3),
+                      Text(
+                        EmployeeStatusOptions.label(employee.status),
+                        style: GoogleFonts.inter(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w600,
+                          color: statusColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    employee.employeeCode,
+                    style: GoogleFonts.inter(
+                      fontSize: 10,
+                      color: const Color(0xFF94A3B8),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (departmentName != null || designationTitle != null) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        if (departmentName != null) ...[
+                          _Pill(text: departmentName!),
+                          const SizedBox(width: 4),
+                        ],
+                        if (designationTitle != null)
+                          _Pill(text: designationTitle!),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _CompactIconButton(
+                  icon: Icons.edit_outlined,
+                  tooltip: 'Edit',
+                  onPressed: onEdit,
+                ),
+                const SizedBox(height: 2),
+                _CompactIconButton(
+                  icon: Icons.delete_outline,
+                  tooltip: 'Delete',
+                  onPressed: onDelete,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 6),
+        ],
+      ),
     );
   }
 }
@@ -415,45 +442,8 @@ class _AttendanceTabState extends ConsumerState<_AttendanceTab> {
       isSaving: state.isSaving,
       errorMessage: state.errorMessage,
       onRefresh: () => ref.read(attendanceDirectoryProvider.notifier).refresh(),
-      filterContent: _FilterDropdown<String?>(
-        value: state.statusFilter,
-        label: 'Status',
-        items: [
-          const DropdownMenuItem(value: null, child: Text('All statuses')),
-          ...AttendanceStatusOptions.values.map(
-            (s) => DropdownMenuItem<String?>(
-              value: s,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: AttendanceStatusOptions.color(s),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(AttendanceStatusOptions.label(s)),
-                ],
-              ),
-            ),
-          ),
-        ],
-        onChanged: (v) =>
-            ref.read(attendanceDirectoryProvider.notifier).setStatusFilter(v),
-      ),
-      activeFilterChips: [
-        if (state.statusFilter != null)
-          _ActiveFilterChip(
-            label:
-                'Status: ${AttendanceStatusOptions.label(state.statusFilter!)}',
-            onClear: () => ref
-                .read(attendanceDirectoryProvider.notifier)
-                .setStatusFilter(null),
-          ),
-      ],
+      filterContent: const SizedBox.shrink(),
+      activeFilterChips: const <Widget>[],
       summary: filtered.isEmpty
           ? (state.isLoading
                 ? 'Loading attendance...'
@@ -470,9 +460,9 @@ class _AttendanceTabState extends ConsumerState<_AttendanceTab> {
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: crossAxisCount,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          mainAxisExtent: 168,
+          mainAxisSpacing: 10,
+          crossAxisSpacing: 10,
+          mainAxisExtent: 130,
         ),
         itemCount: visible.length,
         itemBuilder: (context, index) {
@@ -820,7 +810,7 @@ class _EntityCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
@@ -834,32 +824,32 @@ class _EntityCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
               gradient: gradient,
               borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(15),
+                top: Radius.circular(11),
               ),
             ),
             child: Row(
               children: [
                 Container(
-                  width: 36,
-                  height: 36,
+                  width: 28,
+                  height: 28,
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.18),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(icon, color: Colors.white, size: 20),
+                  child: Icon(icon, color: Colors.white, size: 16),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 Expanded(child: identity.header(context)),
                 _CardIconButton(
                   icon: Icons.edit_outlined,
                   tooltip: 'Edit',
                   onPressed: onEdit,
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(width: 2),
                 _CardIconButton(
                   icon: Icons.delete_outline,
                   tooltip: 'Delete',
@@ -870,7 +860,7 @@ class _EntityCard extends StatelessWidget {
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+              padding: const EdgeInsets.fromLTRB(10, 6, 10, 6),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -922,28 +912,28 @@ class _CardIdentity {
     return Row(
       children: [
         Container(
-          width: 30,
-          height: 30,
+          width: 24,
+          height: 24,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.22),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(6),
           ),
           child: Text(
             initials,
             style: GoogleFonts.poppins(
-              fontSize: 13,
+              fontSize: 11,
               fontWeight: FontWeight.w700,
               color: Colors.white,
             ),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 6),
         Expanded(
           child: Text(
             title,
             style: GoogleFonts.poppins(
-              fontSize: 14,
+              fontSize: 13,
               fontWeight: FontWeight.w700,
               color: Colors.white,
             ),
@@ -973,16 +963,49 @@ class _CardIconButton extends StatelessWidget {
       message: tooltip,
       child: InkWell(
         onTap: onPressed,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(6),
         child: Container(
-          width: 30,
-          height: 30,
+          width: 24,
+          height: 24,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.18),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(6),
           ),
-          child: Icon(icon, color: Colors.white, size: 16),
+          child: Icon(icon, color: Colors.white, size: 14),
+        ),
+      ),
+    );
+  }
+}
+
+class _CompactIconButton extends StatelessWidget {
+  const _CompactIconButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(6),
+        child: Container(
+          width: 24,
+          height: 24,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: const Color(0xFFF1F5F9),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Icon(icon, color: const Color(0xFF64748B), size: 14),
         ),
       ),
     );
@@ -997,15 +1020,15 @@ class _Pill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: const Color(0xFFEEF2FF),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
         text,
         style: GoogleFonts.inter(
-          fontSize: 10,
+          fontSize: 9,
           fontWeight: FontWeight.w600,
           color: const Color(0xFF4338CA),
         ),

@@ -71,9 +71,15 @@ class _AppShellState extends ConsumerState<AppShell> {
 
   static const List<ShellNavItem> _mobileNavItems = [
     ShellNavItem(
-      label: 'Dashboard',
+      label: 'Home',
       icon: Icons.dashboard_outlined,
       route: AppRoutes.dashboard,
+    ),
+    ShellNavItem(label: 'HR', icon: Icons.badge_outlined, route: AppRoutes.hr),
+    ShellNavItem(
+      label: 'Products',
+      icon: Icons.inventory_2_rounded,
+      route: AppRoutes.products,
     ),
     ShellNavItem(
       label: 'POS',
@@ -81,16 +87,10 @@ class _AppShellState extends ConsumerState<AppShell> {
       route: AppRoutes.pos,
     ),
     ShellNavItem(
-      label: 'Products',
-      icon: Icons.inventory_2_rounded,
-      route: AppRoutes.products,
-    ),
-    ShellNavItem(
       label: 'Sales',
       icon: Icons.point_of_sale_outlined,
       route: AppRoutes.sales,
     ),
-    ShellNavItem(label: 'HR', icon: Icons.badge_outlined, route: AppRoutes.hr),
     ShellNavItem(
       label: 'Account',
       icon: Icons.person_outline,

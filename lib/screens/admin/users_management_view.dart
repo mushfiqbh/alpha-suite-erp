@@ -152,12 +152,6 @@ class UsersManagementView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(profilesProvider);
 
-    final totalUsers = state.profiles.length;
-    final activeUsers = state.profiles
-        .where((p) => p['is_active'] == true)
-        .length;
-    final deactivatedUsers = totalUsers - activeUsers;
-
     final filteredProfiles = state.profiles.where((profile) {
       final name = (profile['full_name'] ?? '').toString().toLowerCase();
       final email = (profile['email'] ?? '').toString().toLowerCase();
@@ -180,41 +174,6 @@ class UsersManagementView extends ConsumerWidget {
       backgroundColor: const Color(0xFFF8FAFC),
       body: Column(
         children: [
-          // KPI Stats Header
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _StatCard(
-                    title: 'TOTAL DIRECTORY',
-                    value: '$totalUsers',
-                    color: Colors.indigo.shade800,
-                    icon: Icons.group_outlined,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _StatCard(
-                    title: 'ACTIVE ACCOUNTS',
-                    value: '$activeUsers',
-                    color: const Color(0xFF047857),
-                    icon: Icons.check_circle_outline,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _StatCard(
-                    title: 'DEACTIVATED',
-                    value: '$deactivatedUsers',
-                    color: Colors.red.shade800,
-                    icon: Icons.block_outlined,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
           // Filters and Search Bar
           Padding(
             padding: const EdgeInsets.all(24.0),
@@ -278,30 +237,6 @@ class UsersManagementView extends ConsumerWidget {
                     ],
                     onChanged: (val) =>
                         ref.read(profilesProvider.notifier).setRoleFilter(val),
-                  ),
-                  const SizedBox(width: 16),
-                  // Status Filter
-                  DropdownButton<bool?>(
-                    value: state.statusFilter,
-                    hint: const Text('Filter by Status'),
-                    underline: const SizedBox(),
-                    items: const [
-                      DropdownMenuItem<bool?>(
-                        value: null,
-                        child: Text('All Statuses'),
-                      ),
-                      DropdownMenuItem<bool?>(
-                        value: true,
-                        child: Text('Active Only'),
-                      ),
-                      DropdownMenuItem<bool?>(
-                        value: false,
-                        child: Text('Deactivated Only'),
-                      ),
-                    ],
-                    onChanged: (val) => ref
-                        .read(profilesProvider.notifier)
-                        .setStatusFilter(val),
                   ),
                 ],
               ),
@@ -442,9 +377,6 @@ class UsersManagementView extends ConsumerWidget {
                   const SizedBox(height: 20),
                   SwitchListTile(
                     title: const Text('Account Active'),
-                    subtitle: const Text(
-                      'Allow this user to sign in to the platform',
-                    ),
                     contentPadding: EdgeInsets.zero,
                     value: isActive,
                     onChanged: (val) {
@@ -510,75 +442,6 @@ class UsersManagementView extends ConsumerWidget {
   }
 }
 
-class _StatCard extends StatelessWidget {
-  final String title;
-  final String value;
-  final Color color;
-  final IconData icon;
-
-  const _StatCard({
-    required this.title,
-    required this.value,
-    required this.color,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-        border: Border(left: BorderSide(color: color, width: 4)),
-      ),
-      child: Row(
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.grey.shade500,
-                  letterSpacing: 0.8,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                value,
-                style: GoogleFonts.inter(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF1E293B),
-                ),
-              ),
-            ],
-          ),
-          const Spacer(),
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.08),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: 24),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _UserCard extends StatelessWidget {
   final Map<String, dynamic> profile;
   final VoidCallback onEdit;
@@ -592,7 +455,6 @@ class _UserCard extends StatelessWidget {
       (r) => r.name == rawRole,
       orElse: () => UserRole.viewer,
     );
-    final isActive = profile['is_active'] as bool? ?? true;
     final fullName = profile['full_name'] ?? 'User';
     final email = profile['email'] ?? 'No email';
     final phone = profile['phone'] ?? '—';
@@ -701,41 +563,6 @@ class _UserCard extends StatelessWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Status Indicator
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              decoration: BoxDecoration(
-                color: isActive ? const Color(0xFFECFDF5) : Colors.red.shade50,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 6,
-                    height: 6,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: isActive
-                          ? const Color(0xFF059669)
-                          : Colors.red.shade600,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    isActive ? 'Active' : 'Disabled',
-                    style: TextStyle(
-                      color: isActive
-                          ? const Color(0xFF047857)
-                          : Colors.red.shade700,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 16),
             IconButton(
               icon: const Icon(Icons.edit_outlined),
               color: Colors.grey.shade600,

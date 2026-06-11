@@ -104,16 +104,16 @@ class _LoginViewState extends ConsumerState<LoginView> {
                   Row(
                     children: [
                       Expanded(
-                        child: FilledButton(
-                          onPressed: authState.isLoading ? null : _login,
-                          child: const Text('Sign In'),
+                        child: OutlinedButton(
+                          onPressed: authState.isLoading ? null : _signUp,
+                          child: const Text('Sign Up'),
                         ),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: OutlinedButton(
-                          onPressed: authState.isLoading ? null : _signUp,
-                          child: const Text('Sign Up'),
+                        child: FilledButton(
+                          onPressed: authState.isLoading ? null : _login,
+                          child: const Text('Sign In'),
                         ),
                       ),
                     ],
