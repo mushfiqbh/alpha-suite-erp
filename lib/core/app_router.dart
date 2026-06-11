@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import 'package:erp/core/app_routes.dart';
 import 'package:erp/core/route_guards.dart';
-import 'package:erp/models/attendance.dart';
 import 'package:erp/models/customer.dart';
 import 'package:erp/models/hr.dart';
 import 'package:erp/models/product.dart';
@@ -21,6 +20,7 @@ import 'package:erp/screens/account/account_view.dart';
 import 'package:erp/screens/hr/attendance_form_page.dart';
 import 'package:erp/screens/hr/employee_form_page.dart';
 import 'package:erp/screens/hr/hr_view.dart';
+import 'package:erp/screens/hr/mark_attendance_page.dart';
 import 'package:erp/screens/pos/pos_view.dart';
 import 'package:erp/screens/sales/sales_list_view.dart';
 import 'package:erp/screens/admin/users_management_view.dart';
@@ -115,10 +115,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: AppRoutes.hrAttendanceNew,
-            builder: (context, state) => AttendanceFormPage(
-              existing: state.extra is AttendanceRecord
-                  ? state.extra as AttendanceRecord
-                  : null,
+            builder: (context, state) => const AttendanceFormPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.hrAttendanceMark,
+            builder: (context, state) => MarkAttendancePage(
+              employeeId: state.extra is String ? state.extra as String : null,
             ),
           ),
           GoRoute(

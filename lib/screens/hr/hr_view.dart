@@ -6,10 +6,10 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:erp/core/app_routes.dart';
-import 'package:erp/models/attendance.dart';
 import 'package:erp/models/hr.dart';
-import 'package:erp/providers/attendance_providers.dart';
 import 'package:erp/providers/hr_providers.dart';
+import 'package:erp/screens/hr/attendance_form_page.dart';
+import 'package:erp/screens/hr/mark_attendance_page.dart';
 
 class HrView extends ConsumerStatefulWidget {
   const HrView({super.key});
@@ -25,7 +25,7 @@ class _HrViewState extends ConsumerState<HrView>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -62,8 +62,12 @@ class _HrViewState extends ConsumerState<HrView>
                 text: 'Employees',
               ),
               Tab(
-                icon: Icon(Icons.fact_check_outlined, size: 18),
+                icon: Icon(Icons.table_chart_outlined, size: 18),
                 text: 'Attendance',
+              ),
+              Tab(
+                icon: Icon(Icons.person_add_alt_1_rounded, size: 18),
+                text: 'Attend',
               ),
             ],
           ),
@@ -71,7 +75,11 @@ class _HrViewState extends ConsumerState<HrView>
         Expanded(
           child: TabBarView(
             controller: _tabController,
-            children: const [_EmployeesTab(), _AttendanceTab()],
+            children: const [
+              _EmployeesTab(),
+              _BulkAttendanceTab(),
+              _IndividualAttendanceTab(),
+            ],
           ),
         ),
       ],
@@ -371,196 +379,29 @@ class _EmployeeCard extends StatelessWidget {
   }
 }
 
-String _formatDate(DateTime? value) {
-  if (value == null) return '—';
-  return '${value.year.toString().padLeft(4, '0')}-${value.month.toString().padLeft(2, '0')}-${value.day.toString().padLeft(2, '0')}';
-}
-
 // ===========================================================================
-// Attendance tab
+// Bulk Attendance tab — inline sheet
 // ===========================================================================
 
-class _AttendanceTab extends ConsumerStatefulWidget {
-  const _AttendanceTab();
-
-  @override
-  ConsumerState<_AttendanceTab> createState() => _AttendanceTabState();
-}
-
-class _AttendanceTabState extends ConsumerState<_AttendanceTab> {
-  int _page = 0;
-  static const int _rowsPerPage = 9;
-
-  List<AttendanceRecord> _filter(AttendanceDirectoryState state) {
-    final query = state.searchQuery.trim().toLowerCase();
-    final status = state.statusFilter;
-    return state.records.where((r) {
-      if (status != null && r.status.toLowerCase() != status.toLowerCase()) {
-        return false;
-      }
-      if (query.isEmpty) return true;
-      final empName = _attendanceEmployeeName(r.employeeId).toLowerCase();
-      return empName.contains(query) ||
-          (r.remarks ?? '').toLowerCase().contains(query);
-    }).toList();
-  }
-
-  String _attendanceEmployeeName(String? id) {
-    if (id == null) return 'Unknown employee';
-    final employees = ref.read(employeeDirectoryProvider).employees;
-    return employees
-        .where((e) => e.id == id)
-        .map((e) => e.fullName)
-        .cast<String>()
-        .firstWhere((_) => true, orElse: () => 'Unknown employee');
-  }
+class _BulkAttendanceTab extends StatelessWidget {
+  const _BulkAttendanceTab();
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(attendanceDirectoryProvider);
-    final filtered = _filter(state);
-    final totalPages = filtered.isEmpty
-        ? 0
-        : (filtered.length / _rowsPerPage).ceil();
-    final safePage = totalPages == 0 ? 0 : math.min(_page, totalPages - 1);
-    final pageStart = filtered.isEmpty ? 0 : safePage * _rowsPerPage + 1;
-    final pageEnd = filtered.isEmpty
-        ? 0
-        : math.min(pageStart + _rowsPerPage - 1, filtered.length);
-    final visible = filtered.isEmpty
-        ? const <AttendanceRecord>[]
-        : filtered.sublist(
-            pageStart - 1,
-            math.min(pageStart - 1 + _rowsPerPage, filtered.length),
-          );
+    return const AttendanceFormPage(embedded: true);
+  }
+}
 
-    return _TabShell(
-      searchQuery: state.searchQuery,
-      onSearch: (v) =>
-          ref.read(attendanceDirectoryProvider.notifier).setSearchQuery(v),
-      isLoading: state.isLoading,
-      isSaving: state.isSaving,
-      errorMessage: state.errorMessage,
-      onRefresh: () => ref.read(attendanceDirectoryProvider.notifier).refresh(),
-      filterContent: const SizedBox.shrink(),
-      activeFilterChips: const <Widget>[],
-      summary: filtered.isEmpty
-          ? (state.isLoading
-                ? 'Loading attendance...'
-                : 'No attendance records')
-          : 'Showing $pageStart-$pageEnd of ${filtered.length} records',
-      isEmpty: filtered.isEmpty,
-      emptyTitle: 'No attendance records yet',
-      emptyMessage:
-          'Log an employee\'s check-in to start tracking attendance and work hours.',
-      onCreate: () => context.push(AppRoutes.hrAttendanceNew),
-      gridBuilder: (crossAxisCount) => GridView.builder(
-        padding: const EdgeInsets.fromLTRB(20, 4, 20, 4),
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: crossAxisCount,
-          mainAxisSpacing: 10,
-          crossAxisSpacing: 10,
-          mainAxisExtent: 130,
-        ),
-        itemCount: visible.length,
-        itemBuilder: (context, index) {
-          final r = visible[index];
-          final statusColor = AttendanceStatusOptions.color(r.status);
-          final empName = _attendanceEmployeeName(r.employeeId);
-          return _EntityCard(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF134E4A), Color(0xFF14B8A6)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            icon: Icons.fact_check_outlined,
-            identity: _CardIdentity(
-              title: empName,
-              subtitle: _formatDate(r.attendanceDate),
-              initials: empName.isNotEmpty
-                  ? empName.substring(0, 1).toUpperCase()
-                  : 'A',
-            ),
-            badges: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: statusColor,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      AttendanceStatusOptions.label(r.status),
-                      style: GoogleFonts.inter(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: statusColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              _Pill(text: '${r.workHours.toStringAsFixed(1)}h'),
-            ],
-            onEdit: () => context.push(AppRoutes.hrAttendanceNew, extra: r),
-            onDelete: () => _confirmDelete(
-              context,
-              title: 'Delete attendance record?',
-              message:
-                  'This will permanently remove this attendance entry. This action cannot be undone.',
-              onConfirm: () async {
-                final messenger = ScaffoldMessenger.of(context);
-                final controller = ref.read(
-                  attendanceDirectoryProvider.notifier,
-                );
-                await controller.deleteAttendance(r.id!);
-                if (!mounted) return;
-                final latest = ref.read(attendanceDirectoryProvider);
-                if (latest.errorMessage == null) {
-                  messenger.showSnackBar(
-                    const SnackBar(
-                      content: Text('Attendance record deleted.'),
-                      backgroundColor: Color(0xFF10B981),
-                    ),
-                  );
-                } else {
-                  messenger.showSnackBar(
-                    SnackBar(
-                      content: Text(latest.errorMessage!),
-                      backgroundColor: Colors.red.shade600,
-                    ),
-                  );
-                }
-              },
-            ),
-          );
-        },
-      ),
-      pagination: _PaginationBar(
-        currentPage: safePage,
-        totalPages: totalPages,
-        totalItems: filtered.length,
-        onPreviousPage: totalPages == 0 || safePage == 0
-            ? null
-            : () => setState(() => _page = safePage - 1),
-        onNextPage: totalPages == 0 || safePage >= totalPages - 1
-            ? null
-            : () => setState(() => _page = safePage + 1),
-      ),
-    );
+// ===========================================================================
+// Individual Attendance tab — inline form
+// ===========================================================================
+
+class _IndividualAttendanceTab extends StatelessWidget {
+  const _IndividualAttendanceTab();
+
+  @override
+  Widget build(BuildContext context) {
+    return const MarkAttendancePage(embedded: true);
   }
 }
 
@@ -783,197 +624,6 @@ class _TabShell extends StatelessWidget {
               ),
             ),
         ],
-      ),
-    );
-  }
-}
-
-class _EntityCard extends StatelessWidget {
-  const _EntityCard({
-    required this.gradient,
-    required this.icon,
-    required this.identity,
-    required this.badges,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  final LinearGradient gradient;
-  final IconData icon;
-  final _CardIdentity identity;
-  final List<Widget> badges;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              gradient: gradient,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(11),
-              ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.18),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(icon, color: Colors.white, size: 16),
-                ),
-                const SizedBox(width: 8),
-                Expanded(child: identity.header(context)),
-                _CardIconButton(
-                  icon: Icons.edit_outlined,
-                  tooltip: 'Edit',
-                  onPressed: onEdit,
-                ),
-                const SizedBox(width: 2),
-                _CardIconButton(
-                  icon: Icons.delete_outline,
-                  tooltip: 'Delete',
-                  onPressed: onDelete,
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(10, 6, 10, 6),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  if (badges.isNotEmpty)
-                    Wrap(spacing: 6, runSpacing: 6, children: badges)
-                  else
-                    Text(
-                      identity.subtitle,
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        color: const Color(0xFF64748B),
-                      ),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  if (badges.isNotEmpty)
-                    Text(
-                      identity.subtitle,
-                      style: GoogleFonts.inter(
-                        fontSize: 11,
-                        color: const Color(0xFF94A3B8),
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CardIdentity {
-  const _CardIdentity({
-    required this.title,
-    required this.subtitle,
-    required this.initials,
-  });
-
-  final String title;
-  final String subtitle;
-  final String initials;
-
-  Widget header(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 24,
-          height: 24,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.22),
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Text(
-            initials,
-            style: GoogleFonts.poppins(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-            ),
-          ),
-        ),
-        const SizedBox(width: 6),
-        Expanded(
-          child: Text(
-            title,
-            style: GoogleFonts.poppins(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _CardIconButton extends StatelessWidget {
-  const _CardIconButton({
-    required this.icon,
-    required this.tooltip,
-    required this.onPressed,
-  });
-
-  final IconData icon;
-  final String tooltip;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: tooltip,
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(6),
-        child: Container(
-          width: 24,
-          height: 24,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.18),
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Icon(icon, color: Colors.white, size: 14),
-        ),
       ),
     );
   }

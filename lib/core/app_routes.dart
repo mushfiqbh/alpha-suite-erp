@@ -13,6 +13,7 @@ class AppRoutes {
   static const hr = '/hr';
   static const hrEmployeeNew = '/hr/employees/new';
   static const hrAttendanceNew = '/hr/attendance/new';
+  static const hrAttendanceMark = '/hr/attendance/mark';
 
   static const users = '/users';
   static const account = '/account';
