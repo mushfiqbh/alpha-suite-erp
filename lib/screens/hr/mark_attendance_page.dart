@@ -265,7 +265,7 @@ class _MarkAttendancePageState extends ConsumerState<MarkAttendancePage> {
                 _SectionTitle(title: 'Employee & Date'),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  value: _employeeId,
+                  initialValue: _employeeId,
                   isExpanded: true,
                   decoration: _inputDecoration('Employee'),
                   items: employees
@@ -392,7 +392,7 @@ class _MarkAttendancePageState extends ConsumerState<MarkAttendancePage> {
                 _SectionTitle(title: 'Status & Metrics'),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  value: _status,
+                  initialValue: _status,
                   decoration: _inputDecoration('Status'),
                   items: AttendanceStatusOptions.values
                       .map(
