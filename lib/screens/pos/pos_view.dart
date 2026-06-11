@@ -2,13 +2,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'package:erp/core/app_routes.dart';
 import 'package:erp/models/customer.dart';
 import 'package:erp/models/product.dart';
 import 'package:erp/models/sales_order.dart';
+import 'package:erp/providers/customer_providers.dart';
 import 'package:erp/providers/product_providers.dart';
 import 'package:erp/providers/sales_providers.dart';
 import 'package:erp/services/sales_service.dart';
@@ -411,6 +410,131 @@ class _PosViewState extends ConsumerState<PosView> {
     );
   }
 
+  Future<void> _showNewCustomerModal() async {
+    final nameCtrl = TextEditingController();
+    final phoneCtrl = TextEditingController();
+    final emailCtrl = TextEditingController();
+    final addressCtrl = TextEditingController();
+
+    final saved = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text('New Customer'),
+          content: SizedBox(
+            width: 360,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Name *',
+                    hintText: 'Guest Customer',
+                  ),
+                  textCapitalization: TextCapitalization.words,
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: phoneCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Phone',
+                    hintText: '+1 555-000-0000',
+                  ),
+                  keyboardType: TextInputType.phone,
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: emailCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Email',
+                    hintText: 'customer@example.com',
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: addressCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Address',
+                    hintText: 'Street, city, etc.',
+                  ),
+                  maxLines: 2,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                if (nameCtrl.text.trim().isEmpty) return;
+                Navigator.of(ctx).pop(true);
+              },
+              child: const Text('Select'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (saved != true || !mounted) return;
+
+    final name = nameCtrl.text.trim();
+    if (name.isEmpty) return;
+
+    final customer = CustomerRecord(
+      id: null,
+      customerCode: '',
+      customerType: 'company',
+      companyName: name,
+      firstName: null,
+      lastName: null,
+      email: emailCtrl.text.trim().isEmpty ? null : emailCtrl.text.trim(),
+      phone: phoneCtrl.text.trim().isEmpty ? null : phoneCtrl.text.trim(),
+      website: null,
+      industry: null,
+      billingAddress: addressCtrl.text.trim().isEmpty
+          ? null
+          : addressCtrl.text.trim(),
+      shippingAddress: null,
+      city: null,
+      country: null,
+      status: 'active',
+      source: 'pos',
+      assignedTo: null,
+      createdAt: null,
+      updatedAt: null,
+      createdBy: null,
+    );
+
+    nameCtrl.dispose();
+    phoneCtrl.dispose();
+    emailCtrl.dispose();
+    addressCtrl.dispose();
+
+    // Save to Supabase and wait for refresh.
+    await ref.read(customerDirectoryProvider.notifier).saveCustomer(customer);
+
+    if (!mounted) return;
+
+    // Find the newly saved customer and select them.
+    final customers = ref.read(customerDirectoryProvider).customers;
+    final savedCustomer = customers.firstWhere(
+      (c) => c.companyName == name && c.phone == customer.phone,
+      orElse: () => customers.isNotEmpty ? customers.first : customer,
+    );
+
+    ref.read(salesSelectionProvider.notifier).select(savedCustomer);
+  }
+
   Future<void> _openMobileCartSheet({
     required BuildContext context,
     required CustomerRecord? customer,
@@ -551,7 +675,7 @@ class _PosViewState extends ConsumerState<PosView> {
               children: [
                 _CustomerBanner(
                   customer: customer,
-                  onChange: () => context.push(AppRoutes.customers),
+                  onChange: _showNewCustomerModal,
                   onClear: customer == null
                       ? null
                       : () {
@@ -617,7 +741,7 @@ class _PosViewState extends ConsumerState<PosView> {
         children: [
           _CustomerBanner(
             customer: customer,
-            onChange: () => context.push(AppRoutes.customers),
+            onChange: _showNewCustomerModal,
             onClear: customer == null
                 ? null
                 : () {
@@ -740,7 +864,7 @@ class _CustomerBanner extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Text(
-                    'Pick a customer to start a sale.',
+                    'Add a walk-in customer to start a sale.',
                     style: TextStyle(
                       color: Color(0xFF64748B),
                       fontSize: 12,
@@ -762,8 +886,8 @@ class _CustomerBanner extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              icon: const Icon(Icons.arrow_forward_rounded, size: 16),
-              label: const Text('Pick customer'),
+              icon: const Icon(Icons.person_add_rounded, size: 16),
+              label: const Text('Start Sale'),
             ),
           ],
         ),

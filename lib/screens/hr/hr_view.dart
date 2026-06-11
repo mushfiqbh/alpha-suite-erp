@@ -1039,63 +1039,6 @@ class _Pill extends StatelessWidget {
   }
 }
 
-class _ActiveFilterChip extends StatelessWidget {
-  const _ActiveFilterChip({required this.label, required this.onClear});
-
-  final String label;
-  final VoidCallback onClear;
-
-  @override
-  Widget build(BuildContext context) {
-    return InputChip(
-      label: Text(label),
-      onDeleted: onClear,
-      deleteIconColor: const Color(0xFF64748B),
-      backgroundColor: const Color(0xFFEEF2FF),
-      labelStyle: GoogleFonts.inter(
-        fontSize: 12,
-        color: const Color(0xFF4338CA),
-        fontWeight: FontWeight.w600,
-      ),
-    );
-  }
-}
-
-class _FilterDropdown<T> extends StatelessWidget {
-  const _FilterDropdown({
-    required this.value,
-    required this.label,
-    required this.items,
-    required this.onChanged,
-  });
-
-  final T value;
-  final String label;
-  final List<DropdownMenuItem<T>> items;
-  final ValueChanged<T?> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<T>(
-          value: value,
-          isExpanded: false,
-          icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 18),
-          onChanged: onChanged,
-          items: items,
-        ),
-      ),
-    );
-  }
-}
-
 class _EmptyState extends StatelessWidget {
   const _EmptyState({
     required this.title,
