@@ -210,6 +210,66 @@ class SalesService {
     ).map(SalesOrderRecord.fromMap).toList();
   }
 
+  /// Revenue summary for the dashboard: total, paid, and count for this
+  /// month and previous month. Queries with date filters so no limit
+  /// skews the numbers.
+  Future<DashboardRevenueSummary> getRevenueSummary() async {
+    if (!_isConfigured) {
+      return const DashboardRevenueSummary(
+        thisMonthTotal: 0,
+        thisMonthPaid: 0,
+        thisMonthOrders: 0,
+        previousMonthTotal: 0,
+      );
+    }
+
+    final now = DateTime.now();
+
+    // This month range
+    final thisMonthStart = DateTime(now.year, now.month, 1);
+    final nextMonth = DateTime(now.year, now.month + 1, 1);
+
+    // Previous month range
+    final prevMonthStart = DateTime(now.year, now.month - 1, 1);
+    final thisMonthStartPrev = DateTime(now.year, now.month, 1);
+
+    // Fetch this month's orders
+    final thisMonthData = await _client
+        .from('sales_orders')
+        .select('grand_total, paid_amount')
+        .gte('order_date', thisMonthStart.toIso8601String())
+        .lt('order_date', nextMonth.toIso8601String());
+
+    // Fetch previous month's orders
+    final prevMonthData = await _client
+        .from('sales_orders')
+        .select('grand_total')
+        .gte('order_date', prevMonthStart.toIso8601String())
+        .lt('order_date', thisMonthStartPrev.toIso8601String());
+
+    final thisRows = List<Map<String, dynamic>>.from(thisMonthData);
+    final prevRows = List<Map<String, dynamic>>.from(prevMonthData);
+
+    double thisTotal = 0;
+    double thisPaid = 0;
+    for (final row in thisRows) {
+      thisTotal += _parseDouble(row['grand_total']);
+      thisPaid += _parseDouble(row['paid_amount']);
+    }
+
+    double prevTotal = 0;
+    for (final row in prevRows) {
+      prevTotal += _parseDouble(row['grand_total']);
+    }
+
+    return DashboardRevenueSummary(
+      thisMonthTotal: thisTotal,
+      thisMonthPaid: thisPaid,
+      thisMonthOrders: thisRows.length,
+      previousMonthTotal: prevTotal,
+    );
+  }
+
   /// Fetch the line items for a specific sales order, used by the
   /// sales list view when a row is expanded.
   Future<List<SalesOrderItemRecord>> listOrderItems(String orderId) async {

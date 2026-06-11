@@ -137,13 +137,35 @@ class SalesOrderItemRecord {
 /// post-checkout success snackbar / dialog.
 @immutable
 class SalesCheckoutResult {
-  const SalesCheckoutResult({
-    required this.order,
-    required this.items,
-  });
+  const SalesCheckoutResult({required this.order, required this.items});
 
   final SalesOrderRecord order;
   final List<SalesOrderItemRecord> items;
 
   String get invoiceNo => order.invoiceNo;
+}
+
+/// Aggregate revenue data for the dashboard KPIs, computed from the full
+/// set of orders (not limited to a recent window).
+@immutable
+class DashboardRevenueSummary {
+  const DashboardRevenueSummary({
+    required this.thisMonthTotal,
+    required this.thisMonthPaid,
+    required this.thisMonthOrders,
+    required this.previousMonthTotal,
+  });
+
+  /// Sum of grand_total for the current calendar month.
+  final double thisMonthTotal;
+
+  /// Sum of paid_amount for the current calendar month.
+  final double thisMonthPaid;
+
+  /// Number of orders in the current calendar month.
+  final int thisMonthOrders;
+
+  /// Sum of grand_total for the previous calendar month (used to
+  /// compute month-over-month change).
+  final double previousMonthTotal;
 }

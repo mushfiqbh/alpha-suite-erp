@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:erp/core/app_routes.dart';
 import 'package:erp/models/sales_order.dart';
 import 'package:erp/providers/auth_providers.dart';
 import 'package:erp/providers/hr_providers.dart';
@@ -110,7 +112,7 @@ class _KpiGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final ordersAsync = ref.watch(recentSalesOrdersProvider);
+    final revenueAsync = ref.watch(revenueSummaryProvider);
     final productsState = ref.watch(productDirectoryProvider);
     final employeesAsync = ref.watch(activeHrEmployeeCountProvider);
 
@@ -119,24 +121,24 @@ class _KpiGrid extends ConsumerWidget {
         Row(
           children: [
             Expanded(
-              child: ordersAsync.when(
+              child: revenueAsync.when(
                 loading: () => const _KpiSkeleton(),
                 error: (_, __) => const _KpiError(
                   title: 'TOTAL SALES',
                   message: 'Unable to load',
                 ),
-                data: (orders) => _buildTotalSalesKpi(orders),
+                data: (summary) => _buildTotalSalesKpi(summary),
               ),
             ),
             const SizedBox(width: 14),
             Expanded(
-              child: ordersAsync.when(
+              child: revenueAsync.when(
                 loading: () => const _KpiSkeleton(),
                 error: (_, __) => const _KpiError(
                   title: 'REVENUE',
                   message: 'Unable to load',
                 ),
-                data: (orders) => _buildRevenueKpi(orders),
+                data: (summary) => _buildRevenueKpi(summary),
               ),
             ),
           ],
@@ -161,15 +163,14 @@ class _KpiGrid extends ConsumerWidget {
               ),
             ),
             const SizedBox(width: 14),
-            Expanded(child: _buildLowStockKpi(productsState)),
+            Expanded(child: _buildLowStockKpi(productsState, context)),
           ],
         ),
       ],
     );
   }
 
-  static Widget _buildTotalSalesKpi(List<SalesOrderRecord> orders) {
-    final summary = _SalesSummary.from(orders);
+  static Widget _buildTotalSalesKpi(DashboardRevenueSummary summary) {
     final hasPrev = summary.previousMonthTotal > 0;
     final deltaPct = hasPrev
         ? ((summary.thisMonthTotal - summary.previousMonthTotal) /
@@ -198,8 +199,7 @@ class _KpiGrid extends ConsumerWidget {
     );
   }
 
-  static Widget _buildRevenueKpi(List<SalesOrderRecord> orders) {
-    final summary = _SalesSummary.from(orders);
+  static Widget _buildRevenueKpi(DashboardRevenueSummary summary) {
     return KpiCardWidget(
       title: 'REVENUE',
       value: _formatMoney(summary.thisMonthPaid),
@@ -211,7 +211,10 @@ class _KpiGrid extends ConsumerWidget {
     );
   }
 
-  static Widget _buildLowStockKpi(ProductDirectoryState state) {
+  static Widget _buildLowStockKpi(
+    ProductDirectoryState state,
+    BuildContext context,
+  ) {
     if (state.isLoading) return const _KpiSkeleton();
     if (state.errorMessage != null && state.products.isEmpty) {
       return const _KpiError(title: 'LOW STOCK', message: 'Unable to load');
@@ -229,6 +232,7 @@ class _KpiGrid extends ConsumerWidget {
           ? const Color(0xFFB23B3B)
           : const Color(0xFF684000),
       icon: _LowStockIcon(),
+      onTap: () => context.push(AppRoutes.stockOut),
     );
   }
 }
@@ -274,51 +278,6 @@ class _KpiError extends StatelessWidget {
       icon: const _LowStockIcon(),
     );
   }
-}
-
-class _SalesSummary {
-  const _SalesSummary({
-    required this.thisMonthTotal,
-    required this.thisMonthPaid,
-    required this.thisMonthOrders,
-    required this.previousMonthTotal,
-  });
-
-  factory _SalesSummary.from(List<SalesOrderRecord> orders) {
-    final now = DateTime.now();
-    var thisMonthTotal = 0.0;
-    var thisMonthPaid = 0.0;
-    var thisMonthOrders = 0;
-    var prevMonthTotal = 0.0;
-
-    for (final order in orders) {
-      if (order.orderDate.year == now.year &&
-          order.orderDate.month == now.month) {
-        thisMonthTotal += order.grandTotal;
-        thisMonthPaid += order.paidAmount;
-        thisMonthOrders += 1;
-        continue;
-      }
-      final monthsAgo =
-          (now.year - order.orderDate.year) * 12 +
-          (now.month - order.orderDate.month);
-      if (monthsAgo == 1) {
-        prevMonthTotal += order.grandTotal;
-      }
-    }
-
-    return _SalesSummary(
-      thisMonthTotal: thisMonthTotal,
-      thisMonthPaid: thisMonthPaid,
-      thisMonthOrders: thisMonthOrders,
-      previousMonthTotal: prevMonthTotal,
-    );
-  }
-
-  final double thisMonthTotal;
-  final double thisMonthPaid;
-  final int thisMonthOrders;
-  final double previousMonthTotal;
 }
 
 String _formatMoney(double value) {

@@ -227,3 +227,12 @@ final salesOrderItemsProvider = FutureProvider.family
       final service = ref.watch(salesServiceProvider);
       return service.listOrderItems(orderId);
     });
+
+/// Aggregate revenue summary for the dashboard KPIs. Queries the DB
+/// with date filters rather than relying on the limited (50-order)
+/// recent list, so monthly totals are accurate regardless of volume.
+final revenueSummaryProvider =
+    FutureProvider.autoDispose<DashboardRevenueSummary>((ref) {
+      final service = ref.watch(salesServiceProvider);
+      return service.getRevenueSummary();
+    });

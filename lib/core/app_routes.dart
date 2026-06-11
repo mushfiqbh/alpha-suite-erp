@@ -9,6 +9,7 @@ class AppRoutes {
   static const customerNew = '/customers/new';
   static const products = '/products';
   static const productNew = '/products/new';
+  static const stockOut = '/stock-out';
   static const hr = '/hr';
   static const hrEmployeeNew = '/hr/employees/new';
   static const hrAttendanceNew = '/hr/attendance/new';

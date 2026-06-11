@@ -13,6 +13,7 @@ import 'package:erp/screens/customers/customer_form_page.dart';
 import 'package:erp/screens/customers/customer_management_view.dart';
 import 'package:erp/screens/products/product_form_page.dart';
 import 'package:erp/screens/products/product_management_view.dart';
+import 'package:erp/screens/products/stock_out_view.dart';
 import 'package:erp/screens/auth/login_view.dart';
 import 'package:erp/screens/auth/splash_view.dart';
 import 'package:erp/screens/dashboard/dashboard_view.dart';
@@ -95,6 +96,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   ? state.extra as ProductRecord
                   : null,
             ),
+          ),
+          GoRoute(
+            path: AppRoutes.stockOut,
+            builder: (context, state) => const StockOutView(),
           ),
           GoRoute(
             path: AppRoutes.hr,

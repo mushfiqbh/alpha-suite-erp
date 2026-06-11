@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'package:erp/core/app_router.dart';
 import 'package:erp/core/app_theme.dart';
@@ -9,6 +10,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Allow google_fonts to download fonts at runtime so it doesn't
+  // depend on AssetManifest.bin.json being present in the build output.
+  GoogleFonts.config.allowRuntimeFetching = true;
 
   if (true) {
     try {
