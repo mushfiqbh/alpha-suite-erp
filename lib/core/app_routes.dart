@@ -14,6 +14,10 @@ class AppRoutes {
   static const hrEmployeeNew = '/hr/employees/new';
   static const hrAttendanceNew = '/hr/attendance/new';
   static const hrAttendanceMark = '/hr/attendance/mark';
+  static const hrPayrollPeriods = '/hr/payroll/periods';
+  static const hrPayrollPeriodNew = '/hr/payroll/periods/new';
+  static const hrPayrollList = '/hr/payroll/list';
+  static const hrPayrollNew = '/hr/payroll/new';
 
   static const users = '/users';
   static const account = '/account';

@@ -18,6 +18,11 @@ class PermissionService {
       AppRoutes.hr,
       AppRoutes.hrEmployeeNew,
       AppRoutes.hrAttendanceNew,
+      AppRoutes.hrAttendanceMark,
+      AppRoutes.hrPayrollPeriods,
+      AppRoutes.hrPayrollPeriodNew,
+      AppRoutes.hrPayrollList,
+      AppRoutes.hrPayrollNew,
       AppRoutes.users,
     },
     UserRole.operations: {
@@ -46,6 +51,11 @@ class PermissionService {
       AppRoutes.hr,
       AppRoutes.hrEmployeeNew,
       AppRoutes.hrAttendanceNew,
+      AppRoutes.hrAttendanceMark,
+      AppRoutes.hrPayrollPeriods,
+      AppRoutes.hrPayrollPeriodNew,
+      AppRoutes.hrPayrollList,
+      AppRoutes.hrPayrollNew,
     },
     UserRole.viewer: {AppRoutes.dashboard},
   };
