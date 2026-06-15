@@ -16,139 +16,6 @@ String _titleCase(String value) {
 }
 
 // ---------------------------------------------------------------------------
-// Department
-// ---------------------------------------------------------------------------
-
-class DepartmentRecord {
-  const DepartmentRecord({
-    required this.id,
-    required this.name,
-    required this.description,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-
-  factory DepartmentRecord.empty() {
-    return const DepartmentRecord(
-      id: null,
-      name: '',
-      description: null,
-      createdAt: null,
-      updatedAt: null,
-    );
-  }
-
-  factory DepartmentRecord.fromMap(Map<String, dynamic> data) {
-    return DepartmentRecord(
-      id: data['id']?.toString(),
-      name: (data['name'] ?? '').toString(),
-      description: _emptyToNull(data['description']?.toString()),
-      createdAt: DateTime.tryParse(data['created_at']?.toString() ?? ''),
-      updatedAt: DateTime.tryParse(data['updated_at']?.toString() ?? ''),
-    );
-  }
-
-  final String? id;
-  final String name;
-  final String? description;
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
-
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'name': name.trim(),
-      'description': _emptyToNull(description),
-    };
-  }
-
-  DepartmentRecord copyWith({
-    String? id,
-    String? name,
-    String? description,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-  }) {
-    return DepartmentRecord(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      description: description ?? this.description,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Designation
-// ---------------------------------------------------------------------------
-
-class DesignationRecord {
-  const DesignationRecord({
-    required this.id,
-    required this.departmentId,
-    required this.title,
-    required this.grade,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-
-  factory DesignationRecord.empty({String? departmentId}) {
-    return DesignationRecord(
-      id: null,
-      departmentId: departmentId,
-      title: '',
-      grade: null,
-      createdAt: null,
-      updatedAt: null,
-    );
-  }
-
-  factory DesignationRecord.fromMap(Map<String, dynamic> data) {
-    return DesignationRecord(
-      id: data['id']?.toString(),
-      departmentId: data['department_id']?.toString(),
-      title: (data['title'] ?? '').toString(),
-      grade: _emptyToNull(data['grade']?.toString()),
-      createdAt: DateTime.tryParse(data['created_at']?.toString() ?? ''),
-      updatedAt: DateTime.tryParse(data['updated_at']?.toString() ?? ''),
-    );
-  }
-
-  final String? id;
-  final String? departmentId;
-  final String title;
-  final String? grade;
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
-
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'department_id': _emptyToNull(departmentId),
-      'title': title.trim(),
-      'grade': _emptyToNull(grade),
-    };
-  }
-
-  DesignationRecord copyWith({
-    String? id,
-    String? departmentId,
-    String? title,
-    String? grade,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-  }) {
-    return DesignationRecord(
-      id: id ?? this.id,
-      departmentId: departmentId ?? this.departmentId,
-      title: title ?? this.title,
-      grade: grade ?? this.grade,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Employee
 // ---------------------------------------------------------------------------
 
@@ -254,8 +121,8 @@ class EmployeeRecord {
     required this.gender,
     required this.dob,
     required this.joiningDate,
-    required this.departmentId,
-    required this.designationId,
+    required this.department,
+    required this.designation,
     required this.managerId,
     required this.employmentType,
     required this.basicSalary,
@@ -275,8 +142,8 @@ class EmployeeRecord {
       gender: null,
       dob: null,
       joiningDate: null,
-      departmentId: null,
-      designationId: null,
+      department: null,
+      designation: null,
       managerId: null,
       employmentType: 'permanent',
       basicSalary: 0,
@@ -297,8 +164,8 @@ class EmployeeRecord {
       gender: _emptyToNull(data['gender']?.toString()),
       dob: _parseDate(data['dob']?.toString()),
       joiningDate: _parseDate(data['joining_date']?.toString()),
-      departmentId: data['department_id']?.toString(),
-      designationId: data['designation_id']?.toString(),
+      department: _emptyToNull(data['department']?.toString()),
+      designation: _emptyToNull(data['designation']?.toString()),
       managerId: data['manager_id']?.toString(),
       employmentType: (data['employment_type'] ?? 'permanent').toString(),
       basicSalary: _parseDouble(data['basic_salary']),
@@ -317,8 +184,8 @@ class EmployeeRecord {
   final String? gender;
   final DateTime? dob;
   final DateTime? joiningDate;
-  final String? departmentId;
-  final String? designationId;
+  final String? department;
+  final String? designation;
   final String? managerId;
   final String employmentType;
   final double basicSalary;
@@ -362,8 +229,8 @@ class EmployeeRecord {
       'gender': _emptyToNull(gender),
       'dob': _formatDate(dob),
       'joining_date': _formatDate(joiningDate),
-      'department_id': _emptyToNull(departmentId),
-      'designation_id': _emptyToNull(designationId),
+      'department': _emptyToNull(department),
+      'designation': _emptyToNull(designation),
       'manager_id': _emptyToNull(managerId),
       'employment_type': employmentType.trim().isEmpty
           ? 'permanent'
@@ -383,8 +250,8 @@ class EmployeeRecord {
     String? gender,
     DateTime? dob,
     DateTime? joiningDate,
-    String? departmentId,
-    String? designationId,
+    String? department,
+    String? designation,
     String? managerId,
     String? employmentType,
     double? basicSalary,
@@ -402,8 +269,8 @@ class EmployeeRecord {
       gender: gender ?? this.gender,
       dob: dob ?? this.dob,
       joiningDate: joiningDate ?? this.joiningDate,
-      departmentId: departmentId ?? this.departmentId,
-      designationId: designationId ?? this.designationId,
+      department: department ?? this.department,
+      designation: designation ?? this.designation,
       managerId: managerId ?? this.managerId,
       employmentType: employmentType ?? this.employmentType,
       basicSalary: basicSalary ?? this.basicSalary,
@@ -431,4 +298,322 @@ double _parseDouble(dynamic value) {
   if (value == null) return 0;
   if (value is num) return value.toDouble();
   return double.tryParse(value.toString()) ?? 0;
+}
+
+// ===========================================================================
+// Payroll Period
+// ===========================================================================
+
+class PayrollPeriodStatusOptions {
+  static const List<String> values = <String>['open', 'processing', 'closed'];
+
+  static String label(String value) {
+    switch (value.toLowerCase()) {
+      case 'open':
+        return 'Open';
+      case 'processing':
+        return 'Processing';
+      case 'closed':
+        return 'Closed';
+      default:
+        return _titleCase(value);
+    }
+  }
+
+  static Color color(String value) {
+    switch (value.toLowerCase()) {
+      case 'open':
+        return const Color(0xFF10B981);
+      case 'processing':
+        return const Color(0xFFF59E0B);
+      case 'closed':
+        return const Color(0xFF64748B);
+      default:
+        return const Color(0xFF334155);
+    }
+  }
+}
+
+class PayrollPeriodRecord {
+  const PayrollPeriodRecord({
+    required this.id,
+    required this.month,
+    required this.year,
+    required this.startDate,
+    required this.endDate,
+    required this.status,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory PayrollPeriodRecord.empty() {
+    final now = DateTime.now();
+    return PayrollPeriodRecord(
+      id: null,
+      month: now.month,
+      year: now.year,
+      startDate: null,
+      endDate: null,
+      status: 'open',
+      createdAt: null,
+      updatedAt: null,
+    );
+  }
+
+  factory PayrollPeriodRecord.fromMap(Map<String, dynamic> data) {
+    return PayrollPeriodRecord(
+      id: data['id']?.toString(),
+      month: _parseInt(data['month']),
+      year: _parseInt(data['year']),
+      startDate: _parseDate(data['start_date']?.toString()),
+      endDate: _parseDate(data['end_date']?.toString()),
+      status: (data['status'] ?? 'open').toString().toLowerCase(),
+      createdAt: DateTime.tryParse(data['created_at']?.toString() ?? ''),
+      updatedAt: DateTime.tryParse(data['updated_at']?.toString() ?? ''),
+    );
+  }
+
+  final String? id;
+  final int month;
+  final int year;
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final String status;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+
+  String get periodLabel {
+    final m = month.toString().padLeft(2, '0');
+    return '${_monthName(month)} $year';
+  }
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'month': month,
+      'year': year,
+      'start_date': _formatDate(startDate),
+      'end_date': _formatDate(endDate),
+      'status': status.trim().isEmpty ? 'open' : status.trim().toLowerCase(),
+    };
+  }
+
+  PayrollPeriodRecord copyWith({
+    String? id,
+    int? month,
+    int? year,
+    DateTime? startDate,
+    DateTime? endDate,
+    String? status,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return PayrollPeriodRecord(
+      id: id ?? this.id,
+      month: month ?? this.month,
+      year: year ?? this.year,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+}
+
+// ===========================================================================
+// Payroll
+// ===========================================================================
+
+class PaymentStatusOptions {
+  static const List<String> values = <String>['pending', 'paid', 'cancelled'];
+
+  static String label(String value) {
+    switch (value.toLowerCase()) {
+      case 'pending':
+        return 'Pending';
+      case 'paid':
+        return 'Paid';
+      case 'cancelled':
+        return 'Cancelled';
+      default:
+        return _titleCase(value);
+    }
+  }
+
+  static Color color(String value) {
+    switch (value.toLowerCase()) {
+      case 'pending':
+        return const Color(0xFFF59E0B);
+      case 'paid':
+        return const Color(0xFF10B981);
+      case 'cancelled':
+        return const Color(0xFFEF4444);
+      default:
+        return const Color(0xFF334155);
+    }
+  }
+}
+
+class PayrollRecord {
+  const PayrollRecord({
+    required this.id,
+    required this.payrollPeriodId,
+    required this.employeeId,
+    required this.basicSalary,
+    required this.allowance,
+    required this.overtime,
+    required this.deduction,
+    required this.tax,
+    required this.netSalary,
+    required this.paymentDate,
+    required this.paymentStatus,
+    required this.createdAt,
+    required this.updatedAt,
+    // joined fields
+    this.employeeName,
+    this.employeeCode,
+  });
+
+  factory PayrollRecord.empty({
+    String? payrollPeriodId,
+    String? employeeId,
+    double? basicSalary,
+  }) {
+    return PayrollRecord(
+      id: null,
+      payrollPeriodId: payrollPeriodId ?? '',
+      employeeId: employeeId ?? '',
+      basicSalary: basicSalary ?? 0,
+      allowance: 0,
+      overtime: 0,
+      deduction: 0,
+      tax: 0,
+      netSalary: basicSalary ?? 0,
+      paymentDate: null,
+      paymentStatus: 'pending',
+      createdAt: null,
+      updatedAt: null,
+    );
+  }
+
+  factory PayrollRecord.fromMap(Map<String, dynamic> data) {
+    return PayrollRecord(
+      id: data['id']?.toString(),
+      payrollPeriodId: data['payroll_period_id']?.toString() ?? '',
+      employeeId: data['employee_id']?.toString() ?? '',
+      basicSalary: _parseDouble(data['basic_salary']),
+      allowance: _parseDouble(data['allowance']),
+      overtime: _parseDouble(data['overtime']),
+      deduction: _parseDouble(data['deduction']),
+      tax: _parseDouble(data['tax']),
+      netSalary: _parseDouble(data['net_salary']),
+      paymentDate: _parseDate(data['payment_date']?.toString()),
+      paymentStatus: (data['payment_status'] ?? 'pending')
+          .toString()
+          .toLowerCase(),
+      createdAt: DateTime.tryParse(data['created_at']?.toString() ?? ''),
+      updatedAt: DateTime.tryParse(data['updated_at']?.toString() ?? ''),
+      employeeName: data['employee_name']?.toString(),
+      employeeCode: data['employee_code']?.toString(),
+    );
+  }
+
+  final String? id;
+  final String payrollPeriodId;
+  final String employeeId;
+  final double basicSalary;
+  final double allowance;
+  final double overtime;
+  final double deduction;
+  final double tax;
+  final double netSalary;
+  final DateTime? paymentDate;
+  final String paymentStatus;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+  final String? employeeName;
+  final String? employeeCode;
+
+  double get grossSalary => basicSalary + allowance + overtime;
+  double get totalDeductions => deduction + tax;
+
+  String get displayNetSalary => '₹${netSalary.toStringAsFixed(2)}';
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'payroll_period_id': payrollPeriodId,
+      'employee_id': employeeId,
+      'basic_salary': basicSalary,
+      'allowance': allowance,
+      'overtime': overtime,
+      'deduction': deduction,
+      'tax': tax,
+      'net_salary': netSalary,
+      'payment_date': _formatDate(paymentDate),
+      'payment_status': paymentStatus.trim().isEmpty
+          ? 'pending'
+          : paymentStatus.trim().toLowerCase(),
+    };
+  }
+
+  PayrollRecord copyWith({
+    String? id,
+    String? payrollPeriodId,
+    String? employeeId,
+    double? basicSalary,
+    double? allowance,
+    double? overtime,
+    double? deduction,
+    double? tax,
+    double? netSalary,
+    DateTime? paymentDate,
+    String? paymentStatus,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    String? employeeName,
+    String? employeeCode,
+  }) {
+    return PayrollRecord(
+      id: id ?? this.id,
+      payrollPeriodId: payrollPeriodId ?? this.payrollPeriodId,
+      employeeId: employeeId ?? this.employeeId,
+      basicSalary: basicSalary ?? this.basicSalary,
+      allowance: allowance ?? this.allowance,
+      overtime: overtime ?? this.overtime,
+      deduction: deduction ?? this.deduction,
+      tax: tax ?? this.tax,
+      netSalary: netSalary ?? this.netSalary,
+      paymentDate: paymentDate ?? this.paymentDate,
+      paymentStatus: paymentStatus ?? this.paymentStatus,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      employeeName: employeeName ?? this.employeeName,
+      employeeCode: employeeCode ?? this.employeeCode,
+    );
+  }
+}
+
+String _monthName(int month) {
+  const months = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
+  if (month < 1 || month > 12) return 'Unknown';
+  return months[month - 1];
+}
+
+int _parseInt(dynamic value) {
+  if (value == null) return 0;
+  if (value is int) return value;
+  return int.tryParse(value.toString()) ?? 0;
 }

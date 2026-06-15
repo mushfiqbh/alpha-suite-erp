@@ -20,7 +20,7 @@ class CustomerManagementView extends ConsumerStatefulWidget {
 
 class _CustomerManagementViewState
     extends ConsumerState<CustomerManagementView> {
-  static const int _rowsPerPage = 5;
+  static const int _rowsPerPage = 12;
 
   int _currentPage = 0;
 
@@ -50,159 +50,6 @@ class _CustomerManagementViewState
 
       return matchesSearch && matchesStatus && matchesType;
     }).toList();
-  }
-
-  Future<void> _showFiltersSheet(
-    BuildContext context,
-    WidgetRef ref,
-    CustomerDirectoryState state,
-    List<String> customerTypes,
-  ) async {
-    final controller = ref.read(customerDirectoryProvider.notifier);
-    String? selectedStatus = state.statusFilter;
-    String? selectedType = state.typeFilter;
-
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (sheetContext) {
-        return StatefulBuilder(
-          builder: (context, setSheetState) {
-            final bottomInset = MediaQuery.of(context).viewInsets.bottom;
-
-            return Container(
-              margin: const EdgeInsets.all(12),
-              padding: EdgeInsets.fromLTRB(20, 18, 20, 20 + bottomInset),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(28),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.12),
-                    blurRadius: 30,
-                    offset: const Offset(0, 12),
-                  ),
-                ],
-              ),
-              child: SafeArea(
-                top: false,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Center(
-                      child: Container(
-                        width: 44,
-                        height: 5,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE2E8F0),
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    Text(
-                      'Filters',
-                      style: GoogleFonts.poppins(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF0F172A),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      'Narrow the list by status or customer type.',
-                      style: TextStyle(color: Color(0xFF64748B), height: 1.5),
-                    ),
-                    const SizedBox(height: 20),
-                    DropdownButtonFormField<String?>(
-                      initialValue: selectedStatus,
-                      decoration: const InputDecoration(labelText: 'Status'),
-                      items: [
-                        const DropdownMenuItem<String?>(
-                          value: null,
-                          child: Text('All statuses'),
-                        ),
-                        ...CustomerStatusOptions.values.map(
-                          (status) => DropdownMenuItem<String?>(
-                            value: status,
-                            child: Text(CustomerStatusOptions.label(status)),
-                          ),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        setSheetState(() => selectedStatus = value);
-                      },
-                    ),
-                    const SizedBox(height: 14),
-                    DropdownButtonFormField<String?>(
-                      initialValue: selectedType,
-                      decoration: const InputDecoration(
-                        labelText: 'Customer type',
-                      ),
-                      items: [
-                        const DropdownMenuItem<String?>(
-                          value: null,
-                          child: Text('All types'),
-                        ),
-                        ...customerTypes.map(
-                          (type) => DropdownMenuItem<String?>(
-                            value: type,
-                            child: Text(
-                              type.trim().isEmpty
-                                  ? 'Unspecified'
-                                  : type
-                                        .split(RegExp(r'\s+'))
-                                        .where((part) => part.isNotEmpty)
-                                        .map(
-                                          (part) =>
-                                              part[0].toUpperCase() +
-                                              part.substring(1).toLowerCase(),
-                                        )
-                                        .join(' '),
-                            ),
-                          ),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        setSheetState(() => selectedType = value);
-                      },
-                    ),
-                    const SizedBox(height: 18),
-                    Row(
-                      children: [
-                        TextButton(
-                          onPressed: () {
-                            setSheetState(() {
-                              selectedStatus = null;
-                              selectedType = null;
-                            });
-                          },
-                          child: const Text('Clear'),
-                        ),
-                        const Spacer(),
-                        FilledButton(
-                          onPressed: () {
-                            controller.setStatusFilter(selectedStatus);
-                            controller.setTypeFilter(selectedType);
-                            if (mounted) {
-                              setState(() => _currentPage = 0);
-                            }
-                            Navigator.of(sheetContext).pop();
-                          },
-                          child: const Text('Apply'),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
   }
 
   Future<void> _openCustomerForm(BuildContext context) {
@@ -273,17 +120,6 @@ class _CustomerManagementViewState
     final controller = ref.read(customerDirectoryProvider.notifier);
     final filteredCustomers = _filteredCustomers(state);
 
-    final customerTypes = <String>{
-      'company',
-      'individual',
-      'organization',
-      'partner',
-      'dealer',
-      ...state.customers
-          .map((customer) => customer.customerType.trim().toLowerCase())
-          .where((value) => value.isNotEmpty),
-    }.toList()..sort();
-
     final totalPages = filteredCustomers.isEmpty
         ? 1
         : (filteredCustomers.length / _rowsPerPage).ceil();
@@ -298,10 +134,6 @@ class _CustomerManagementViewState
         .skip(safePage * _rowsPerPage)
         .take(_rowsPerPage)
         .toList();
-
-    final activeFilterCount =
-        (state.statusFilter != null ? 1 : 0) +
-        (state.typeFilter != null ? 1 : 0);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FB),
@@ -320,13 +152,10 @@ class _CustomerManagementViewState
                 children: [
                   SearchBarSection(
                     searchQuery: state.searchQuery,
-                    activeFilterCount: activeFilterCount,
                     onChanged: (value) {
                       controller.setSearchQuery(value);
                       setState(() => _currentPage = 0);
                     },
-                    onFilterTap: () =>
-                        _showFiltersSheet(context, ref, state, customerTypes),
                   ),
                   const SizedBox(height: 16),
                   Container(
@@ -352,15 +181,6 @@ class _CustomerManagementViewState
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    'Customer Directory',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.w700,
-                                      color: const Color(0xFF0F172A),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
                                   Text(
                                     filteredCustomers.isEmpty
                                         ? 'No customers match the current search and filters.'
@@ -425,78 +245,30 @@ class _CustomerManagementViewState
                             onCreate: () => _openCustomerForm(context),
                           )
                         else
-                          LayoutBuilder(
-                            builder: (context, constraints) {
-                              final width = constraints.maxWidth;
-                              final crossAxisCount = width >= 1120
-                                  ? 3
-                                  : width >= 720
-                                  ? 2
-                                  : 1;
-
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  GridView.builder(
-                                    shrinkWrap: true,
-                                    physics:
-                                        const NeverScrollableScrollPhysics(),
-                                    gridDelegate:
-                                        SliverGridDelegateWithFixedCrossAxisCount(
-                                          crossAxisCount: crossAxisCount,
-                                          mainAxisSpacing: 12,
-                                          crossAxisSpacing: 12,
-                                          mainAxisExtent: 150,
-                                        ),
-                                    itemCount: visibleCustomers.length,
-                                    itemBuilder: (context, index) {
-                                      final customer = visibleCustomers[index];
-                                      return _CustomerCard(
-                                        customer: customer,
-                                        onEdit: () => _openCustomerEdit(
-                                          context,
-                                          customer,
-                                        ),
-                                        onDelete: () => _confirmDelete(
-                                          context,
-                                          ref,
-                                          customer,
-                                        ),
-                                        onSelectForSale: () {
-                                          ref
-                                              .read(
-                                                salesSelectionProvider.notifier,
-                                              )
-                                              .select(customer);
-                                          context.push(AppRoutes.pos);
-                                        },
-                                      );
-                                    },
-                                  ),
-                                  const SizedBox(height: 24),
-                                  _PaginationBar(
-                                    totalCustomers: filteredCustomers.length,
-                                    pageIndex: safePage,
-                                    pageCount: totalPages,
-                                    pageStart: pageStart,
-                                    pageEnd: pageEnd,
-                                    onPreviousPage: safePage == 0
-                                        ? null
-                                        : () {
-                                            setState(
-                                              () => _currentPage = safePage - 1,
-                                            );
-                                          },
-                                    onNextPage: safePage >= totalPages - 1
-                                        ? null
-                                        : () {
-                                            setState(
-                                              () => _currentPage = safePage + 1,
-                                            );
-                                          },
-                                  ),
-                                ],
-                              );
+                          _CompactCustomerTable(
+                            customers: visibleCustomers,
+                            totalCount: filteredCustomers.length,
+                            pageIndex: safePage,
+                            pageCount: totalPages,
+                            pageStart: pageStart,
+                            pageEnd: pageEnd,
+                            onPreviousPage: safePage == 0
+                                ? null
+                                : () {
+                                    setState(() => _currentPage = safePage - 1);
+                                  },
+                            onNextPage: safePage >= totalPages - 1
+                                ? null
+                                : () {
+                                    setState(() => _currentPage = safePage + 1);
+                                  },
+                            onEdit: (c) => _openCustomerEdit(context, c),
+                            onDelete: (c) => _confirmDelete(context, ref, c),
+                            onSelectForSale: (c) {
+                              ref
+                                  .read(salesSelectionProvider.notifier)
+                                  .select(c);
+                              context.push(AppRoutes.pos);
                             },
                           ),
                       ],
@@ -569,14 +341,10 @@ class SearchBarSection extends StatefulWidget {
     super.key,
     required this.searchQuery,
     required this.onChanged,
-    required this.activeFilterCount,
-    required this.onFilterTap,
   });
 
   final String searchQuery;
   final ValueChanged<String> onChanged;
-  final int activeFilterCount;
-  final VoidCallback onFilterTap;
 
   @override
   State<SearchBarSection> createState() => _SearchBarSectionState();
@@ -608,7 +376,6 @@ class _SearchBarSectionState extends State<SearchBarSection> {
 
   @override
   Widget build(BuildContext context) {
-    final hasFilters = widget.activeFilterCount > 0;
     return Row(
       children: [
         Expanded(
@@ -640,66 +407,6 @@ class _SearchBarSectionState extends State<SearchBarSection> {
             ),
           ),
         ),
-        const SizedBox(width: 10),
-        InkWell(
-          onTap: widget.onFilterTap,
-          borderRadius: BorderRadius.circular(18),
-          child: Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 18,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                const Center(
-                  child: Icon(
-                    Icons.tune_rounded,
-                    color: Color(0xFF0F172A),
-                    size: 20,
-                  ),
-                ),
-                if (hasFilters)
-                  Positioned(
-                    top: 6,
-                    right: 6,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 1,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF4F46E5),
-                        borderRadius: BorderRadius.circular(999),
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
-                      constraints: const BoxConstraints(minWidth: 18),
-                      child: Text(
-                        '${widget.activeFilterCount}',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          height: 1.1,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
       ],
     );
   }
@@ -727,15 +434,11 @@ class _PaginationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
+      decoration: BoxDecoration(color: Colors.white),
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final isWide = constraints.maxWidth >= 520;
+          final isWide = constraints.maxWidth >= 360;
           final pager = Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -764,12 +467,8 @@ class _PaginationBar extends StatelessWidget {
 
           if (isWide) {
             return Row(
-              children: [
-                const Spacer(),
-                pageLabel,
-                const SizedBox(width: 16),
-                pager,
-              ],
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [pageLabel, const SizedBox(width: 16), pager],
             );
           }
 
@@ -843,93 +542,271 @@ class _EmptyCustomersState extends StatelessWidget {
   }
 }
 
-class _CustomerCard extends StatelessWidget {
-  const _CustomerCard({
-    required this.customer,
+class _CompactCustomerTable extends StatelessWidget {
+  const _CompactCustomerTable({
+    required this.customers,
+    required this.totalCount,
+    required this.pageIndex,
+    required this.pageCount,
+    required this.pageStart,
+    required this.pageEnd,
+    required this.onPreviousPage,
+    required this.onNextPage,
     required this.onEdit,
     required this.onDelete,
     required this.onSelectForSale,
   });
 
-  final CustomerRecord customer;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-  final VoidCallback onSelectForSale;
+  final List<CustomerRecord> customers;
+  final int totalCount;
+  final int pageIndex;
+  final int pageCount;
+  final int pageStart;
+  final int pageEnd;
+  final VoidCallback? onPreviousPage;
+  final VoidCallback? onNextPage;
+  final void Function(CustomerRecord) onEdit;
+  final void Function(CustomerRecord) onDelete;
+  final void Function(CustomerRecord) onSelectForSale;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 18,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: _CustomerIdentity(customer: customer)),
-              const SizedBox(width: 6),
-              _CardIconButton(
-                icon: Icons.add_shopping_cart_rounded,
-                color: const Color(0xFF10B981),
-                tooltip: 'Sell to this customer',
-                onPressed: onSelectForSale,
-              ),
-              const SizedBox(width: 4),
-              _CardIconButton(
-                icon: Icons.edit_outlined,
-                color: const Color(0xFF4F46E5),
-                tooltip: 'Edit customer',
-                onPressed: onEdit,
-              ),
-              const SizedBox(width: 4),
-              _CardIconButton(
-                icon: Icons.delete_outline_rounded,
-                color: const Color(0xFFDC2626),
-                tooltip: 'Delete customer',
-                onPressed: onDelete,
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          _ContactSummary(customer: customer),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: _SmallInlineCell(
-                  icon: Icons.phone_iphone_rounded,
-                  value: customer.phone ?? 'No phone',
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                headingRowHeight: 44,
+                dataRowMinHeight: 48,
+                dataRowMaxHeight: 56,
+                horizontalMargin: 16,
+                columnSpacing: 20,
+                headingRowColor: WidgetStateProperty.all(
+                  const Color(0xFFF8FAFC),
                 ),
+                columns: const [
+                  DataColumn(
+                    label: Text(
+                      'Customer',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Contact',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Location',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Actions',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                  ),
+                ],
+                rows: customers.map((customer) {
+                  final initials = customer.displayName.isNotEmpty
+                      ? customer.displayName
+                            .split(' ')
+                            .where((part) => part.isNotEmpty)
+                            .take(2)
+                            .map((part) => part[0])
+                            .join()
+                            .toUpperCase()
+                      : 'C';
+
+                  final fullName = [
+                    customer.firstName?.trim() ?? '',
+                    customer.lastName?.trim() ?? '',
+                  ].where((s) => s.isNotEmpty).join(' ');
+
+                  return DataRow(
+                    cells: [
+                      DataCell(
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => onSelectForSale(customer),
+                          child: Container(
+                            width: double.infinity,
+                            height: double.infinity,
+                            alignment: Alignment.centerLeft,
+                            child: Row(
+                              children: [
+                                CircleAvatar(
+                                  radius: 14,
+                                  backgroundColor: const Color(0xFFDBEAFE),
+                                  child: Text(
+                                    initials,
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      color: Color(0xFF1D4ED8),
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      fullName.isNotEmpty
+                                          ? fullName
+                                          : customer.displayName,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 13,
+                                        color: Color(0xFF0F172A),
+                                      ),
+                                    ),
+                                    Text(
+                                      (customer.companyName?.trim() ?? '')
+                                              .isNotEmpty
+                                          ? customer.companyName!
+                                          : customer.customerCode,
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        color: Color(0xFF94A3B8),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      DataCell(
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => onSelectForSale(customer),
+                          child: Container(
+                            width: double.infinity,
+                            height: double.infinity,
+                            alignment: Alignment.centerLeft,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (customer.email != null)
+                                  Text(
+                                    customer.email!,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Color(0xFF475569),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                if (customer.phone != null)
+                                  Text(
+                                    customer.phone!,
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: Color(0xFF94A3B8),
+                                    ),
+                                  ),
+                                if (customer.email == null &&
+                                    customer.phone == null)
+                                  const Text(
+                                    '—',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Color(0xFFCBD5E1),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      DataCell(
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => onSelectForSale(customer),
+                          child: Container(
+                            width: double.infinity,
+                            height: double.infinity,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              customer.location,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF475569),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                      ),
+                      DataCell(
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _CompactIconButton(
+                              icon: Icons.edit_outlined,
+                              color: const Color(0xFF4F46E5),
+                              tooltip: 'Edit',
+                              onPressed: () => onEdit(customer),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _SmallInlineCell(
-                  icon: Icons.alternate_email_rounded,
-                  value: customer.email ?? 'No email',
-                ),
-              ),
-            ],
+            ),
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 24),
+        _PaginationBar(
+          totalCustomers: totalCount,
+          pageIndex: pageIndex,
+          pageCount: pageCount,
+          pageStart: pageStart,
+          pageEnd: pageEnd,
+          onPreviousPage: onPreviousPage,
+          onNextPage: onNextPage,
+        ),
+      ],
     );
   }
 }
 
-class _CardIconButton extends StatelessWidget {
-  const _CardIconButton({
+class _CompactIconButton extends StatelessWidget {
+  const _CompactIconButton({
     required this.icon,
     required this.color,
     required this.tooltip,
@@ -947,126 +824,18 @@ class _CardIconButton extends StatelessWidget {
       message: tooltip,
       child: InkResponse(
         onTap: onPressed,
-        radius: 20,
+        radius: 16,
         child: Container(
-          width: 30,
-          height: 30,
+          width: 28,
+          height: 28,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, size: 16, color: color),
+          child: Icon(icon, size: 14, color: color),
         ),
       ),
-    );
-  }
-}
-
-class _CustomerIdentity extends StatelessWidget {
-  const _CustomerIdentity({required this.customer});
-
-  final CustomerRecord customer;
-
-  @override
-  Widget build(BuildContext context) {
-    final initials = customer.displayName.isNotEmpty
-        ? customer.displayName
-              .split(' ')
-              .where((part) => part.isNotEmpty)
-              .take(2)
-              .map((part) => part[0])
-              .join()
-              .toUpperCase()
-        : 'C';
-
-    return Row(
-      children: [
-        CircleAvatar(
-          radius: 23,
-          backgroundColor: const Color(0xFFDBEAFE),
-          child: Text(
-            initials,
-            style: const TextStyle(
-              color: Color(0xFF1D4ED8),
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                customer.displayName,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF0F172A),
-                ),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                '${customer.customerCode} â€¢ ${customer.typeLabel}',
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF64748B),
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ContactSummary extends StatelessWidget {
-  const _ContactSummary({required this.customer});
-
-  final CustomerRecord customer;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      customer.location,
-      style: const TextStyle(
-        fontSize: 14,
-        color: Color(0xFF0F172A),
-        fontWeight: FontWeight.w600,
-      ),
-    );
-  }
-}
-
-class _SmallInlineCell extends StatelessWidget {
-  const _SmallInlineCell({required this.icon, required this.value});
-
-  final IconData icon;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 14, color: const Color(0xFF94A3B8)),
-        const SizedBox(width: 6),
-        Flexible(
-          child: Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 12,
-              color: Color(0xFF475569),
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

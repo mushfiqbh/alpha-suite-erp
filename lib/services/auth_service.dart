@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:erp/providers/auth_providers.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -49,8 +52,9 @@ class AuthService {
         (r) => r.name == rawRole,
         orElse: () => UserRole.viewer,
       );
+      final avatarUrl = profile['avatar_url']?.toString();
 
-      return AuthSession(userId: user.id, role: role);
+      return AuthSession(userId: user.id, role: role, avatarUrl: avatarUrl);
     } catch (_) {
       // If fetching the profile fails, fallback to a safe logged-out state
       return null;
@@ -107,8 +111,9 @@ class AuthService {
       (r) => r.name == rawRole,
       orElse: () => UserRole.viewer,
     );
+    final avatarUrl = profile['avatar_url']?.toString();
 
-    return AuthSession(userId: user.id, role: role);
+    return AuthSession(userId: user.id, role: role, avatarUrl: avatarUrl);
   }
 
   Future<AuthSession?> signUp({
@@ -161,5 +166,70 @@ class AuthService {
     }
 
     await _client.auth.signOut();
+  }
+
+  /// Update the current user's profile (full_name in the profiles table
+  /// and auth user_metadata).
+  Future<void> updateProfile({required String fullName}) async {
+    if (!_isConfigured) return;
+
+    final user = _client.auth.currentUser;
+    if (user == null) return;
+
+    await _client
+        .from('profiles')
+        .update({'full_name': fullName})
+        .eq('id', user.id);
+
+    await _client.auth.updateUser(
+      UserAttributes(data: {'full_name': fullName}),
+    );
+  }
+
+  /// Upload an avatar image to Supabase Storage and update the profile.
+  /// Returns the public URL of the uploaded avatar.
+  Future<String> uploadAvatar(Uint8List bytes) async {
+    final user = _client.auth.currentUser;
+    if (user == null) throw Exception('Not authenticated');
+
+    // Write bytes to a temp file so we can pass a File to Supabase storage.
+    final tempDir = Directory.systemTemp;
+    final tempFile = File(
+      '${tempDir.path}${Platform.pathSeparator}avatar_${user.id}.jpg',
+    );
+    await tempFile.writeAsBytes(bytes);
+
+    await _client.storage
+        .from('avatars')
+        .upload(
+          '${user.id}/avatar.jpg',
+          tempFile,
+          fileOptions: const FileOptions(
+            upsert: true,
+            contentType: 'image/jpeg',
+          ),
+        );
+
+    // Clean up the temp file.
+    try {
+      await tempFile.delete();
+    } catch (_) {}
+
+    final publicUrl = _client.storage
+        .from('avatars')
+        .getPublicUrl('${user.id}/avatar.jpg');
+
+    // Update the profiles table with the new avatar URL
+    await _client
+        .from('profiles')
+        .update({'avatar_url': publicUrl})
+        .eq('id', user.id);
+
+    // Also update auth user_metadata so it's available via currentUser
+    await _client.auth.updateUser(
+      UserAttributes(data: {'avatar_url': publicUrl}),
+    );
+
+    return publicUrl;
   }
 }

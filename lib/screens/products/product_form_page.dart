@@ -447,56 +447,18 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
                                   _nonNegativeNumber(value, allowDecimals: false),
                             ),
                             _TextField(
-                              controller: _reorderController,
-                              label: 'Reorder level',
-                              hint: '0',
-                              keyboardType: TextInputType.number,
+                              controller: _taxController,
+                              label: 'Tax rate (%)',
+                              hint: '0.00',
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                decimal: true,
+                              ),
                               validator: (value) =>
-                                  _nonNegativeNumber(value, allowDecimals: false),
+                                  _nonNegativeNumber(value,
+                                      allowDecimals: true),
                             ),
                           ],
-                        ),
-                        _FormRow(
-                          full: true,
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: _DropdownField<String>(
-                                  label: 'Status',
-                                  value: _selectedStatus,
-                                  items: ProductStatusOptions.values
-                                      .map(
-                                        (value) => DropdownMenuItem<String>(
-                                          value: value,
-                                          child: Text(
-                                            ProductStatusOptions.label(value),
-                                          ),
-                                        ),
-                                      )
-                                      .toList(),
-                                  onChanged: (value) {
-                                    if (value == null) return;
-                                    setState(() => _selectedStatus = value);
-                                  },
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _TextField(
-                                  controller: _taxController,
-                                  label: 'Tax rate (%)',
-                                  hint: '0.00',
-                                  keyboardType:
-                                      const TextInputType.numberWithOptions(
-                                    decimal: true,
-                                  ),
-                                  validator: (value) =>
-                                      _nonNegativeNumber(value,
-                                          allowDecimals: true),
-                                ),
-                              ),
-                            ],
-                          ),
                         ),
                         _FormRow(
                           full: true,

@@ -4,33 +4,26 @@ import 'package:go_router/go_router.dart';
 
 import 'package:erp/core/app_routes.dart';
 import 'package:erp/core/route_guards.dart';
-import 'package:erp/models/attendance.dart';
 import 'package:erp/models/customer.dart';
-import 'package:erp/models/holiday.dart';
 import 'package:erp/models/hr.dart';
-import 'package:erp/models/leave.dart';
 import 'package:erp/models/product.dart';
-import 'package:erp/models/shift.dart';
 import 'package:erp/providers/auth_providers.dart';
 import 'package:erp/screens/customers/customer_form_page.dart';
 import 'package:erp/screens/customers/customer_management_view.dart';
 import 'package:erp/screens/products/product_form_page.dart';
 import 'package:erp/screens/products/product_management_view.dart';
+import 'package:erp/screens/products/stock_out_view.dart';
 import 'package:erp/screens/auth/login_view.dart';
 import 'package:erp/screens/auth/splash_view.dart';
 import 'package:erp/screens/dashboard/dashboard_view.dart';
 import 'package:erp/screens/account/account_view.dart';
 import 'package:erp/screens/hr/attendance_form_page.dart';
-import 'package:erp/screens/hr/department_form_page.dart';
-import 'package:erp/screens/hr/designation_form_page.dart';
 import 'package:erp/screens/hr/employee_form_page.dart';
-import 'package:erp/screens/hr/employee_shift_form_page.dart';
-import 'package:erp/screens/hr/holiday_form_page.dart';
 import 'package:erp/screens/hr/hr_view.dart';
-import 'package:erp/screens/hr/leave_request_form_page.dart';
-import 'package:erp/screens/hr/leave_type_form_page.dart';
-import 'package:erp/screens/hr/shift_form_page.dart';
-import 'package:erp/screens/inventory/inventory_view.dart';
+import 'package:erp/screens/hr/mark_attendance_page.dart';
+import 'package:erp/screens/hr/payroll_period_form_page.dart';
+import 'package:erp/screens/hr/payroll_list_page.dart';
+import 'package:erp/screens/hr/payroll_form_page.dart';
 import 'package:erp/screens/pos/pos_view.dart';
 import 'package:erp/screens/sales/sales_list_view.dart';
 import 'package:erp/screens/admin/users_management_view.dart';
@@ -76,20 +69,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const DashboardScreen(),
           ),
           GoRoute(
-            path: AppRoutes.inventory,
-            builder: (context, state) => const InventoryView(),
-          ),
-          GoRoute(
             path: AppRoutes.sales,
             builder: (context, state) => const SalesListView(),
           ),
           GoRoute(
             path: AppRoutes.pos,
             builder: (context, state) => const PosView(),
-          ),
-          GoRoute(
-            path: AppRoutes.crm,
-            builder: (context, state) => const CustomerManagementView(),
           ),
           GoRoute(
             path: AppRoutes.customers,
@@ -116,6 +101,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ),
           ),
           GoRoute(
+            path: AppRoutes.stockOut,
+            builder: (context, state) => const StockOutView(),
+          ),
+          GoRoute(
             path: AppRoutes.hr,
             builder: (context, state) => const HrView(),
           ),
@@ -128,66 +117,38 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ),
           ),
           GoRoute(
-            path: AppRoutes.hrDepartmentNew,
-            builder: (context, state) => DepartmentFormPage(
-              existing: state.extra is DepartmentRecord
-                  ? state.extra as DepartmentRecord
-                  : null,
-            ),
-          ),
-          GoRoute(
-            path: AppRoutes.hrDesignationNew,
-            builder: (context, state) => DesignationFormPage(
-              existing: state.extra is DesignationRecord
-                  ? state.extra as DesignationRecord
-                  : null,
-            ),
-          ),
-          GoRoute(
-            path: AppRoutes.hrShiftNew,
-            builder: (context, state) => ShiftFormPage(
-              existing: state.extra is ShiftRecord
-                  ? state.extra as ShiftRecord
-                  : null,
-            ),
-          ),
-          GoRoute(
-            path: AppRoutes.hrEmployeeShiftNew,
-            builder: (context, state) => EmployeeShiftFormPage(
-              existing: state.extra is EmployeeShiftRecord
-                  ? state.extra as EmployeeShiftRecord
-                  : null,
-            ),
-          ),
-          GoRoute(
             path: AppRoutes.hrAttendanceNew,
-            builder: (context, state) => AttendanceFormPage(
-              existing: state.extra is AttendanceRecord
-                  ? state.extra as AttendanceRecord
+            builder: (context, state) => const AttendanceFormPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.hrAttendanceMark,
+            builder: (context, state) => MarkAttendancePage(
+              employeeId: state.extra is String ? state.extra as String : null,
+            ),
+          ),
+          GoRoute(
+            path: AppRoutes.hrPayrollPeriods,
+            builder: (context, state) => const PayrollPeriodFormPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.hrPayrollPeriodNew,
+            builder: (context, state) => PayrollPeriodFormPage(
+              existing: state.extra is PayrollPeriodRecord
+                  ? state.extra as PayrollPeriodRecord
                   : null,
             ),
           ),
           GoRoute(
-            path: AppRoutes.hrLeaveTypeNew,
-            builder: (context, state) => LeaveTypeFormPage(
-              existing: state.extra is LeaveTypeRecord
-                  ? state.extra as LeaveTypeRecord
-                  : null,
+            path: AppRoutes.hrPayrollList,
+            builder: (context, state) => PayrollListPage(
+              periodId: state.extra is String ? state.extra as String : null,
             ),
           ),
           GoRoute(
-            path: AppRoutes.hrLeaveRequestNew,
-            builder: (context, state) => LeaveRequestFormPage(
-              existing: state.extra is LeaveRequestRecord
-                  ? state.extra as LeaveRequestRecord
-                  : null,
-            ),
-          ),
-          GoRoute(
-            path: AppRoutes.hrHolidayNew,
-            builder: (context, state) => HolidayFormPage(
-              existing: state.extra is HolidayRecord
-                  ? state.extra as HolidayRecord
+            path: AppRoutes.hrPayrollNew,
+            builder: (context, state) => PayrollFormPage(
+              existing: state.extra is PayrollRecord
+                  ? state.extra as PayrollRecord
                   : null,
             ),
           ),

@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -25,10 +27,11 @@ extension UserRoleLabel on UserRole {
 }
 
 class AuthSession {
-  const AuthSession({required this.userId, required this.role});
+  const AuthSession({required this.userId, required this.role, this.avatarUrl});
 
   final String userId;
   final UserRole role;
+  final String? avatarUrl;
 }
 
 class AuthState {
@@ -38,6 +41,7 @@ class AuthState {
     required this.userId,
     required this.role,
     required this.errorMessage,
+    this.avatarUrl,
   });
 
   factory AuthState.initial() {
@@ -55,6 +59,7 @@ class AuthState {
   final String userId;
   final UserRole? role;
   final String? errorMessage;
+  final String? avatarUrl;
 
   AuthState copyWith({
     bool? isLoading,
@@ -64,6 +69,8 @@ class AuthState {
     bool clearRole = false,
     String? errorMessage,
     bool clearError = false,
+    String? avatarUrl,
+    bool clearAvatarUrl = false,
   }) {
     return AuthState(
       isLoading: isLoading ?? this.isLoading,
@@ -71,6 +78,7 @@ class AuthState {
       userId: userId ?? this.userId,
       role: clearRole ? null : (role ?? this.role),
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      avatarUrl: clearAvatarUrl ? null : (avatarUrl ?? this.avatarUrl),
     );
   }
 }
@@ -134,6 +142,7 @@ class AuthController extends StateNotifier<AuthState> {
         isAuthenticated: true,
         userId: session.userId,
         role: session.role,
+        avatarUrl: session.avatarUrl,
         clearError: true,
       );
     } catch (error) {
@@ -170,6 +179,7 @@ class AuthController extends StateNotifier<AuthState> {
         isAuthenticated: true,
         userId: session.userId,
         role: session.role,
+        avatarUrl: session.avatarUrl,
         clearError: true,
       );
     } catch (error) {
@@ -274,6 +284,25 @@ class AuthController extends StateNotifier<AuthState> {
       clearError: true,
     );
   }
+
+  Future<void> updateProfile({required String fullName}) async {
+    try {
+      await _authService.updateProfile(fullName: fullName);
+      // Refresh so the UI picks up the new metadata.
+      await restoreSession();
+    } catch (_) {
+      // Silently fail — the modal can show a generic error if needed.
+    }
+  }
+
+  Future<void> uploadAvatar(Uint8List bytes) async {
+    try {
+      final url = await _authService.uploadAvatar(bytes);
+      state = state.copyWith(avatarUrl: url);
+    } catch (_) {
+      // Silently fail.
+    }
+  }
 }
 
 final authProvider = StateNotifierProvider<AuthController, AuthState>((ref) {
@@ -297,8 +326,9 @@ class CurrentProfile {
   factory CurrentProfile.fromMap(Map<String, dynamic> data) {
     return CurrentProfile(
       id: data['id']?.toString() ?? '',
-      fullName:
-          (data['full_name'] ?? data['email'] ?? 'there').toString().trim(),
+      fullName: (data['full_name'] ?? data['email'] ?? 'there')
+          .toString()
+          .trim(),
       email: data['email']?.toString(),
       role: _parseRole(data['role']?.toString()),
     );
@@ -389,18 +419,19 @@ class CurrentProfileController
   }
 }
 
-final currentProfileProvider = StateNotifierProvider<CurrentProfileController,
-    AsyncValue<CurrentProfile?>>((ref) {
-  return CurrentProfileController(ref);
-});
+final currentProfileProvider =
+    StateNotifierProvider<
+      CurrentProfileController,
+      AsyncValue<CurrentProfile?>
+    >((ref) {
+      return CurrentProfileController(ref);
+    });
 
 /// Active employee count for the dashboard "Employees" KPI. Reads
 /// from `public.profiles` where `is_active = true`. Returns 0 if
 /// Supabase isn't configured or the user isn't allowed to read it.
-class ActiveEmployeeCountController
-    extends StateNotifier<AsyncValue<int>> {
-  ActiveEmployeeCountController(this._ref)
-      : super(const AsyncValue.loading()) {
+class ActiveEmployeeCountController extends StateNotifier<AsyncValue<int>> {
+  ActiveEmployeeCountController(this._ref) : super(const AsyncValue.loading()) {
     _ref.listen<AuthState>(authProvider, (prev, next) {
       if (next.isAuthenticated != (prev?.isAuthenticated ?? false) ||
           next.userId != prev?.userId) {
@@ -439,10 +470,12 @@ class ActiveEmployeeCountController
   Future<void> refresh() => _load();
 }
 
-final activeEmployeeCountProvider = StateNotifierProvider<
-    ActiveEmployeeCountController, AsyncValue<int>>((ref) {
-  return ActiveEmployeeCountController(ref);
-});
+final activeEmployeeCountProvider =
+    StateNotifierProvider<ActiveEmployeeCountController, AsyncValue<int>>((
+      ref,
+    ) {
+      return ActiveEmployeeCountController(ref);
+    });
 
 final splashDecisionProvider = FutureProvider<String>((ref) async {
   // Use ref.read (not ref.watch) so that when appBootstrapProvider completes

@@ -16,10 +16,7 @@ class SalesCheckoutException implements Exception {
 /// One line in a cart being checked out. Mirrors a [CartItem] but
 /// detached from any provider so the service layer stays pure.
 class CheckoutLine {
-  const CheckoutLine({
-    required this.product,
-    required this.quantity,
-  });
+  const CheckoutLine({required this.product, required this.quantity});
 
   final ProductRecord product;
   final int quantity;
@@ -165,12 +162,7 @@ class SalesService {
       }
 
       final itemsWithOrderId = itemPayload
-          .map(
-            (row) => <String, dynamic>{
-              ...row,
-              'sales_order_id': orderId,
-            },
-          )
+          .map((row) => <String, dynamic>{...row, 'sales_order_id': orderId})
           .toList();
 
       final insertedItems = await _client
@@ -184,9 +176,9 @@ class SalesService {
       final order = SalesOrderRecord.fromMap(
         Map<String, dynamic>.from(inserted),
       );
-      final items = List<Map<String, dynamic>>.from(insertedItems)
-          .map(SalesOrderItemRecord.fromMap)
-          .toList();
+      final items = List<Map<String, dynamic>>.from(
+        insertedItems,
+      ).map(SalesOrderItemRecord.fromMap).toList();
 
       return SalesCheckoutResult(order: order, items: items);
     } on PostgrestException catch (error) {
@@ -213,9 +205,69 @@ class SalesService {
         .order('order_date', ascending: false)
         .limit(limit);
 
-    return List<Map<String, dynamic>>.from(data)
-        .map(SalesOrderRecord.fromMap)
-        .toList();
+    return List<Map<String, dynamic>>.from(
+      data,
+    ).map(SalesOrderRecord.fromMap).toList();
+  }
+
+  /// Revenue summary for the dashboard: total, paid, and count for this
+  /// month and previous month. Queries with date filters so no limit
+  /// skews the numbers.
+  Future<DashboardRevenueSummary> getRevenueSummary() async {
+    if (!_isConfigured) {
+      return const DashboardRevenueSummary(
+        thisMonthTotal: 0,
+        thisMonthPaid: 0,
+        thisMonthOrders: 0,
+        previousMonthTotal: 0,
+      );
+    }
+
+    final now = DateTime.now();
+
+    // This month range
+    final thisMonthStart = DateTime(now.year, now.month, 1);
+    final nextMonth = DateTime(now.year, now.month + 1, 1);
+
+    // Previous month range
+    final prevMonthStart = DateTime(now.year, now.month - 1, 1);
+    final thisMonthStartPrev = DateTime(now.year, now.month, 1);
+
+    // Fetch this month's orders
+    final thisMonthData = await _client
+        .from('sales_orders')
+        .select('grand_total, paid_amount')
+        .gte('order_date', thisMonthStart.toIso8601String())
+        .lt('order_date', nextMonth.toIso8601String());
+
+    // Fetch previous month's orders
+    final prevMonthData = await _client
+        .from('sales_orders')
+        .select('grand_total')
+        .gte('order_date', prevMonthStart.toIso8601String())
+        .lt('order_date', thisMonthStartPrev.toIso8601String());
+
+    final thisRows = List<Map<String, dynamic>>.from(thisMonthData);
+    final prevRows = List<Map<String, dynamic>>.from(prevMonthData);
+
+    double thisTotal = 0;
+    double thisPaid = 0;
+    for (final row in thisRows) {
+      thisTotal += _parseDouble(row['grand_total']);
+      thisPaid += _parseDouble(row['paid_amount']);
+    }
+
+    double prevTotal = 0;
+    for (final row in prevRows) {
+      prevTotal += _parseDouble(row['grand_total']);
+    }
+
+    return DashboardRevenueSummary(
+      thisMonthTotal: thisTotal,
+      thisMonthPaid: thisPaid,
+      thisMonthOrders: thisRows.length,
+      previousMonthTotal: prevTotal,
+    );
   }
 
   /// Fetch the line items for a specific sales order, used by the
@@ -234,9 +286,9 @@ class SalesService {
         .eq('sales_order_id', orderId)
         .order('created_at', ascending: true);
 
-    return List<Map<String, dynamic>>.from(data)
-        .map(SalesOrderItemRecord.fromMap)
-        .toList();
+    return List<Map<String, dynamic>>.from(
+      data,
+    ).map(SalesOrderItemRecord.fromMap).toList();
   }
 
   String _money(double value) => value.toStringAsFixed(2);
@@ -274,5 +326,36 @@ class SalesService {
       return 'Connection error: unable to reach Supabase. Check your network and try again.';
     }
     return text;
+  }
+
+  /// Mark a sales order as fully paid. Sets [payment_status] to 'PAID',
+  /// [paid_amount] to [grand_total] and [due_amount] to 0.
+  Future<void> markPaymentDone(String orderId) async {
+    if (!_isConfigured) return;
+    if (orderId.isEmpty) return;
+
+    // Fetch current grand_total first so we set paid_amount correctly.
+    final row = await _client
+        .from('sales_orders')
+        .select('grand_total')
+        .eq('id', orderId)
+        .single();
+
+    final grandTotal = _parseDouble(row['grand_total']);
+
+    await _client
+        .from('sales_orders')
+        .update({
+          'payment_status': 'PAID',
+          'paid_amount': _money(grandTotal),
+          'due_amount': '0.00',
+        })
+        .eq('id', orderId);
+  }
+
+  double _parseDouble(dynamic value, {double fallback = 0}) {
+    if (value == null) return fallback;
+    if (value is num) return value.toDouble();
+    return double.tryParse(value.toString()) ?? fallback;
   }
 }

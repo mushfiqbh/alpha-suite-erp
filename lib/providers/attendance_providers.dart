@@ -40,12 +40,12 @@ class AttendanceDirectoryState {
   });
 
   factory AttendanceDirectoryState.initial() => const AttendanceDirectoryState(
-        records: <AttendanceRecord>[],
-        isLoading: false,
-        isSaving: false,
-        searchQuery: '',
-        statusFilter: null,
-      );
+    records: <AttendanceRecord>[],
+    isLoading: false,
+    isSaving: false,
+    searchQuery: '',
+    statusFilter: null,
+  );
 
   final List<AttendanceRecord> records;
   final bool isLoading;
@@ -69,8 +69,9 @@ class AttendanceDirectoryState {
       isLoading: isLoading ?? this.isLoading,
       isSaving: isSaving ?? this.isSaving,
       searchQuery: searchQuery ?? this.searchQuery,
-      statusFilter:
-          clearStatusFilter ? null : (statusFilter ?? this.statusFilter),
+      statusFilter: clearStatusFilter
+          ? null
+          : (statusFilter ?? this.statusFilter),
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     );
   }
@@ -78,8 +79,7 @@ class AttendanceDirectoryState {
 
 class AttendanceDirectoryController
     extends StateNotifier<AttendanceDirectoryState> {
-  AttendanceDirectoryController()
-      : super(AttendanceDirectoryState.initial()) {
+  AttendanceDirectoryController() : super(AttendanceDirectoryState.initial()) {
     refresh();
   }
 
@@ -100,15 +100,12 @@ class AttendanceDirectoryController
       if (filter != null && filter.isNotEmpty && filter != 'All') {
         query = query.eq('attendance_status', filter);
       }
-      final data = await query.order(
-        'attendance_date',
-        ascending: false,
-      );
+      final data = await query.order('attendance_date', ascending: false);
       state = state.copyWith(
         isLoading: false,
-        records: List<Map<String, dynamic>>.from(data)
-            .map(AttendanceRecord.fromMap)
-            .toList(),
+        records: List<Map<String, dynamic>>.from(
+          data,
+        ).map(AttendanceRecord.fromMap).toList(),
         clearError: true,
       );
     } catch (error) {
@@ -160,6 +157,41 @@ class AttendanceDirectoryController
     }
   }
 
+  /// Saves (inserts or updates) multiple attendance records in a single batch
+  /// without emitting intermediate state updates.  Calls [refresh] once after
+  /// all saves complete.
+  Future<({int saved, int errors})> saveAttendanceBatch(
+    List<AttendanceRecord> records,
+  ) async {
+    int saved = 0;
+    int errors = 0;
+
+    if (!_supabaseReady()) {
+      state = state.copyWith(
+        errorMessage:
+            'Supabase is not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY to save attendance.',
+      );
+      return (saved: 0, errors: records.length);
+    }
+
+    for (final record in records) {
+      try {
+        final payload = record.toMap();
+        if (record.id == null) {
+          await _client.from('attendance').insert(payload);
+        } else {
+          await _client.from('attendance').update(payload).eq('id', record.id!);
+        }
+        saved++;
+      } catch (_) {
+        errors++;
+      }
+    }
+
+    await refresh();
+    return (saved: saved, errors: errors);
+  }
+
   Future<void> deleteAttendance(String id) async {
     if (!_supabaseReady()) {
       state = state.copyWith(
@@ -184,10 +216,13 @@ class AttendanceDirectoryController
   }
 }
 
-final attendanceDirectoryProvider = StateNotifierProvider<
-    AttendanceDirectoryController, AttendanceDirectoryState>((ref) {
-  return AttendanceDirectoryController();
-});
+final attendanceDirectoryProvider =
+    StateNotifierProvider<
+      AttendanceDirectoryController,
+      AttendanceDirectoryState
+    >((ref) {
+      return AttendanceDirectoryController();
+    });
 
 // ===========================================================================
 // Attendance Logs
@@ -234,8 +269,9 @@ class AttendanceLogDirectoryState {
       isLoading: isLoading ?? this.isLoading,
       isSaving: isSaving ?? this.isSaving,
       searchQuery: searchQuery ?? this.searchQuery,
-      logTypeFilter:
-          clearLogTypeFilter ? null : (logTypeFilter ?? this.logTypeFilter),
+      logTypeFilter: clearLogTypeFilter
+          ? null
+          : (logTypeFilter ?? this.logTypeFilter),
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     );
   }
@@ -244,7 +280,7 @@ class AttendanceLogDirectoryState {
 class AttendanceLogDirectoryController
     extends StateNotifier<AttendanceLogDirectoryState> {
   AttendanceLogDirectoryController()
-      : super(AttendanceLogDirectoryState.initial()) {
+    : super(AttendanceLogDirectoryState.initial()) {
     refresh();
   }
 
@@ -268,9 +304,9 @@ class AttendanceLogDirectoryController
       final data = await query.order('log_time', ascending: false);
       state = state.copyWith(
         isLoading: false,
-        logs: List<Map<String, dynamic>>.from(data)
-            .map(AttendanceLogRecord.fromMap)
-            .toList(),
+        logs: List<Map<String, dynamic>>.from(
+          data,
+        ).map(AttendanceLogRecord.fromMap).toList(),
         clearError: true,
       );
     } catch (error) {
@@ -308,7 +344,10 @@ class AttendanceLogDirectoryController
       if (record.id == null) {
         await _client.from('attendance_logs').insert(payload);
       } else {
-        await _client.from('attendance_logs').update(payload).eq('id', record.id!);
+        await _client
+            .from('attendance_logs')
+            .update(payload)
+            .eq('id', record.id!);
       }
       await refresh();
     } catch (error) {
@@ -346,7 +385,10 @@ class AttendanceLogDirectoryController
   }
 }
 
-final attendanceLogDirectoryProvider = StateNotifierProvider<
-    AttendanceLogDirectoryController, AttendanceLogDirectoryState>((ref) {
-  return AttendanceLogDirectoryController();
-});
+final attendanceLogDirectoryProvider =
+    StateNotifierProvider<
+      AttendanceLogDirectoryController,
+      AttendanceLogDirectoryState
+    >((ref) {
+      return AttendanceLogDirectoryController();
+    });

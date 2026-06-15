@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:erp/core/app_routes.dart';
 import 'package:erp/models/customer.dart';
 import 'package:erp/models/product.dart';
 import 'package:erp/models/sales_order.dart';
@@ -16,12 +18,14 @@ class ActivityItem {
     required this.title,
     required this.meta,
     required this.iconType,
+    this.onTap,
     this.muted = false,
   });
 
   final String title;
   final String meta;
   final ActivityIconType iconType;
+  final VoidCallback? onTap;
   final bool muted;
 }
 
@@ -41,14 +45,15 @@ class ActivityFeedWidget extends ConsumerWidget {
         if (customer.id != null) customer.id!: customer,
     };
 
+    final navContext = context;
     ordersAsync.whenData((orders) {
       for (final order in orders.take(5)) {
-        items.add(_orderActivity(order, customersById));
+        items.add(_orderActivity(order, customersById, navContext));
       }
     });
 
     for (final product in productsState.products.take(3)) {
-      items.add(_productActivity(product));
+      items.add(_productActivity(product, navContext));
     }
 
     if (items.isEmpty) {
@@ -101,48 +106,62 @@ class ActivityFeedWidget extends ConsumerWidget {
                 padding: EdgeInsets.only(
                   bottom: entry.key < items.length - 1 ? 20 : 0,
                 ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildIcon(item.iconType),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.title,
-                            style: GoogleFonts.inter(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w400,
-                              color: const Color(0xFF151C27),
-                              height: 1.5,
+                child: InkWell(
+                  onTap: item.onTap,
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildIcon(item.iconType),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item.title,
+                                style: GoogleFonts.inter(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w400,
+                                  color: const Color(0xFF151C27),
+                                  height: 1.5,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                item.meta,
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w400,
+                                  letterSpacing: 0.6,
+                                  color: const Color(0xFF464555),
+                                  height: 1.5,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (item.onTap != null)
+                          const Padding(
+                            padding: EdgeInsets.only(left: 8),
+                            child: Icon(
+                              Icons.chevron_right_rounded,
+                              size: 18,
+                              color: Color(0xFF9E9BB8),
                             ),
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            item.meta,
-                            style: GoogleFonts.inter(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w400,
-                              letterSpacing: 0.6,
-                              color: const Color(0xFF464555),
-                              height: 1.5,
-                            ),
-                          ),
-                        ],
-                      ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             );
           }),
           const SizedBox(height: 20),
           GestureDetector(
-            onTap: () {
-              // TODO: deep-link to /sales log when that view exists.
-            },
+            onTap: () => context.push(AppRoutes.sales),
             child: Text(
               'View all logs →',
               style: GoogleFonts.inter(
@@ -161,14 +180,13 @@ class ActivityFeedWidget extends ConsumerWidget {
   static ActivityItem _orderActivity(
     SalesOrderRecord order,
     Map<String, CustomerRecord> customersById,
+    BuildContext context,
   ) {
     final customerName = order.customerId == null
         ? null
         : customersById[order.customerId]?.displayName;
     final amount = '\$${order.grandTotal.toStringAsFixed(2)}';
-    final title = customerName == null
-        ? 'Invoice ${order.invoiceNo} • $amount'
-        : 'Invoice ${order.invoiceNo} • $amount';
+    final title = 'Invoice ${order.invoiceNo} • $amount';
     final metaParts = <String>[
       if (customerName != null) 'CLIENT: ${customerName.toUpperCase()}',
       order.paymentStatus.toUpperCase(),
@@ -178,15 +196,20 @@ class ActivityFeedWidget extends ConsumerWidget {
       title: title,
       meta: metaParts.join(' • '),
       iconType: ActivityIconType.invoice,
+      onTap: () => context.push(AppRoutes.sales),
     );
   }
 
-  static ActivityItem _productActivity(ProductRecord product) {
+  static ActivityItem _productActivity(
+    ProductRecord product,
+    BuildContext context,
+  ) {
     return ActivityItem(
       title: 'New inventory: ${product.displayName}',
       meta:
           '${(product.category ?? 'INVENTORY').toUpperCase()} • ${_relativeTime(product.createdAt ?? DateTime.now())}',
       iconType: ActivityIconType.inventory,
+      onTap: () => context.push(AppRoutes.products),
     );
   }
 
