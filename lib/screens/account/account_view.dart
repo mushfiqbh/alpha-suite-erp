@@ -335,7 +335,7 @@ class AccountView extends ConsumerWidget {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      roleLabel,
+                                      email,
                                       style: const TextStyle(
                                         fontSize: 13,
                                         color: Color(0xFF64748B),
@@ -367,12 +367,6 @@ class AccountView extends ConsumerWidget {
                           ),
                           const SizedBox(height: 24),
                           const Divider(height: 1),
-                          const SizedBox(height: 18),
-                          _DetailRow(
-                            icon: Icons.email_outlined,
-                            title: 'Email',
-                            value: email,
-                          ),
                           const SizedBox(height: 14),
                           _DetailRow(
                             icon: Icons.verified_user_outlined,

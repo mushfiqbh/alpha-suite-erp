@@ -628,25 +628,6 @@ class _SidebarPanel extends StatelessWidget {
                                   color: Color(0xFF0F172A),
                                 ),
                               ),
-                              const SizedBox(height: 3),
-                              GestureDetector(
-                                onTap: onCheckUpdates,
-                                child: Row(
-                                  children: [
-                                    Text(
-                                      updateState.appVersion,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey.shade600,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    _UpdateStatusIndicator(
-                                      status: updateState.status,
-                                    ),
-                                  ],
-                                ),
-                              ),
                             ],
                           ),
                         ),
@@ -751,90 +732,6 @@ class _MobileNavigationBar extends StatelessWidget {
           )
           .toList(),
     );
-  }
-}
-
-/// Shown in the expanded sidebar — a small label next to the version text.
-class _UpdateStatusIndicator extends StatelessWidget {
-  const _UpdateStatusIndicator({required this.status});
-
-  final UpdateStatus status;
-
-  @override
-  Widget build(BuildContext context) {
-    switch (status) {
-      case UpdateStatus.idle:
-        return Icon(
-          Icons.system_update_outlined,
-          size: 14,
-          color: Colors.grey.shade500,
-        );
-      case UpdateStatus.checking:
-        return SizedBox(
-          width: 14,
-          height: 14,
-          child: CircularProgressIndicator(
-            strokeWidth: 1.5,
-            color: Colors.indigo.shade600,
-          ),
-        );
-      case UpdateStatus.upToDate:
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.check_circle, size: 14, color: Colors.green.shade600),
-            const SizedBox(width: 3),
-            Text(
-              'Up to date',
-              style: TextStyle(fontSize: 10, color: Colors.green.shade700),
-            ),
-          ],
-        );
-      case UpdateStatus.updateAvailable:
-      case UpdateStatus.downloading:
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: 14,
-              height: 14,
-              child: CircularProgressIndicator(
-                strokeWidth: 1.5,
-                color: Colors.orange.shade600,
-              ),
-            ),
-            const SizedBox(width: 3),
-            Text(
-              'Updating...',
-              style: TextStyle(fontSize: 10, color: Colors.orange.shade700),
-            ),
-          ],
-        );
-      case UpdateStatus.installing:
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.system_update, size: 14, color: Colors.orange.shade600),
-            const SizedBox(width: 3),
-            Text(
-              'Installing',
-              style: TextStyle(fontSize: 10, color: Colors.orange.shade700),
-            ),
-          ],
-        );
-      case UpdateStatus.error:
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.error_outline, size: 14, color: Colors.red.shade500),
-            const SizedBox(width: 3),
-            Text(
-              'Failed',
-              style: TextStyle(fontSize: 10, color: Colors.red.shade600),
-            ),
-          ],
-        );
-    }
   }
 }
 

@@ -123,7 +123,7 @@ class EmployeeRecord {
     required this.joiningDate,
     required this.department,
     required this.designation,
-    required this.managerId,
+    this.linkedUserId,
     required this.employmentType,
     required this.basicSalary,
     required this.status,
@@ -144,7 +144,7 @@ class EmployeeRecord {
       joiningDate: null,
       department: null,
       designation: null,
-      managerId: null,
+      linkedUserId: null,
       employmentType: 'permanent',
       basicSalary: 0,
       status: 'active',
@@ -166,7 +166,7 @@ class EmployeeRecord {
       joiningDate: _parseDate(data['joining_date']?.toString()),
       department: _emptyToNull(data['department']?.toString()),
       designation: _emptyToNull(data['designation']?.toString()),
-      managerId: data['manager_id']?.toString(),
+      linkedUserId: data['linked_user_id']?.toString(),
       employmentType: (data['employment_type'] ?? 'permanent').toString(),
       basicSalary: _parseDouble(data['basic_salary']),
       status: (data['status'] ?? 'active').toString().toLowerCase(),
@@ -186,7 +186,7 @@ class EmployeeRecord {
   final DateTime? joiningDate;
   final String? department;
   final String? designation;
-  final String? managerId;
+  final String? linkedUserId;
   final String employmentType;
   final double basicSalary;
   final String status;
@@ -231,7 +231,7 @@ class EmployeeRecord {
       'joining_date': _formatDate(joiningDate),
       'department': _emptyToNull(department),
       'designation': _emptyToNull(designation),
-      'manager_id': _emptyToNull(managerId),
+      'linked_user_id': _emptyToNull(linkedUserId),
       'employment_type': employmentType.trim().isEmpty
           ? 'permanent'
           : employmentType.trim().toLowerCase(),
@@ -252,7 +252,7 @@ class EmployeeRecord {
     DateTime? joiningDate,
     String? department,
     String? designation,
-    String? managerId,
+    String? linkedUserId,
     String? employmentType,
     double? basicSalary,
     String? status,
@@ -271,7 +271,7 @@ class EmployeeRecord {
       joiningDate: joiningDate ?? this.joiningDate,
       department: department ?? this.department,
       designation: designation ?? this.designation,
-      managerId: managerId ?? this.managerId,
+      linkedUserId: linkedUserId ?? this.linkedUserId,
       employmentType: employmentType ?? this.employmentType,
       basicSalary: basicSalary ?? this.basicSalary,
       status: status ?? this.status,

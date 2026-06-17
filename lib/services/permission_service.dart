@@ -38,8 +38,6 @@ class PermissionService {
       AppRoutes.pos,
       AppRoutes.customers,
       AppRoutes.customerNew,
-      AppRoutes.products,
-      AppRoutes.productNew,
       AppRoutes.stockOut,
     },
     UserRole.hr: {

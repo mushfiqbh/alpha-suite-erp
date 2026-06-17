@@ -31,7 +31,7 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
 
   late final TextEditingController _departmentController;
   late final TextEditingController _designationController;
-  String? _managerId;
+  String? _linkedUserId;
   String? _gender;
   String? _employmentType;
   String? _status;
@@ -59,7 +59,7 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
     _designationController = TextEditingController(
       text: existing?.designation ?? '',
     );
-    _managerId = existing?.managerId;
+    _linkedUserId = existing?.linkedUserId;
     _gender = existing?.gender;
     _employmentType = existing?.employmentType ?? 'permanent';
     _status = existing?.status ?? 'active';
@@ -76,7 +76,7 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
     _salaryController.text = existing.basicSalary.toStringAsFixed(0);
     _departmentController.text = existing.department ?? '';
     _designationController.text = existing.designation ?? '';
-    _managerId = existing.managerId;
+    _linkedUserId = existing.linkedUserId;
     _gender = existing.gender;
     _employmentType = existing.employmentType;
     _status = existing.status;
@@ -160,7 +160,7 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
       joiningDate: _joiningDate,
       department: _trimOrNull(_departmentController),
       designation: _trimOrNull(_designationController),
-      managerId: _managerId,
+      linkedUserId: _linkedUserId,
       employmentType: _employmentType ?? 'permanent',
       basicSalary: salary,
       status: _status ?? 'active',
@@ -216,15 +216,9 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(employeeDirectoryProvider);
-    final employees = state.employees;
     final existing = _initialExisting;
     final isEdit = existing != null;
-
-    // Manager candidates: all employees except the one being edited
-    final managerCandidates = existing == null
-        ? employees
-        : employees.where((e) => e.id != existing.id).toList();
+    final profilesAsync = ref.watch(allProfilesProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -430,18 +424,31 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
                     ],
                   ),
                   const SizedBox(height: 14),
-                  _DropdownInput<String>(
-                    label: 'Reporting Manager',
-                    value: _managerId,
-                    items: managerCandidates
-                        .map(
-                          (e) => DropdownMenuItem<String>(
-                            value: e.id,
-                            child: Text('${e.fullName}  •  ${e.employeeCode}'),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (value) => setState(() => _managerId = value),
+                  profilesAsync.when(
+                    data: (profiles) => _DropdownInput<String>(
+                      label: 'Linked User',
+                      value: _linkedUserId,
+                      items: profiles
+                          .where((p) => p['id'] != null && p['role'] != 'admin')
+                          .map<DropdownMenuItem<String>>(
+                            (p) => DropdownMenuItem<String>(
+                              value: p['id'].toString(),
+                              child: Text(
+                                '${p['full_name'] ?? 'Unknown'}  •  ${p['email'] ?? ''}  (${p['role'] ?? 'no role'})',
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) =>
+                          setState(() => _linkedUserId = value),
+                    ),
+                    error: (_, __) => const Text('Failed to load users'),
+                    loading: () => _DropdownInput<String>(
+                      label: 'Linked User',
+                      value: null,
+                      items: [],
+                      onChanged: (_) {},
+                    ),
                   ),
                   const SizedBox(height: 22),
                   const _SectionTitle(title: 'Employment'),

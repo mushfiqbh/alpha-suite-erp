@@ -251,3 +251,19 @@ final activeHrEmployeeCountProvider =
     ) {
       return ActiveHrEmployeeCountController();
     });
+
+// ===========================================================================
+// All profiles (for Linked User dropdown in employee form)
+// ===========================================================================
+final allProfilesProvider = FutureProvider<List<Map<String, dynamic>>>((
+  ref,
+) async {
+  if (!_supabaseReady()) {
+    return [];
+  }
+  final data = await _client
+      .from('profiles')
+      .select('id, full_name, email, role')
+      .order('full_name', ascending: true);
+  return List<Map<String, dynamic>>.from(data);
+});

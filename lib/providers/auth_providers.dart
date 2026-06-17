@@ -15,7 +15,7 @@ extension UserRoleLabel on UserRole {
       case UserRole.admin:
         return 'Admin';
       case UserRole.operations:
-        return 'Operations';
+        return 'Employee';
       case UserRole.sales:
         return 'Sales';
       case UserRole.hr:
@@ -183,14 +183,31 @@ class AuthController extends StateNotifier<AuthState> {
         clearError: true,
       );
     } catch (error) {
-      String errorMessage = error.toString();
-      if (error is AuthRetryableFetchException ||
-          errorMessage.contains('Failed to fetch') ||
-          errorMessage.contains('ClientException')) {
+      String errorMessage;
+      if (error is AuthException) {
+        final msg = error.message.toLowerCase();
+        if (msg.contains('invalid login credentials') ||
+            msg.contains('invalid email or password') ||
+            msg.contains('email not confirmed')) {
+          errorMessage = 'Invalid email or password. Please try again.';
+        } else if (msg.contains('user not found')) {
+          errorMessage = 'No account found with this email address.';
+        } else if (msg.contains('rate limit') || msg.contains('too many')) {
+          errorMessage =
+              'Too many login attempts. Please wait a moment and try again.';
+        } else {
+          errorMessage = error.message.isNotEmpty
+              ? error.message
+              : 'Login failed. Please try again.';
+        }
+      } else if (error is AuthRetryableFetchException ||
+          error.toString().contains('Failed to fetch') ||
+          error.toString().contains('ClientException') ||
+          error.toString().contains('SocketException')) {
         errorMessage =
             'Connection error: Unable to reach the server. Please check your internet connection and Supabase URL configuration.';
-      } else if (errorMessage.startsWith('StateError: ')) {
-        errorMessage = errorMessage.substring('StateError: '.length);
+      } else {
+        errorMessage = error.toString();
       }
       state = state.copyWith(
         isLoading: false,
