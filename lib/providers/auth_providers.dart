@@ -19,7 +19,7 @@ extension UserRoleLabel on UserRole {
       case UserRole.sales:
         return 'Sales';
       case UserRole.hr:
-        return 'HR';
+        return 'Manager';
       case UserRole.viewer:
         return 'Viewer';
     }

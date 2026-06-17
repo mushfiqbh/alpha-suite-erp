@@ -229,7 +229,7 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
         surfaceTintColor: Colors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
-          tooltip: 'Back to HR',
+          tooltip: 'Back to Manage',
           onPressed: () {
             if (GoRouter.of(context).canPop()) {
               context.pop();

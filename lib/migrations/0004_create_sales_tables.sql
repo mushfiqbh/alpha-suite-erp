@@ -19,7 +19,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.sales_orders (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  invoice_no VARCHAR(50) UNIQUE NOT NULL,
+  invoice_no VARCHAR(50) UNIQUE NOT NULL DEFAULT public.generate_sales_invoice_no(),
 
   customer_id UUID REFERENCES public.customers(id) ON DELETE SET NULL,
 
@@ -167,6 +167,26 @@ BEGIN
   RETURN v_invoice;
 END;
 $$ LANGUAGE plpgsql;
+
+
+-- ---------------------------------------------------------------------------
+-- Invoice number trigger: backfill invoice_no when it's explicitly NULL
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.handle_sales_orders_invoice_no()
+RETURNS trigger AS $$
+BEGIN
+  IF NEW.invoice_no IS NULL OR btrim(NEW.invoice_no) = '' THEN
+    NEW.invoice_no := public.generate_sales_invoice_no();
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS sales_orders_invoice_no ON public.sales_orders;
+CREATE TRIGGER sales_orders_invoice_no
+BEFORE INSERT ON public.sales_orders
+FOR EACH ROW
+EXECUTE FUNCTION public.handle_sales_orders_invoice_no();
 
 
 -- ---------------------------------------------------------------------------

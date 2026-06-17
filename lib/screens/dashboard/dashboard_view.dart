@@ -334,10 +334,17 @@ class _AccessRequestSection extends ConsumerWidget {
     if (role != UserRole.viewer) return const SizedBox.shrink();
 
     final myRequestsAsync = ref.watch(myAccessRequestsProvider);
-    final hasPendingRequest = myRequestsAsync.maybeWhen(
-      data: (list) => list.any((r) => r.isPending),
-      orElse: () => false,
+    final pendingRequest = myRequestsAsync.maybeWhen(
+      data: (list) {
+        try {
+          return list.firstWhere((r) => r.isPending);
+        } catch (_) {
+          return null;
+        }
+      },
+      orElse: () => null,
     );
+    final hasPendingRequest = pendingRequest != null;
     final previousRequests = myRequestsAsync.maybeWhen(
       data: (list) => list.where((r) => !r.isPending).toList(),
       orElse: () => <AccessRequestRecord>[],
@@ -390,7 +397,7 @@ class _AccessRequestSection extends ConsumerWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: _AccessButton(
-                    label: 'HR',
+                    label: 'Manager',
                     icon: Icons.people_outline,
                     onPressed: hasPendingRequest
                         ? null
@@ -413,7 +420,7 @@ class _AccessRequestSection extends ConsumerWidget {
               const SizedBox(height: 12),
               Center(
                 child: Text(
-                  'You have a pending request. Wait for admin approval.',
+                  'Pending request for ${pendingRequest.requestedRole.toUpperCase()} access. Wait for admin approval.',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
                     fontSize: 12,
