@@ -18,19 +18,18 @@ class PermissionService {
       AppRoutes.hr,
       AppRoutes.hrEmployeeNew,
       AppRoutes.hrAttendanceNew,
-      AppRoutes.hrAttendanceMark,
       AppRoutes.users,
     },
     UserRole.operations: {
       AppRoutes.dashboard,
       AppRoutes.inventory,
-      AppRoutes.sales,
       AppRoutes.pos,
       AppRoutes.customers,
       AppRoutes.customerNew,
       AppRoutes.products,
       AppRoutes.productNew,
       AppRoutes.stockOut,
+      AppRoutes.hrAttendanceMark,
     },
     UserRole.sales: {
       AppRoutes.dashboard,
@@ -47,7 +46,6 @@ class PermissionService {
       AppRoutes.hr,
       AppRoutes.hrEmployeeNew,
       AppRoutes.hrAttendanceNew,
-      AppRoutes.hrAttendanceMark,
     },
     UserRole.viewer: {AppRoutes.dashboard},
   };

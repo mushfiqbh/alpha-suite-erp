@@ -549,7 +549,6 @@ class _ProductManagementViewState extends ConsumerState<ProductManagementView> {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 1380),
@@ -565,12 +564,10 @@ class _ProductManagementViewState extends ConsumerState<ProductManagementView> {
                     },
                     onFilterTap: () => _showFiltersSheet(context, ref, state),
                   ),
-                  const SizedBox(height: 16),
                   Container(
                     padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(28),
                       border: Border.all(color: const Color(0xFFE2E8F0)),
                       boxShadow: [
                         BoxShadow(
@@ -775,7 +772,6 @@ class SearchBarSection extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(

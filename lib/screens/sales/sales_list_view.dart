@@ -37,10 +37,11 @@ class _SalesListViewState extends ConsumerState<SalesListView> {
     final isDesktop = MediaQuery.sizeOf(context).width >= _desktopBreakpoint;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+      padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const SizedBox(height: 10),
           _FiltersBar(
             search: _search,
             paymentFilter: _paymentFilter,
@@ -94,8 +95,6 @@ class _SalesListViewState extends ConsumerState<SalesListView> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -203,14 +202,16 @@ class _FiltersBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        SizedBox(
-          width: 320,
-          child: TextField(
+    return Padding(
+      padding: const EdgeInsets.only(left: 20),
+      child: Wrap(
+        spacing: 12,
+        runSpacing: 12,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          SizedBox(
+            width: 320,
+            child: TextField(
             onChanged: onSearchChanged,
             decoration: InputDecoration(
               prefixIcon: const Icon(Icons.search_rounded, size: 20),
@@ -257,7 +258,7 @@ class _FiltersBar extends StatelessWidget {
           label: const Text('Refresh'),
         ),
       ],
-    );
+    ));
   }
 }
 
@@ -519,7 +520,7 @@ class _SalesOrdersCards extends StatelessWidget {
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: orders.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      separatorBuilder: (_, __) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
         final order = orders[index];
         return Material(
@@ -529,7 +530,7 @@ class _SalesOrdersCards extends StatelessWidget {
             borderRadius: BorderRadius.circular(14),
             onTap: () => onTapOrder(order),
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: const Color(0xFFE2E8F0)),
@@ -543,7 +544,7 @@ class _SalesOrdersCards extends StatelessWidget {
                         child: Text(
                           order.invoiceNo.isEmpty ? '—' : order.invoiceNo,
                           style: GoogleFonts.poppins(
-                            fontSize: 15,
+                            fontSize: 14,
                             fontWeight: FontWeight.w700,
                             color: const Color(0xFF0F172A),
                           ),
@@ -552,7 +553,7 @@ class _SalesOrdersCards extends StatelessWidget {
                       Text(
                         money.format(order.grandTotal),
                         style: GoogleFonts.poppins(
-                          fontSize: 15,
+                          fontSize: 14,
                           fontWeight: FontWeight.w700,
                           color: const Color(0xFF0F172A),
                         ),
@@ -560,39 +561,44 @@ class _SalesOrdersCards extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    _customerNameFor(order),
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      color: const Color(0xFF0F172A),
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    dateTime.format(order.orderDate.toLocal()),
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      color: const Color(0xFF64748B),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+                  Row(
                     children: [
+                      Expanded(
+                        child: Text(
+                          _customerNameFor(order),
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            color: const Color(0xFF0F172A),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                       _PaymentChip(status: order.paymentStatus),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text(
+                        dateTime.format(order.orderDate.toLocal()),
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: const Color(0xFF64748B),
+                        ),
+                      ),
+                      const Spacer(),
                       if (order.paymentStatus.toUpperCase() == 'UNPAID')
-                        FilledButton(
+                        TextButton(
                           onPressed: () => onMarkPaymentDone(order.id ?? ''),
-                          style: FilledButton.styleFrom(
-                            backgroundColor: const Color(0xFF10B981),
+                          style: TextButton.styleFrom(
+                            foregroundColor: const Color(0xFF10B981),
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 4,
+                              horizontal: 8,
+                              vertical: 2,
                             ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
                           child: const Text(
                             'Payment Done',

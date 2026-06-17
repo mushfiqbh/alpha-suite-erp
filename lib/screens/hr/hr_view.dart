@@ -9,7 +9,6 @@ import 'package:erp/core/app_routes.dart';
 import 'package:erp/models/hr.dart';
 import 'package:erp/providers/hr_providers.dart';
 import 'package:erp/screens/hr/attendance_form_page.dart';
-import 'package:erp/screens/hr/mark_attendance_page.dart';
 
 class HrView extends ConsumerStatefulWidget {
   const HrView({super.key});
@@ -25,7 +24,7 @@ class _HrViewState extends ConsumerState<HrView>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
@@ -65,21 +64,13 @@ class _HrViewState extends ConsumerState<HrView>
                 icon: Icon(Icons.table_chart_outlined, size: 18),
                 text: 'Attendance Sheet',
               ),
-              Tab(
-                icon: Icon(Icons.person_add_alt_1_rounded, size: 18),
-                text: 'Attend',
-              ),
             ],
           ),
         ),
         Expanded(
           child: TabBarView(
             controller: _tabController,
-            children: const [
-              _EmployeesTab(),
-              _BulkAttendanceTab(),
-              _IndividualAttendanceTab(),
-            ],
+            children: const [_EmployeesTab(), _BulkAttendanceTab()],
           ),
         ),
       ],
@@ -389,19 +380,6 @@ class _BulkAttendanceTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const AttendanceFormPage(embedded: true);
-  }
-}
-
-// ===========================================================================
-// Individual Attendance tab — inline form
-// ===========================================================================
-
-class _IndividualAttendanceTab extends StatelessWidget {
-  const _IndividualAttendanceTab();
-
-  @override
-  Widget build(BuildContext context) {
-    return const MarkAttendancePage(embedded: true);
   }
 }
 
