@@ -221,7 +221,7 @@ class _FiltersBar extends StatelessWidget {
               onChanged: onSearchChanged,
               decoration: InputDecoration(
                 prefixIcon: const Icon(Icons.search_rounded, size: 20),
-                hintText: 'Search invoice or notes',
+                hintText: 'ইনভয়েস বা নোট অনুসন্ধান',
                 hintStyle: GoogleFonts.inter(
                   fontSize: 13,
                   color: const Color(0xFF94A3B8),
@@ -261,7 +261,7 @@ class _FiltersBar extends StatelessWidget {
               ),
             ),
             icon: const Icon(Icons.refresh_rounded, size: 18),
-            label: const Text('Refresh'),
+            label: const Text('রিফ্রেশ'),
           ),
         ],
       ),
@@ -293,15 +293,15 @@ class _SummaryStrip extends StatelessWidget {
         runSpacing: 12,
         children: [
           _SummaryCell(
-            label: 'Showing',
-            value: '$filteredCount of $totalCount orders',
+            label: 'দেখানো হচ্ছে',
+            value: '$totalCountটি অর্ডারের মধ্যে $filteredCountটি',
           ),
           _SummaryCell(
-            label: 'Revenue (filtered)',
+            label: 'রাজস্ব (ফিল্টারকৃত)',
             value: money.format(totalRevenue),
           ),
           _SummaryCell(
-            label: 'Outstanding',
+            label: 'বকেয়া',
             value: money.format(outstanding),
             valueColor: outstanding > 0
                 ? const Color(0xFFDC2626)
@@ -378,7 +378,7 @@ class _SalesOrdersTable extends StatelessWidget {
     for (final customer in customers) {
       if (customer.id == id) return customer.displayName;
     }
-    return 'Customer #$id';
+    return 'গ্রাহক #$id';
   }
 
   @override
@@ -403,13 +403,13 @@ class _SalesOrdersTable extends StatelessWidget {
             color: const Color(0xFF0F172A),
           ),
           columns: const [
-            DataColumn(label: Text('INVOICE')),
-            DataColumn(label: Text('CUSTOMER')),
-            DataColumn(label: Text('DATE')),
-            DataColumn(label: Text('ITEMS')),
-            DataColumn(label: Text('TOTAL'), numeric: true),
-            DataColumn(label: Text('PAYMENT')),
-            DataColumn(label: Text('STATUS')),
+            DataColumn(label: Text('ইনভয়েস')),
+            DataColumn(label: Text('গ্রাহক')),
+            DataColumn(label: Text('তারিখ')),
+            DataColumn(label: Text('আইটেম')),
+            DataColumn(label: Text('সর্বমোট'), numeric: true),
+            DataColumn(label: Text('পেমেন্ট')),
+            DataColumn(label: Text('অবস্থা')),
             DataColumn(label: Text('')),
           ],
           rows: orders
@@ -478,7 +478,7 @@ class _SalesOrdersTable extends StatelessWidget {
                                 ),
                               ),
                               child: const Text(
-                                'Pay',
+                                'পেমেন্ট',
                                 style: TextStyle(fontSize: 11),
                               ),
                             )
@@ -496,7 +496,7 @@ class _SalesOrdersTable extends StatelessWidget {
                                 ),
                               ),
                               child: const Text(
-                                'Unpaid',
+                                'অপরিশোধিত',
                                 style: TextStyle(fontSize: 11),
                               ),
                             )
@@ -537,11 +537,11 @@ class _SalesOrdersCards extends StatelessWidget {
 
   String _customerNameFor(SalesOrderRecord order) {
     final id = order.customerId;
-    if (id == null) return 'Walk-in';
+    if (id == null) return 'ওয়াক-ইন';
     for (final customer in customers) {
       if (customer.id == id) return customer.displayName;
     }
-    return 'Customer #$id';
+    return 'গ্রাহক #$id';
   }
 
   @override
@@ -637,13 +637,13 @@ class _PaymentChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final normalized = status.toUpperCase();
     final (label, bg, fg) = switch (normalized) {
-      'PAID' => ('Paid', const Color(0xFFDCFCE7), const Color(0xFF166534)),
-      'PARTIAL' => (
-        'Partial',
-        const Color(0xFFFEF3C7),
-        const Color(0xFF92400E),
+      'PAID' => ('পরিশোধিত', const Color(0xFFDCFCE7), const Color(0xFF166534)),
+      'PARTIAL' => ('আংশিক', const Color(0xFFFEF3C7), const Color(0xFF92400E)),
+      'UNPAID' => (
+        'অপরিশোধিত',
+        const Color(0xFFFEE2E2),
+        const Color(0xFF991B1B),
       ),
-      'UNPAID' => ('Unpaid', const Color(0xFFFEE2E2), const Color(0xFF991B1B)),
       _ => (normalized, const Color(0xFFE2E8F0), const Color(0xFF334155)),
     };
 
@@ -674,19 +674,19 @@ class _SalesStatusChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final normalized = status.toUpperCase();
     final (label, bg, fg) = switch (normalized) {
-      'DRAFT' => ('Draft', const Color(0xFFE0E7FF), const Color(0xFF3730A3)),
+      'DRAFT' => ('খসড়া', const Color(0xFFE0E7FF), const Color(0xFF3730A3)),
       'CONFIRMED' => (
-        'Confirmed',
+        'নিশ্চিত',
         const Color(0xFFDBEAFE),
         const Color(0xFF1D4ED8),
       ),
       'FULFILLED' || 'COMPLETED' => (
-        'Completed',
+        'সম্পন্ন',
         const Color(0xFFDCFCE7),
         const Color(0xFF166534),
       ),
       'CANCELLED' => (
-        'Cancelled',
+        'বাতিল',
         const Color(0xFFFEE2E2),
         const Color(0xFF991B1B),
       ),
@@ -761,8 +761,8 @@ class _OrderDetailsSheet extends ConsumerWidget {
                         children: [
                           Text(
                             order.invoiceNo.isEmpty
-                                ? 'Order details'
-                                : 'Invoice ${order.invoiceNo}',
+                                ? 'অর্ডার বিবরণ'
+                                : 'ইনভয়েস ${order.invoiceNo}',
                             style: GoogleFonts.poppins(
                               fontSize: 20,
                               fontWeight: FontWeight.w700,
@@ -817,7 +817,7 @@ class _OrderDetailsSheet extends ConsumerWidget {
                               ),
                             ),
                             child: const Text(
-                              'Payment Done',
+                              'পেমেন্ট সম্পন্ন',
                               style: TextStyle(fontSize: 12),
                             ),
                           ),
@@ -840,7 +840,7 @@ class _OrderDetailsSheet extends ConsumerWidget {
                               ),
                             ),
                             child: const Text(
-                              'Make Unpaid',
+                              'অপরিশোধিত করুন',
                               style: TextStyle(fontSize: 12),
                             ),
                           ),
@@ -848,22 +848,22 @@ class _OrderDetailsSheet extends ConsumerWidget {
                     ),
                     const SizedBox(height: 20),
                     _DetailsRow(
-                      label: 'Customer ID',
+                      label: 'গ্রাহক আইডি',
                       value: order.customerId ?? '—',
                     ),
                     _DetailsRow(
-                      label: 'Due date',
+                      label: 'নির্ধারিত তারিখ',
                       value: order.dueDate == null
                           ? '—'
                           : dateTime.format(order.dueDate!.toLocal()),
                     ),
                     _DetailsRow(
-                      label: 'Created by',
+                      label: 'তৈরি করেছেন',
                       value: order.createdBy ?? '—',
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      'Line items',
+                      'লাইন আইটেম',
                       style: GoogleFonts.poppins(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -889,7 +889,7 @@ class _OrderDetailsSheet extends ConsumerWidget {
                       error: (error, _) => Padding(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         child: Text(
-                          'Unable to load line items: $error',
+                          'লাইন আইটেম লোড করা যায়নি: $error',
                           style: GoogleFonts.inter(
                             fontSize: 12,
                             color: const Color(0xFFDC2626),
@@ -990,7 +990,7 @@ class _ItemRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Product #$id',
+                  'পণ্য #$id',
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -999,7 +999,7 @@ class _ItemRow extends StatelessWidget {
                 ),
                 Text(
                   '${item.quantity} × ${money.format(item.unitPrice)}'
-                  '${item.taxAmount > 0 ? ' • Tax ${money.format(item.taxAmount)}' : ''}',
+                  '${item.taxAmount > 0 ? ' • কর ${money.format(item.taxAmount)}' : ''}',
                   style: GoogleFonts.inter(
                     fontSize: 11,
                     color: const Color(0xFF64748B),
@@ -1033,7 +1033,7 @@ class _NoItems extends StatelessWidget {
         border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Text(
-        'No line items were saved for this order.',
+        'এই অর্ডারের জন্য কোনো লাইন আইটেম সংরক্ষিত হয়নি।',
         style: GoogleFonts.inter(fontSize: 13, color: const Color(0xFF64748B)),
       ),
     );
@@ -1057,30 +1057,27 @@ class _TotalsCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _TotalRow(label: 'Subtotal', value: money.format(order.subtotal)),
+          _TotalRow(label: 'সাবটোটাল', value: money.format(order.subtotal)),
           _TotalRow(
-            label: 'Discount',
+            label: 'ডিসকাউন্ট',
             value: '- ${money.format(order.discountAmount)}',
             valueColor: const Color(0xFFDC2626),
           ),
-          _TotalRow(label: 'Tax', value: money.format(order.taxAmount)),
-          _TotalRow(
-            label: 'Shipping',
-            value: money.format(order.shippingAmount),
-          ),
+          _TotalRow(label: 'কর', value: money.format(order.taxAmount)),
+          _TotalRow(label: 'শিপিং', value: money.format(order.shippingAmount)),
           const Divider(height: 18, color: Color(0xFFE2E8F0)),
           _TotalRow(
-            label: 'Grand total',
+            label: 'সর্বমোট',
             value: money.format(order.grandTotal),
             isBold: true,
           ),
           _TotalRow(
-            label: 'Paid',
+            label: 'পরিশোধিত',
             value: money.format(order.paidAmount),
             valueColor: const Color(0xFF10B981),
           ),
           _TotalRow(
-            label: 'Outstanding',
+            label: 'বকেয়া',
             value: money.format(order.dueAmount),
             valueColor: order.dueAmount > 0
                 ? const Color(0xFFDC2626)
@@ -1153,7 +1150,7 @@ class _NotesCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'NOTES',
+            'নোট',
             style: GoogleFonts.inter(
               fontSize: 10,
               fontWeight: FontWeight.w700,
@@ -1206,7 +1203,7 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 18),
             Text(
-              'No sales yet',
+              'এখনো কোনো বিক্রয় নেই',
               style: GoogleFonts.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -1215,7 +1212,7 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              'Invoices placed from the POS will appear here.',
+              'পিওএস থেকে তৈরি ইনভয়েস এখানে প্রদর্শিত হবে।',
               style: GoogleFonts.inter(
                 fontSize: 13,
                 color: const Color(0xFF64748B),
@@ -1254,7 +1251,7 @@ class _ErrorState extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'Unable to load sales',
+              'বিক্রয় লোড করা যায়নি',
               style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
@@ -1283,7 +1280,7 @@ class _ErrorState extends StatelessWidget {
                   vertical: 12,
                 ),
               ),
-              child: const Text('Try again'),
+              child: const Text('আবার চেষ্টা করুন'),
             ),
           ],
         ),

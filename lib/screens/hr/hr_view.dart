@@ -56,13 +56,10 @@ class _HrViewState extends ConsumerState<HrView>
               fontWeight: FontWeight.w500,
             ),
             tabs: const [
-              Tab(
-                icon: Icon(Icons.badge_outlined, size: 18),
-                text: 'Employees',
-              ),
+              Tab(icon: Icon(Icons.badge_outlined, size: 18), text: 'কর্মচারী'),
               Tab(
                 icon: Icon(Icons.table_chart_outlined, size: 18),
-                text: 'Attendance Sheet',
+                text: 'উপস্থিতি শীট',
               ),
             ],
           ),
@@ -145,12 +142,14 @@ class _EmployeesTabState extends ConsumerState<_EmployeesTab> {
       filterContent: const SizedBox.shrink(),
       activeFilterChips: const <Widget>[],
       summary: filtered.isEmpty
-          ? (state.isLoading ? 'Loading employees...' : 'No employees found')
-          : 'Showing $pageStart-$pageEnd of ${filtered.length} employees',
+          ? (state.isLoading
+                ? 'কর্মচারী লোড হচ্ছে...'
+                : 'কোন কর্মচারী পাওয়া যায়নি')
+          : '$pageStart-$pageEnd দেখানো হচ্ছে (মোট ${filtered.length} জন কর্মচারী)',
       isEmpty: filtered.isEmpty,
-      emptyTitle: 'No employees yet',
+      emptyTitle: 'এখনো কোনো কর্মচারী নেই',
       emptyMessage:
-          'Add your first employee to start building your team. They\'ll appear here once saved.',
+          'আপনার প্রথম কর্মচারী যোগ করুন। সংরক্ষণের পর তারা এখানে প্রদর্শিত হবে।',
       onCreate: () => context.push(AppRoutes.hrEmployeeNew),
       gridBuilder: (crossAxisCount) => GridView.builder(
         padding: const EdgeInsets.fromLTRB(20, 4, 20, 4),
@@ -173,9 +172,9 @@ class _EmployeesTabState extends ConsumerState<_EmployeesTab> {
                 context.push(AppRoutes.hrEmployeeNew, extra: employee),
             onDelete: () => _confirmDelete(
               context,
-              title: 'Delete employee?',
+              title: 'কর্মচারী মুছবেন?',
               message:
-                  'This will permanently delete ${employee.fullName}. This action cannot be undone.',
+                  '${employee.fullName} কে স্থায়ীভাবে মুছে ফেলা হবে। এই action পূর্বাবস্থায় ফেরানো যাবে না।',
               onConfirm: () async {
                 final messenger = ScaffoldMessenger.of(context);
                 final controller = ref.read(employeeDirectoryProvider.notifier);
@@ -185,7 +184,7 @@ class _EmployeesTabState extends ConsumerState<_EmployeesTab> {
                 if (latest.errorMessage == null) {
                   messenger.showSnackBar(
                     SnackBar(
-                      content: Text('${employee.fullName} deleted.'),
+                      content: Text('${employee.fullName} মুছে ফেলা হয়েছে।'),
                       backgroundColor: const Color(0xFF10B981),
                     ),
                   );
@@ -353,7 +352,7 @@ class _EmployeeCard extends StatelessWidget {
                 children: [
                   _CompactIconButton(
                     icon: Icons.delete_outline,
-                    tooltip: 'Delete',
+                    tooltip: 'মুছুন',
                     onPressed: onDelete,
                   ),
                 ],
@@ -439,7 +438,7 @@ class SearchBarSection extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.close_rounded, color: Color(0xFF94A3B8)),
               onPressed: () => onSearchChanged(''),
-              tooltip: 'Clear',
+              tooltip: 'সাফ করুন',
             ),
         ],
       ),
@@ -493,7 +492,7 @@ class _TabShell extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: SearchBarSection(
               searchQuery: searchQuery,
-              hintText: 'Search by name, code, email, or shift...',
+              hintText: 'নাম, কোড, ইমেইল বা শিফট দ্বারা অনুসন্ধান...',
               onSearchChanged: onSearch,
             ),
           ),
@@ -542,7 +541,7 @@ class _TabShell extends StatelessWidget {
                       ),
                       onPressed: onCreate,
                       icon: const Icon(Icons.add_rounded, size: 16),
-                      label: const Text('Create'),
+                      label: const Text('তৈরি করুন'),
                     ),
                   ),
                 if (isLoading)

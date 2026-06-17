@@ -177,7 +177,7 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
       if (latestState.errorMessage == null) {
         messenger.showSnackBar(
           const SnackBar(
-            content: Text('Employee saved successfully.'),
+            content: Text('কর্মচারী সফলভাবে সংরক্ষিত হয়েছে।'),
             backgroundColor: Color(0xFF10B981),
           ),
         );
@@ -201,7 +201,7 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
       }
       messenger.showSnackBar(
         SnackBar(
-          content: Text('Could not save employee: $e'),
+          content: Text('কর্মচারী সংরক্ষণ করা যায়নি: $e'),
           backgroundColor: Colors.red.shade600,
         ),
       );
@@ -229,7 +229,7 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
         surfaceTintColor: Colors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
-          tooltip: 'Back to Manage',
+          tooltip: 'ফিরে যান',
           onPressed: () {
             if (GoRouter.of(context).canPop()) {
               context.pop();
@@ -262,7 +262,7 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    isEdit ? 'Edit Employee' : 'New Employee',
+                    isEdit ? 'কর্মচারী সম্পাদনা' : 'নতুন কর্মচারী',
                     style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
@@ -285,13 +285,13 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const _SectionTitle(title: 'Identity'),
+                  const _SectionTitle(title: 'পরিচয়'),
                   const SizedBox(height: 12),
                   _TextInput(
                     controller: _codeController,
                     label: isEdit
-                        ? 'Employee Code'
-                        : 'Employee Code (auto-generated if blank)',
+                        ? 'কর্মচারী কোড'
+                        : 'কর্মচারী কোড (ফাঁকা থাকলে স্বয়ংক্রিয়)',
                     hintText: 'EMP-0001',
                   ),
                   const SizedBox(height: 14),
@@ -300,11 +300,11 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
                       Expanded(
                         child: _TextInput(
                           controller: _firstNameController,
-                          label: 'First Name',
-                          hintText: 'Aarav',
+                          label: 'নামের প্রথম অংশ',
+                          hintText: 'আরাভ',
                           validator: (value) {
                             if ((value ?? '').trim().isEmpty) {
-                              return 'First name is required';
+                              return 'নামের প্রথম অংশ প্রয়োজন';
                             }
                             return null;
                           },
@@ -314,8 +314,8 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
                       Expanded(
                         child: _TextInput(
                           controller: _lastNameController,
-                          label: 'Last Name',
-                          hintText: 'Sharma',
+                          label: 'নামের শেষাংশ',
+                          hintText: 'শর্মা',
                         ),
                       ),
                     ],
@@ -326,7 +326,7 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
                       Expanded(
                         child: _TextInput(
                           controller: _emailController,
-                          label: 'Email',
+                          label: 'ইমেইল',
                           hintText: 'name@example.com',
                           keyboardType: TextInputType.emailAddress,
                         ),
@@ -335,8 +335,8 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
                       Expanded(
                         child: _TextInput(
                           controller: _phoneController,
-                          label: 'Phone',
-                          hintText: '+91 90000 00000',
+                          label: 'ফোন',
+                          hintText: '+880 1700 000000',
                           keyboardType: TextInputType.phone,
                         ),
                       ),
@@ -347,12 +347,12 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
                     children: [
                       Expanded(
                         child: _DropdownInput<String>(
-                          label: 'Gender',
+                          label: 'লিঙ্গ',
                           value: _gender,
                           items: [
                             const DropdownMenuItem<String>(
                               value: null,
-                              child: Text('Unspecified'),
+                              child: Text('অনির্দিষ্ট'),
                             ),
                             ...GenderOptions.values
                                 .where((v) => v != null)
@@ -369,7 +369,7 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: _DateInput(
-                          label: 'Date of Birth',
+                          label: 'জন্ম তারিখ',
                           value: _dob,
                           onTap: () => _pickDate(isDob: true),
                           onClear: _dob == null
@@ -380,7 +380,7 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: _DateInput(
-                          label: 'Joining Date',
+                          label: 'যোগদানের তারিখ',
                           value: _joiningDate,
                           onTap: () => _pickDate(isDob: false),
                           onClear: _joiningDate == null
@@ -391,7 +391,7 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
                     ],
                   ),
                   const SizedBox(height: 22),
-                  const _SectionTitle(title: 'Employment'),
+                  const _SectionTitle(title: 'কর্মসংস্থান'),
                   const SizedBox(height: 22),
                   profilesAsync.when(
                     data: (profiles) {
@@ -429,13 +429,13 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
                         }
                       }
                       return _DropdownInput<String>(
-                        label: 'Linked User',
+                        label: 'সংযুক্ত ব্যবহারকারী',
                         value: _linkedUserId ?? '',
                         items: [
                           DropdownMenuItem<String>(
                             value: '',
                             child: Text(
-                              'None',
+                              'কোনটি নয়',
                               style: GoogleFonts.inter(
                                 fontSize: 12,
                                 color: const Color(0xFF94A3B8),
@@ -460,9 +460,9 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
                         ),
                       );
                     },
-                    error: (_, __) => const Text('Failed to load users'),
+                    error: (_, __) => const Text('ব্যবহারকারী লোড করতে ব্যর্থ'),
                     loading: () => _DropdownInput<String>(
-                      label: 'Linked User',
+                      label: 'সংযুক্ত ব্যবহারকারী',
                       value: null,
                       items: [],
                       onChanged: (_) {},
@@ -473,7 +473,7 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
                     children: [
                       Expanded(
                         child: _DropdownInput<String>(
-                          label: 'Employment Type',
+                          label: 'কর্মসংস্থানের ধরন',
                           value: _employmentType,
                           items: EmploymentTypeOptions.values
                               .map(
@@ -491,8 +491,8 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
                       Expanded(
                         child: _TextInput(
                           controller: _salaryController,
-                          label: 'Basic Salary',
-                          hintText: '0',
+                          label: 'মূল বেতন',
+                          hintText: '০',
                           keyboardType: const TextInputType.numberWithOptions(
                             decimal: true,
                           ),
@@ -502,7 +502,7 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
                   ),
                   const SizedBox(height: 14),
                   _DropdownInput<String>(
-                    label: 'Status',
+                    label: 'অবস্থা',
                     value: _status,
                     items: EmployeeStatusOptions.values
                         .map(
@@ -553,7 +553,7 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
                           context.go(AppRoutes.hr);
                         }
                       },
-                child: const Text('Cancel'),
+                child: const Text('বাতিল'),
               ),
               const SizedBox(width: 20),
               FilledButton.icon(
@@ -570,7 +570,9 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
                         ),
                       )
                     : const Icon(Icons.save_outlined),
-                label: Text(_isSubmitting ? 'Saving...' : 'Save Employee'),
+                label: Text(
+                  _isSubmitting ? 'সংরক্ষণ হচ্ছে...' : 'কর্মচারী সংরক্ষণ',
+                ),
               ),
             ],
           ),
@@ -743,7 +745,7 @@ class _DateInput extends StatelessWidget {
         ),
         child: Text(
           value == null
-              ? 'Select date'
+              ? 'তারিখ নির্বাচন করুন'
               : '${value!.year.toString().padLeft(4, '0')}-${value!.month.toString().padLeft(2, '0')}-${value!.day.toString().padLeft(2, '0')}',
           style: TextStyle(
             color: value == null

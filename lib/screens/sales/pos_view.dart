@@ -77,7 +77,7 @@ class _PosViewState extends ConsumerState<PosView> {
             borderRadius: BorderRadius.circular(14),
           ),
           content: Text(
-            'Pick a customer first',
+            'প্রথমে একজন গ্রাহক নির্বাচন করুন',
             style: GoogleFonts.poppins(
               color: Colors.white,
               fontWeight: FontWeight.w600,
@@ -96,7 +96,7 @@ class _PosViewState extends ConsumerState<PosView> {
         margin: const EdgeInsets.all(16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         content: Text(
-          'Added ${product.displayName} to cart',
+          '${product.displayName} কার্টে যোগ করা হয়েছে',
           style: GoogleFonts.poppins(
             color: Colors.white,
             fontWeight: FontWeight.w600,
@@ -118,7 +118,7 @@ class _PosViewState extends ConsumerState<PosView> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(24),
           ),
-          title: const Text('Confirm checkout'),
+          title: const Text('চেকআউট নিশ্চিত করুন'),
           content: SizedBox(
             width: 360,
             child: Column(
@@ -126,7 +126,7 @@ class _PosViewState extends ConsumerState<PosView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Customer: ${customer.displayName}',
+                  'গ্রাহক: ${customer.displayName}',
                   style: GoogleFonts.poppins(
                     fontWeight: FontWeight.w600,
                     color: const Color(0xFF0F172A),
@@ -134,8 +134,8 @@ class _PosViewState extends ConsumerState<PosView> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${summary.itemCount} item${summary.itemCount == 1 ? '' : 's'} • '
-                  '${ref.read(cartProvider).length} line${ref.read(cartProvider).length == 1 ? '' : 's'}',
+                  '${summary.itemCount}টি আইটেম • '
+                  '${ref.read(cartProvider).length}টি লাইন',
                   style: const TextStyle(
                     color: Color(0xFF64748B),
                     fontSize: 12,
@@ -179,12 +179,12 @@ class _PosViewState extends ConsumerState<PosView> {
                   ),
                 ),
                 const Divider(height: 24),
-                _SummaryRow(label: 'Subtotal', value: summary.subtotal),
+                _SummaryRow(label: 'সাবটোটাল', value: summary.subtotal),
                 if (summary.taxTotal > 0)
-                  _SummaryRow(label: 'Tax', value: summary.taxTotal),
+                  _SummaryRow(label: 'কর', value: summary.taxTotal),
                 const SizedBox(height: 6),
                 _SummaryRow(
-                  label: 'Total',
+                  label: 'সর্বমোট',
                   value: summary.grandTotal,
                   emphasized: true,
                 ),
@@ -194,7 +194,7 @@ class _PosViewState extends ConsumerState<PosView> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Cancel'),
+              child: const Text('বাতিল'),
             ),
             FilledButton.icon(
               onPressed: () => Navigator.of(dialogContext).pop(true),
@@ -205,7 +205,7 @@ class _PosViewState extends ConsumerState<PosView> {
                 ),
               ),
               icon: const Icon(Icons.check_rounded, size: 18),
-              label: const Text('Place order'),
+              label: const Text('অর্ডার দিন'),
             ),
           ],
         );
@@ -226,7 +226,7 @@ class _PosViewState extends ConsumerState<PosView> {
             borderRadius: BorderRadius.circular(14),
           ),
           content: Text(
-            'Customer record is missing an id — cannot place the order.',
+            'গ্রাহকের রেকর্ডে আইডি নেই — অর্ডার দেওয়া যাচ্ছে না।',
             style: GoogleFonts.poppins(
               color: Colors.white,
               fontWeight: FontWeight.w600,
@@ -284,7 +284,9 @@ class _PosViewState extends ConsumerState<PosView> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: Text(
-                        saving ? 'Saving sale…' : 'Sale saved',
+                        saving
+                            ? 'বিক্রয় সংরক্ষণ হচ্ছে...'
+                            : 'বিক্রয় সংরক্ষিত',
                         style: GoogleFonts.poppins(
                           fontWeight: FontWeight.w600,
                           color: const Color(0xFF0F172A),
@@ -323,7 +325,7 @@ class _PosViewState extends ConsumerState<PosView> {
       Navigator.of(context, rootNavigator: true).pop();
       final message = failure is SalesCheckoutException
           ? failure.message
-          : 'Could not place the order. Please try again.';
+          : 'অর্ডার দেওয়া যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।';
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -371,7 +373,7 @@ class _PosViewState extends ConsumerState<PosView> {
         margin: const EdgeInsets.all(16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         content: Text(
-          'Order ${result.invoiceNo} placed for ${customer.displayName}.',
+          '${customer.displayName} এর জন্য অর্ডার ${result.invoiceNo} দেওয়া হয়েছে।',
           style: GoogleFonts.poppins(
             color: Colors.white,
             fontWeight: FontWeight.w600,
@@ -396,7 +398,7 @@ class _PosViewState extends ConsumerState<PosView> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          title: const Text('New Customer'),
+          title: const Text('নতুন গ্রাহক'),
           content: SizedBox(
             width: 360,
             child: Column(
@@ -405,8 +407,8 @@ class _PosViewState extends ConsumerState<PosView> {
                 TextField(
                   controller: nameCtrl,
                   decoration: const InputDecoration(
-                    labelText: 'Name *',
-                    hintText: 'Guest Customer',
+                    labelText: 'নাম *',
+                    hintText: 'অতিথি গ্রাহক',
                   ),
                   textCapitalization: TextCapitalization.words,
                 ),
@@ -414,8 +416,8 @@ class _PosViewState extends ConsumerState<PosView> {
                 TextField(
                   controller: phoneCtrl,
                   decoration: const InputDecoration(
-                    labelText: 'Phone',
-                    hintText: '+1 555-000-0000',
+                    labelText: 'ফোন',
+                    hintText: '+৮৮০ ১৭০০-০০০০০০',
                   ),
                   keyboardType: TextInputType.phone,
                 ),
@@ -423,7 +425,7 @@ class _PosViewState extends ConsumerState<PosView> {
                 TextField(
                   controller: emailCtrl,
                   decoration: const InputDecoration(
-                    labelText: 'Email',
+                    labelText: 'ইমেইল',
                     hintText: 'customer@example.com',
                   ),
                   keyboardType: TextInputType.emailAddress,
@@ -432,8 +434,8 @@ class _PosViewState extends ConsumerState<PosView> {
                 TextField(
                   controller: addressCtrl,
                   decoration: const InputDecoration(
-                    labelText: 'Address',
-                    hintText: 'Street, city, etc.',
+                    labelText: 'ঠিকানা',
+                    hintText: 'রাস্তা, শহর, ইত্যাদি',
                   ),
                   maxLines: 2,
                 ),
@@ -443,14 +445,14 @@ class _PosViewState extends ConsumerState<PosView> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(false),
-              child: const Text('Cancel'),
+              child: const Text('বাতিল'),
             ),
             FilledButton(
               onPressed: () {
                 if (nameCtrl.text.trim().isEmpty) return;
                 Navigator.of(ctx).pop(true);
               },
-              child: const Text('Select'),
+              child: const Text('নির্বাচন'),
             ),
           ],
         );
@@ -598,7 +600,7 @@ class _PosViewState extends ConsumerState<PosView> {
                   color: Colors.white,
                 ),
                 label: Text(
-                  'Cart • ${summary.itemCount}',
+                  'কার্ট • ${summary.itemCount}',
                   style: GoogleFonts.poppins(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
@@ -836,7 +838,7 @@ class _CustomerBanner extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Text(
-                    'Add a walk-in customer to start a sale.',
+                    'বিক্রয় শুরু করতে একজন গ্রাহক যোগ করুন।',
                     style: TextStyle(
                       color: Color(0xFF64748B),
                       fontSize: 12,
@@ -859,7 +861,7 @@ class _CustomerBanner extends StatelessWidget {
                 ),
               ),
               icon: const Icon(Icons.person_add_rounded, size: 16),
-              label: const Text('Start Sale'),
+              label: const Text('বিক্রয় শুরু'),
             ),
           ],
         ),
@@ -949,14 +951,14 @@ class _CustomerBanner extends StatelessWidget {
           const SizedBox(width: 8),
           _BannerIconButton(
             icon: Icons.swap_horiz_rounded,
-            tooltip: 'Change customer',
+            tooltip: 'গ্রাহক পরিবর্তন',
             onPressed: onChange,
           ),
           if (onClear != null) ...[
             const SizedBox(width: 6),
             _BannerIconButton(
               icon: Icons.close_rounded,
-              tooltip: 'Clear selection',
+              tooltip: 'নির্বাচন সাফ',
               onPressed: onClear!,
             ),
           ],
@@ -1039,7 +1041,7 @@ class _ProductSearchBar extends StatelessWidget {
           ),
         ),
         decoration: InputDecoration(
-          hintText: 'Search products by name, SKU, or category',
+          hintText: 'নাম, SKU বা বিভাগ দ্বারা পণ্য অনুসন্ধান',
           hintStyle: const TextStyle(
             color: Color(0xFF94A3B8),
             fontWeight: FontWeight.w500,
@@ -1092,7 +1094,7 @@ class _ProductGrid extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'No sellable products found',
+              'কোন বিক্রয়যোগ্য পণ্য পাওয়া যায়নি',
               style: GoogleFonts.poppins(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
@@ -1101,7 +1103,7 @@ class _ProductGrid extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             const Text(
-              'Try adjusting your search or filters.',
+              'আপনার অনুসন্ধান বা ফিল্টার পরিবর্তন করে দেখুন।',
               style: TextStyle(color: Color(0xFF64748B), fontSize: 12),
             ),
           ],
@@ -1205,7 +1207,7 @@ class _SalesProductCard extends ConsumerWidget {
                       ),
                     ),
                     Text(
-                      product.sku.isEmpty ? 'No SKU' : 'SKU ${product.sku}',
+                      product.sku.isEmpty ? 'SKU নেই' : 'SKU ${product.sku}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -1296,7 +1298,7 @@ class _AddButton extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  canAdd ? 'Add' : 'Out',
+                  canAdd ? 'যোগ' : 'শেষ',
                   style: TextStyle(
                     color: color,
                     fontWeight: FontWeight.w700,
@@ -1322,7 +1324,7 @@ class _AddButton extends StatelessWidget {
           Icon(Icons.shopping_basket_rounded, size: 14, color: color),
           const SizedBox(width: 4),
           Text(
-            '$quantityInCart in cart',
+            'কার্টে $quantityInCart',
             style: TextStyle(
               color: color,
               fontWeight: FontWeight.w700,
@@ -1382,7 +1384,7 @@ class _CartPanel extends ConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'Cart',
+                      'কার্ট',
                       style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -1390,8 +1392,8 @@ class _CartPanel extends ConsumerWidget {
                       ),
                     ),
                     Text(
-                      '${summary.itemCount} item${summary.itemCount == 1 ? '' : 's'} • '
-                      '${cart.length} line${cart.length == 1 ? '' : 's'}',
+                      '${summary.itemCount}টি আইটেম • '
+                      '${cart.length}টি লাইন',
                       style: const TextStyle(
                         color: Color(0xFF64748B),
                         fontSize: 11,
@@ -1406,7 +1408,7 @@ class _CartPanel extends ConsumerWidget {
                   onPressed: () {
                     ref.read(cartProvider.notifier).clear();
                   },
-                  child: const Text('Clear'),
+                  child: const Text('সাফ'),
                 ),
             ],
           ),
@@ -1434,12 +1436,12 @@ class _CartPanel extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
             children: [
-              _SummaryRow(label: 'Subtotal', value: summary.subtotal),
+              _SummaryRow(label: 'সাবটোটাল', value: summary.subtotal),
               if (summary.taxTotal > 0)
-                _SummaryRow(label: 'Tax', value: summary.taxTotal),
+                _SummaryRow(label: 'কর', value: summary.taxTotal),
               const SizedBox(height: 6),
               _SummaryRow(
-                label: 'Total',
+                label: 'সর্বমোট',
                 value: summary.grandTotal,
                 emphasized: true,
               ),
@@ -1460,8 +1462,8 @@ class _CartPanel extends ConsumerWidget {
                 icon: const Icon(Icons.lock_open_rounded, size: 18),
                 label: Text(
                   customer == null
-                      ? 'Pick a customer to checkout'
-                      : 'Checkout • ৳${summary.grandTotal.toStringAsFixed(2)}',
+                      ? 'চেকআউটের জন্য গ্রাহক নির্বাচন'
+                      : 'চেকআউট • ৳${summary.grandTotal.toStringAsFixed(2)}',
                   style: GoogleFonts.poppins(
                     fontWeight: FontWeight.w700,
                     fontSize: 14,
@@ -1556,7 +1558,7 @@ class _CartLineTile extends ConsumerWidget {
                 ref.read(cartProvider.notifier).decrement(product.id!),
           ),
           IconButton(
-            tooltip: 'Remove',
+            tooltip: 'সরান',
             visualDensity: VisualDensity.compact,
             onPressed: () =>
                 ref.read(cartProvider.notifier).removeProduct(product.id!),
@@ -1676,7 +1678,7 @@ class _EmptyCartState extends StatelessWidget {
             ),
             const SizedBox(height: 14),
             Text(
-              customer == null ? 'Pick a customer first' : 'Cart is empty',
+              customer == null ? 'প্রথমে গ্রাহক নির্বাচন করুন' : 'কার্ট খালি',
               style: GoogleFonts.poppins(
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
@@ -1686,8 +1688,8 @@ class _EmptyCartState extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               customer == null
-                  ? 'Select a customer above to start adding products.'
-                  : 'Tap “Add” on any product to start a sale.',
+                  ? 'পণ্য যোগ করতে উপরে একজন গ্রাহক নির্বাচন করুন।'
+                  : 'বিক্রয় শুরু করতে যেকোনো পণ্যে “যোগ” বাটনে ক্লিক করুন।',
               textAlign: TextAlign.center,
               style: const TextStyle(
                 color: Color(0xFF64748B),
