@@ -616,41 +616,6 @@ class _SalesOrdersCards extends StatelessWidget {
                           color: const Color(0xFF64748B),
                         ),
                       ),
-                      const Spacer(),
-                      if (order.paymentStatus.toUpperCase() == 'UNPAID')
-                        TextButton(
-                          onPressed: () => onMarkPaymentDone(order.id ?? ''),
-                          style: TextButton.styleFrom(
-                            foregroundColor: const Color(0xFF10B981),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          child: const Text(
-                            'Payment Done',
-                            style: TextStyle(fontSize: 11),
-                          ),
-                        ),
-                      if (order.paymentStatus.toUpperCase() == 'PAID')
-                        TextButton(
-                          onPressed: () => onMarkAsUnpaid(order.id ?? ''),
-                          style: TextButton.styleFrom(
-                            foregroundColor: const Color(0xFFF59E0B),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          child: const Text(
-                            'Make Unpaid',
-                            style: TextStyle(fontSize: 11),
-                          ),
-                        ),
                     ],
                   ),
                 ],

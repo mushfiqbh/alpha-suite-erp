@@ -59,6 +59,11 @@ class _AppShellState extends ConsumerState<AppShell> {
     ),
     ShellNavItem(label: 'HR', icon: Icons.badge_outlined, route: AppRoutes.hr),
     ShellNavItem(
+      label: 'Access Requests',
+      icon: Icons.verified_user_outlined,
+      route: AppRoutes.accessRequests,
+    ),
+    ShellNavItem(
       label: 'Users',
       icon: Icons.manage_accounts_outlined,
       route: AppRoutes.users,
@@ -138,6 +143,8 @@ class _AppShellState extends ConsumerState<AppShell> {
         return 'HR Management';
       case AppRoutes.hrEmployeeNew:
         return 'Employee Details';
+      case AppRoutes.accessRequests:
+        return 'Access Requests';
       case AppRoutes.users:
         return 'User Management';
       case AppRoutes.account:
@@ -384,32 +391,6 @@ class _TopBar extends StatelessWidget {
               ),
             ),
           if (isDesktop) const SizedBox(width: 18),
-          IconButton(
-            tooltip: 'Notifications',
-            onPressed: () {},
-            icon: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Icon(
-                  Icons.notifications_none_rounded,
-                  color: Colors.grey.shade700,
-                ),
-                Positioned(
-                  right: -1,
-                  top: -1,
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
           InkWell(
             borderRadius: BorderRadius.circular(999),
             onTap: onAccountPressed,

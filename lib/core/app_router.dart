@@ -24,6 +24,7 @@ import 'package:erp/screens/hr/mark_attendance_page.dart';
 import 'package:erp/screens/pos/pos_view.dart';
 import 'package:erp/screens/sales/sales_list_view.dart';
 import 'package:erp/screens/admin/users_management_view.dart';
+import 'package:erp/screens/admin/access_requests_view.dart';
 import 'package:erp/services/permission_service.dart';
 import 'package:erp/layouts/app_shell.dart';
 
@@ -126,6 +127,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.users,
             builder: (context, state) => const UsersManagementView(),
+          ),
+          GoRoute(
+            path: AppRoutes.accessRequests,
+            builder: (context, state) => const AccessRequestsView(),
           ),
           GoRoute(
             path: AppRoutes.account,

@@ -287,9 +287,9 @@ class AuthController extends StateNotifier<AuthState> {
     );
   }
 
-  Future<void> updateProfile({required String fullName}) async {
+  Future<void> updateProfile({required String fullName, String? phone}) async {
     try {
-      await _authService.updateProfile(fullName: fullName);
+      await _authService.updateProfile(fullName: fullName, phone: phone);
       // Refresh so the UI picks up the new metadata.
       await restoreSession();
     } catch (_) {

@@ -343,18 +343,6 @@ class UsersManagementView extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  TextField(
-                    controller: nameController,
-                    decoration: const InputDecoration(labelText: 'Full Name'),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: phoneController,
-                    decoration: const InputDecoration(
-                      labelText: 'Phone Number',
-                    ),
-                  ),
-                  const SizedBox(height: 16),
                   DropdownButtonFormField<UserRole>(
                     initialValue: selectedRole,
                     decoration: const InputDecoration(
@@ -457,7 +445,6 @@ class _UserCard extends StatelessWidget {
     );
     final fullName = profile['full_name'] ?? 'User';
     final email = profile['email'] ?? 'No email';
-    final phone = profile['phone'] ?? '—';
     final initials = fullName.isNotEmpty
         ? fullName.substring(0, 1).toUpperCase()
         : 'U';
@@ -548,13 +535,6 @@ class _UserCard extends StatelessWidget {
               const SizedBox(width: 4),
               Text(
                 email,
-                style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
-              ),
-              const SizedBox(width: 16),
-              Icon(Icons.phone_outlined, size: 14, color: Colors.grey.shade400),
-              const SizedBox(width: 4),
-              Text(
-                phone,
                 style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
               ),
             ],

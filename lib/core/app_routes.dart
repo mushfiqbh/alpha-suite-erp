@@ -16,5 +16,6 @@ class AppRoutes {
   static const hrAttendanceMark = '/hr/attendance/mark';
 
   static const users = '/users';
+  static const accessRequests = '/access-requests';
   static const account = '/account';
 }

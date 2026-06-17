@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:erp/core/app_routes.dart';
+import 'package:erp/models/access_request.dart';
 import 'package:erp/models/sales_order.dart';
+import 'package:erp/providers/access_request_providers.dart';
 import 'package:erp/providers/auth_providers.dart';
 import 'package:erp/providers/hr_providers.dart';
 import 'package:erp/providers/product_providers.dart';
@@ -19,6 +21,9 @@ class DashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final role = ref.watch(roleProvider);
+    final isViewer = role == UserRole.viewer;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9FF),
       body: Column(
@@ -29,14 +34,18 @@ class DashboardScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(16, 24, 16, 32),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  _GreetingHeader(),
-                  SizedBox(height: 28),
-                  _KpiGrid(),
-                  SizedBox(height: 24),
-                  SalesChartWidget(),
-                  SizedBox(height: 24),
-                  ActivityFeedWidget(),
+                children: [
+                  const _GreetingHeader(),
+                  const SizedBox(height: 20),
+                  const _AccessRequestSection(),
+                  if (!isViewer) ...[
+                    const SizedBox(height: 20),
+                    const _KpiGrid(),
+                    const SizedBox(height: 24),
+                    const SalesChartWidget(),
+                    const SizedBox(height: 24),
+                    const ActivityFeedWidget(),
+                  ],
                 ],
               ),
             ),
@@ -58,30 +67,80 @@ class _GreetingHeader extends ConsumerWidget {
       orElse: () => null,
     );
     final firstName = _firstNameFrom(fullName);
+    final role = ref.watch(roleProvider);
+    final pendingAsync = ref.watch(pendingAccessRequestsProvider);
+    final pendingCount = pendingAsync.maybeWhen(
+      data: (list) => list.length,
+      orElse: () => 0,
+    );
 
-    return Column(
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          _greetingText(firstName),
-          style: GoogleFonts.poppins(
-            fontSize: 30,
-            fontWeight: FontWeight.w600,
-            letterSpacing: -0.6,
-            color: const Color(0xFF151C27),
-            height: 1.25,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _greetingText(firstName),
+                style: GoogleFonts.poppins(
+                  fontSize: 30,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.6,
+                  color: const Color(0xFF151C27),
+                  height: 1.25,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                "Here's what's happening across your enterprise today.",
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  color: const Color(0xFF464555),
+                  height: 1.6,
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 4),
-        Text(
-          "Here's what's happening across your enterprise today.",
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            fontWeight: FontWeight.w400,
-            color: const Color(0xFF464555),
-            height: 1.6,
+        if (role == UserRole.admin) ...[
+          const SizedBox(width: 12),
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications_outlined),
+                color: const Color(0xFF464555),
+                onPressed: () => context.go(AppRoutes.accessRequests),
+              ),
+              if (pendingCount > 0)
+                Positioned(
+                  right: 6,
+                  top: 6,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFB23B3B),
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 18,
+                      minHeight: 18,
+                    ),
+                    child: Text(
+                      pendingCount > 9 ? '9+' : '$pendingCount',
+                      style: GoogleFonts.inter(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
           ),
-        ),
+        ],
       ],
     );
   }
@@ -261,6 +320,221 @@ class _KpiGrid extends ConsumerWidget {
           : const Color(0xFF464555),
       icon: _LowStockIcon(),
       onTap: () => context.push(AppRoutes.stockOut),
+    );
+  }
+}
+
+/// Access request section shown only for viewer-role users.
+class _AccessRequestSection extends ConsumerWidget {
+  const _AccessRequestSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final role = ref.watch(roleProvider);
+    if (role != UserRole.viewer) return const SizedBox.shrink();
+
+    final myRequestsAsync = ref.watch(myAccessRequestsProvider);
+    final hasPendingRequest = myRequestsAsync.maybeWhen(
+      data: (list) => list.any((r) => r.isPending),
+      orElse: () => false,
+    );
+    final previousRequests = myRequestsAsync.maybeWhen(
+      data: (list) => list.where((r) => !r.isPending).toList(),
+      orElse: () => <AccessRequestRecord>[],
+    );
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 24),
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: const Color(0xFFC7C4D8).withValues(alpha: 0.2),
+          ),
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Request Access',
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF151C27),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Request access to additional modules',
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w400,
+                color: const Color(0xFF464555),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: _AccessButton(
+                    label: 'Operations',
+                    icon: Icons.inventory_2_outlined,
+                    onPressed: hasPendingRequest
+                        ? null
+                        : () => _submitRequest(ref, context, 'operations'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _AccessButton(
+                    label: 'HR',
+                    icon: Icons.people_outline,
+                    onPressed: hasPendingRequest
+                        ? null
+                        : () => _submitRequest(ref, context, 'hr'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _AccessButton(
+                    label: 'Sales',
+                    icon: Icons.shopping_cart_outlined,
+                    onPressed: hasPendingRequest
+                        ? null
+                        : () => _submitRequest(ref, context, 'sales'),
+                  ),
+                ),
+              ],
+            ),
+            if (hasPendingRequest) ...[
+              const SizedBox(height: 12),
+              Center(
+                child: Text(
+                  'You have a pending request. Wait for admin approval.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
+                    color: const Color(0xFFF5A623),
+                  ),
+                ),
+              ),
+            ],
+            if (previousRequests.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              const Divider(height: 1),
+              const SizedBox(height: 12),
+              Text(
+                'Previous Requests',
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFF464555),
+                ),
+              ),
+              const SizedBox(height: 8),
+              ...previousRequests.map(
+                (req) => _PreviousRequestTile(request: req),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _submitRequest(
+    WidgetRef ref,
+    BuildContext context,
+    String role,
+  ) async {
+    final service = ref.read(accessRequestServiceProvider);
+    final userId = ref.read(authProvider.select((s) => s.userId));
+    if (userId.isEmpty) return;
+
+    try {
+      await service.submitRequest(userId: userId, requestedRole: role);
+      ref.invalidate(myAccessRequestsProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Request for $role access submitted')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
+  }
+}
+
+class _PreviousRequestTile extends StatelessWidget {
+  const _PreviousRequestTile({required this.request});
+
+  final AccessRequestRecord request;
+
+  @override
+  Widget build(BuildContext context) {
+    final statusColor = request.isApproved
+        ? const Color(0xFF006C49)
+        : const Color(0xFFB23B3B);
+    final icon = request.isApproved ? Icons.check_circle : Icons.cancel;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: statusColor),
+          const SizedBox(width: 8),
+          Text(
+            request.requestedRole.toUpperCase(),
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: const Color(0xFF151C27),
+            ),
+          ),
+          const Spacer(),
+          Text(
+            request.isApproved ? 'Approved' : 'Rejected',
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              fontWeight: FontWeight.w400,
+              color: statusColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AccessButton extends StatelessWidget {
+  const _AccessButton({
+    required this.label,
+    required this.icon,
+    this.onPressed,
+  });
+
+  final String label;
+  final IconData icon;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return FilledButton.tonalIcon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 18),
+      label: Text(label),
+      style: FilledButton.styleFrom(
+        minimumSize: const Size.fromHeight(44),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
     );
   }
 }

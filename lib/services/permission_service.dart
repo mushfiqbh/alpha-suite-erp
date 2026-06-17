@@ -19,6 +19,7 @@ class PermissionService {
       AppRoutes.hrEmployeeNew,
       AppRoutes.hrAttendanceNew,
       AppRoutes.users,
+      AppRoutes.accessRequests,
     },
     UserRole.operations: {
       AppRoutes.dashboard,

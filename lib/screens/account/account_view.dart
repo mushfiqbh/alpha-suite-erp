@@ -25,6 +25,12 @@ class AccountView extends ConsumerWidget {
 
     void showEditProfileModal(BuildContext context, WidgetRef ref) {
       final nameController = TextEditingController(text: userName ?? '');
+      final phoneController = TextEditingController(
+        text:
+            currentUser?.userMetadata?['phone'] as String? ??
+            currentUser?.phone ??
+            '',
+      );
       final formKey = GlobalKey<FormState>();
       ValueNotifier<Uint8List?> avatarBytes = ValueNotifier(null);
       ValueNotifier<bool> uploading = ValueNotifier(false);
@@ -169,6 +175,38 @@ class AccountView extends ConsumerWidget {
                         return null;
                       },
                     ),
+                    const SizedBox(height: 16),
+                    // Phone Number
+                    TextFormField(
+                      controller: phoneController,
+                      keyboardType: TextInputType.phone,
+                      decoration: InputDecoration(
+                        labelText: 'Phone Number',
+                        hintText: 'Enter your phone number',
+                        prefixIcon: const Icon(Icons.phone_outlined, size: 20),
+                        filled: true,
+                        fillColor: const Color(0xFFF8FAFC),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFE2E8F0),
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFE2E8F0),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Color(0xFF4F46E5),
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -202,11 +240,12 @@ class AccountView extends ConsumerWidget {
                               .uploadAvatar(avatarBytes.value!);
                         }
 
-                        // Update name
+                        // Update name & phone
                         await ref
                             .read(authProvider.notifier)
                             .updateProfile(
                               fullName: nameController.text.trim(),
+                              phone: phoneController.text.trim(),
                             );
 
                         uploading.value = false;
@@ -350,6 +389,15 @@ class AccountView extends ConsumerWidget {
                             onTap: () => showEditProfileModal(context, ref),
                           ),
                           if (role == UserRole.admin) ...[
+                            const SizedBox(height: 12),
+                            _ActionCard(
+                              icon: Icons.verified_user_outlined,
+                              iconColor: const Color(0xFF7C3AED),
+                              iconBgColor: const Color(0xFFEDE9FE),
+                              title: 'Access Requests',
+                              subtitle: 'Review and manage role requests',
+                              onTap: () => context.go(AppRoutes.accessRequests),
+                            ),
                             const SizedBox(height: 12),
                             _ActionCard(
                               icon: Icons.people_outlined,
