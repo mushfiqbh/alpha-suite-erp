@@ -38,47 +38,47 @@ class _AppShellState extends ConsumerState<AppShell> {
 
   static const List<ShellNavItem> _sidebarItems = [
     ShellNavItem(
-      label: 'Dashboard',
+      label: 'ড্যাশবোর্ড',
       icon: Icons.dashboard_outlined,
       route: AppRoutes.dashboard,
     ),
     ShellNavItem(
-      label: 'Customers',
+      label: 'গ্রাহক',
       icon: Icons.groups_rounded,
       route: AppRoutes.customers,
     ),
     ShellNavItem(
-      label: 'Products',
+      label: 'পণ্য',
       icon: Icons.inventory_2_rounded,
       route: AppRoutes.products,
     ),
     ShellNavItem(
-      label: 'Sales',
+      label: 'বিক্রয়',
       icon: Icons.point_of_sale_outlined,
       route: AppRoutes.sales,
     ),
     ShellNavItem(
-      label: 'Manager',
+      label: 'ব্যবস্থাপনা',
       icon: Icons.badge_outlined,
       route: AppRoutes.hr,
     ),
     ShellNavItem(
-      label: 'Attendance',
+      label: 'উপস্থিতি',
       icon: Icons.calendar_today_rounded,
       route: AppRoutes.hrAttendanceMark,
     ),
     ShellNavItem(
-      label: 'Access Requests',
+      label: 'অ্যাক্সেস অনুরোধ',
       icon: Icons.verified_user_outlined,
       route: AppRoutes.accessRequests,
     ),
     ShellNavItem(
-      label: 'Users',
+      label: 'ব্যবহারকারী',
       icon: Icons.manage_accounts_outlined,
       route: AppRoutes.users,
     ),
     ShellNavItem(
-      label: 'Account',
+      label: 'অ্যাকাউন্ট',
       icon: Icons.person_outline,
       route: AppRoutes.account,
     ),
@@ -86,37 +86,37 @@ class _AppShellState extends ConsumerState<AppShell> {
 
   static const List<ShellNavItem> _mobileNavItems = [
     ShellNavItem(
-      label: 'Home',
+      label: 'হোম',
       icon: Icons.dashboard_outlined,
       route: AppRoutes.dashboard,
     ),
     ShellNavItem(
-      label: 'Manager',
+      label: 'ব্যবস্থাপনা',
       icon: Icons.badge_outlined,
       route: AppRoutes.hr,
     ),
     ShellNavItem(
-      label: 'Products',
+      label: 'পণ্য',
       icon: Icons.inventory_2_rounded,
       route: AppRoutes.products,
     ),
     ShellNavItem(
-      label: 'POS',
+      label: 'পিওএস',
       icon: Icons.groups_rounded,
       route: AppRoutes.pos,
     ),
     ShellNavItem(
-      label: 'Sales',
+      label: 'বিক্রয়',
       icon: Icons.point_of_sale_outlined,
       route: AppRoutes.sales,
     ),
     ShellNavItem(
-      label: 'Attendance',
+      label: 'উপস্থিতি',
       icon: Icons.calendar_today_rounded,
       route: AppRoutes.hrAttendanceMark,
     ),
     ShellNavItem(
-      label: 'Account',
+      label: 'অ্যাকাউন্ট',
       icon: Icons.person_outline,
       route: AppRoutes.account,
     ),
@@ -142,35 +142,35 @@ class _AppShellState extends ConsumerState<AppShell> {
   String _pageTitleFor(String currentLocation) {
     switch (currentLocation) {
       case AppRoutes.dashboard:
-        return 'Dashboard';
+        return 'ড্যাশবোর্ড';
       case AppRoutes.inventory:
-        return 'Inventory';
+        return 'ইনভেন্টরি';
       case AppRoutes.sales:
-        return 'Sales';
+        return 'বিক্রয়';
       case AppRoutes.pos:
-        return 'Point of Sale';
+        return 'পয়েন্ট অফ সেল';
       case AppRoutes.customers:
-        return 'Customers';
+        return 'গ্রাহক';
       case AppRoutes.customerNew:
-        return 'New Customer';
+        return 'নতুন গ্রাহক';
       case AppRoutes.products:
-        return 'Product Catalogue';
+        return 'পণ্য তালিকা';
       case AppRoutes.productNew:
-        return 'New Product';
+        return 'নতুন পণ্য';
       case AppRoutes.hr:
-        return 'Management';
+        return 'ব্যবস্থাপনা';
       case AppRoutes.hrEmployeeNew:
-        return 'Employee Details';
+        return 'কর্মচারীর বিবরণ';
       case AppRoutes.hrAttendanceMark:
-        return 'Mark Attendance';
+        return 'উপস্থিতি নিন';
       case AppRoutes.accessRequests:
-        return 'Access Requests';
+        return 'অ্যাক্সেস অনুরোধ';
       case AppRoutes.users:
-        return 'User Management';
+        return 'ব্যবহারকারী ব্যবস্থাপনা';
       case AppRoutes.account:
-        return 'Account';
+        return 'অ্যাকাউন্ট';
       default:
-        return 'Workspace';
+        return 'ওয়ার্কস্পেস';
     }
   }
 
@@ -213,18 +213,18 @@ class _AppShellState extends ConsumerState<AppShell> {
       (item) => item.route == currentLocation,
     );
 
-    String roleAbbreviation = 'VW';
-    String roleLabel = 'Viewer';
+    String roleAbbreviation = 'ভি';
+    String roleLabel = 'দর্শক';
     if (role != null) {
       roleLabel = role.label;
       if (role == UserRole.admin) {
-        roleAbbreviation = 'AD';
+        roleAbbreviation = 'এডি';
       } else if (role == UserRole.operations) {
-        roleAbbreviation = 'OP';
+        roleAbbreviation = 'অপি';
       } else if (role == UserRole.sales) {
-        roleAbbreviation = 'SL';
+        roleAbbreviation = 'সা';
       } else if (role == UserRole.hr) {
-        roleAbbreviation = 'HR';
+        roleAbbreviation = 'এইচআর';
       }
     }
 
@@ -359,8 +359,10 @@ class _TopBar extends StatelessWidget {
         children: [
           IconButton(
             tooltip: isDesktop
-                ? (isSidebarCollapsed ? 'Expand left panel' : 'Hide left panel')
-                : 'Open navigation',
+                ? (isSidebarCollapsed
+                      ? 'বাম প্যানেল বড় করুন'
+                      : 'বাম প্যানেল লুকান')
+                : 'নেভিগেশন খুলুন',
             onPressed: onMenuPressed,
             icon: Icon(
               isDesktop
@@ -381,10 +383,6 @@ class _TopBar extends StatelessWidget {
                   color: Color(0xFF0F172A),
                 ),
               ),
-              Text(
-                'Enterprise workspace',
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-              ),
             ],
           ),
           const Spacer(),
@@ -399,7 +397,7 @@ class _TopBar extends StatelessWidget {
               ),
               child: TextField(
                 decoration: InputDecoration(
-                  hintText: 'Search products, SKU or category...',
+                  hintText: 'পণ্য, SKU অথবা ক্যাটাগরি অনুসন্ধান...',
                   hintStyle: TextStyle(
                     fontSize: 14,
                     color: Colors.grey.shade500,
@@ -423,7 +421,7 @@ class _TopBar extends StatelessWidget {
           const SizedBox(width: 12),
           if (isDesktop)
             PopupMenuButton<String>(
-              tooltip: 'Account actions',
+              tooltip: 'অ্যাকাউন্ট অপশন',
               onSelected: (value) async {
                 if (value == 'account') {
                   onAccountPressed();
@@ -433,8 +431,11 @@ class _TopBar extends StatelessWidget {
                 }
               },
               itemBuilder: (context) => const [
-                PopupMenuItem<String>(value: 'account', child: Text('Account')),
-                PopupMenuItem<String>(value: 'logout', child: Text('Sign out')),
+                PopupMenuItem<String>(
+                  value: 'account',
+                  child: Text('অ্যাকাউন্ট'),
+                ),
+                PopupMenuItem<String>(value: 'logout', child: Text('সাইন আউট')),
               ],
               child: Icon(Icons.more_vert, color: Colors.grey.shade600),
             ),
@@ -516,7 +517,7 @@ class _SidebarPanel extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Alpha Suite Pro',
+                          'আলফা স্যুট প্রো',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
@@ -524,7 +525,7 @@ class _SidebarPanel extends StatelessWidget {
                           ),
                         ),
                         const Text(
-                          'Enterprise admin console',
+                          'এন্টারপ্রাইজ অ্যাডমিন কনসোল',
                           style: TextStyle(
                             fontSize: 11,
                             letterSpacing: 0.4,
@@ -536,7 +537,7 @@ class _SidebarPanel extends StatelessWidget {
                   ),
                   if (onToggleCollapse != null)
                     IconButton(
-                      tooltip: 'Hide left panel',
+                      tooltip: 'বাম প্যানেল লুকান',
                       onPressed: onToggleCollapse,
                       icon: const Icon(Icons.chevron_left),
                     ),
@@ -558,7 +559,7 @@ class _SidebarPanel extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         IconButton(
-                          tooltip: 'Expand left panel',
+                          tooltip: 'বাম প্যানেল বড় করুন',
                           onPressed: onToggleCollapse,
                           icon: const Icon(Icons.chevron_right),
                         ),
@@ -608,7 +609,7 @@ class _SidebarPanel extends StatelessWidget {
                       _UpdateStatusIcon(status: updateState.status),
                       const SizedBox(height: 4),
                       IconButton(
-                        tooltip: 'Sign out',
+                        tooltip: 'সাইন আউট',
                         onPressed: onLogout,
                         icon: Icon(
                           Icons.logout_rounded,

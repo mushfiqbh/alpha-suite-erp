@@ -17,9 +17,9 @@ class AccountView extends ConsumerWidget {
     final authState = ref.watch(authProvider);
     final currentUser = Supabase.instance.client.auth.currentUser;
     final userName = currentUser?.userMetadata?['full_name'] as String?;
-    final email = currentUser?.email ?? 'No email available';
+    final email = currentUser?.email ?? 'ইমেইল নেই';
     final role = authState.role;
-    final roleLabel = role?.label ?? 'Viewer';
+    final roleLabel = role?.label ?? 'দর্শক';
     final avatarUrl = authState.avatarUrl;
     final initials = email.isNotEmpty ? email[0].toUpperCase() : 'A';
 
@@ -42,7 +42,7 @@ class AccountView extends ConsumerWidget {
             borderRadius: BorderRadius.circular(16),
           ),
           title: const Text(
-            'Edit Profile',
+            'প্রোফাইল সম্পাদনা',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
@@ -121,7 +121,7 @@ class AccountView extends ConsumerWidget {
                       initialValue: email,
                       readOnly: true,
                       decoration: InputDecoration(
-                        labelText: 'Email',
+                        labelText: 'ইমেইল',
                         prefixIcon: const Icon(Icons.email_outlined, size: 20),
                         filled: true,
                         fillColor: const Color(0xFFF1F5F9),
@@ -143,8 +143,8 @@ class AccountView extends ConsumerWidget {
                       controller: nameController,
                       autofocus: true,
                       decoration: InputDecoration(
-                        labelText: 'Full Name',
-                        hintText: 'Enter your full name',
+                        labelText: 'পূর্ণ নাম',
+                        hintText: 'আপনার পূর্ণ নাম লিখুন',
                         prefixIcon: const Icon(Icons.person_outline, size: 20),
                         filled: true,
                         fillColor: const Color(0xFFF8FAFC),
@@ -170,7 +170,7 @@ class AccountView extends ConsumerWidget {
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'Name is required';
+                          return 'নাম আবশ্যক';
                         }
                         return null;
                       },
@@ -181,8 +181,8 @@ class AccountView extends ConsumerWidget {
                       controller: phoneController,
                       keyboardType: TextInputType.phone,
                       decoration: InputDecoration(
-                        labelText: 'Phone Number',
-                        hintText: 'Enter your phone number',
+                        labelText: 'ফোন নম্বর',
+                        hintText: 'আপনার ফোন নম্বর লিখুন',
                         prefixIcon: const Icon(Icons.phone_outlined, size: 20),
                         filled: true,
                         fillColor: const Color(0xFFF8FAFC),
@@ -216,7 +216,7 @@ class AccountView extends ConsumerWidget {
             TextButton(
               onPressed: () => Navigator.of(modalContext).pop(),
               child: Text(
-                'Cancel',
+                'বাতিল',
                 style: TextStyle(
                   color: const Color(0xFF64748B),
                   fontWeight: FontWeight.w600,
@@ -266,7 +266,7 @@ class AccountView extends ConsumerWidget {
                           color: Colors.white,
                         ),
                       )
-                    : const Text('Save'),
+                    : const Text('সংরক্ষণ'),
               ),
             ),
           ],
@@ -326,7 +326,7 @@ class AccountView extends ConsumerWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      userName ?? 'User',
+                                      userName ?? 'ব্যবহারকারী',
                                       style: const TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.w700,
@@ -355,7 +355,7 @@ class AccountView extends ConsumerWidget {
                                   borderRadius: BorderRadius.circular(999),
                                 ),
                                 child: const Text(
-                                  'Active',
+                                  'সক্রিয়',
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
@@ -370,7 +370,7 @@ class AccountView extends ConsumerWidget {
                           const SizedBox(height: 14),
                           _DetailRow(
                             icon: Icons.verified_user_outlined,
-                            title: 'Role',
+                            title: 'ভূমিকা',
                             value: roleLabel,
                           ),
                           const SizedBox(height: 24),
@@ -378,8 +378,8 @@ class AccountView extends ConsumerWidget {
                             icon: Icons.edit_outlined,
                             iconColor: const Color(0xFFD97706),
                             iconBgColor: const Color(0xFFFEF3C7),
-                            title: 'Edit Profile',
-                            subtitle: 'Update your full name',
+                            title: 'প্রোফাইল সম্পাদনা',
+                            subtitle: 'আপনার পূর্ণ নাম আপডেট করুন',
                             onTap: () => showEditProfileModal(context, ref),
                           ),
                           if (role == UserRole.operations ||
@@ -390,8 +390,8 @@ class AccountView extends ConsumerWidget {
                               icon: Icons.calendar_today_rounded,
                               iconColor: const Color(0xFF4F46E5),
                               iconBgColor: const Color(0xFFEEF2FF),
-                              title: 'Mark Attendance',
-                              subtitle: 'Record or update your own attendance',
+                              title: 'উপস্থিতি নিন',
+                              subtitle: 'আপনার উপস্থিতি রেকর্ড বা আপডেট করুন',
                               onTap: () =>
                                   context.go(AppRoutes.hrAttendanceMark),
                             ),
@@ -402,8 +402,9 @@ class AccountView extends ConsumerWidget {
                               icon: Icons.verified_user_outlined,
                               iconColor: const Color(0xFF7C3AED),
                               iconBgColor: const Color(0xFFEDE9FE),
-                              title: 'Access Requests',
-                              subtitle: 'Review and manage role requests',
+                              title: 'অ্যাক্সেস অনুরোধ',
+                              subtitle:
+                                  'ভূমিকা অনুরোধ পর্যালোচনা ও ব্যবস্থাপনা',
                               onTap: () => context.go(AppRoutes.accessRequests),
                             ),
                             const SizedBox(height: 12),
@@ -411,8 +412,9 @@ class AccountView extends ConsumerWidget {
                               icon: Icons.people_outlined,
                               iconColor: const Color(0xFF059669),
                               iconBgColor: const Color(0xFFD1FAE5),
-                              title: 'Manage Users',
-                              subtitle: 'View and manage system users',
+                              title: 'ব্যবহারকারী ব্যবস্থাপনা',
+                              subtitle:
+                                  'সিস্টেম ব্যবহারকারী দেখুন ও ব্যবস্থাপনা করুন',
                               onTap: () => context.go(AppRoutes.users),
                             ),
                           ],
@@ -421,8 +423,8 @@ class AccountView extends ConsumerWidget {
                             icon: Icons.logout_rounded,
                             iconColor: const Color(0xFFDC2626),
                             iconBgColor: const Color(0xFFFEE2E2),
-                            title: 'Sign Out',
-                            subtitle: 'Sign out of your account',
+                            title: 'সাইন আউট',
+                            subtitle: 'আপনার অ্যাকাউন্ট থেকে সাইন আউট করুন',
                             onTap: authState.isLoading
                                 ? null
                                 : () async {
