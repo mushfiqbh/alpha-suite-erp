@@ -125,6 +125,34 @@ class ProfilesController extends StateNotifier<ProfilesState> {
           })
           .eq('id', id);
 
+      // Auto-create an employee record if the role is an employee role.
+      const employeeRoles = ['operations', 'hr', 'sales'];
+      if (employeeRoles.contains(role.name)) {
+        final exists = await _client
+            .from('employees')
+            .select('id')
+            .eq('linked_user_id', id)
+            .maybeSingle();
+
+        if (exists == null) {
+          final profile = await _client
+              .from('profiles')
+              .select('full_name, email')
+              .eq('id', id)
+              .single();
+
+          await _client.from('employees').insert({
+            'full_name': profile['full_name'] ?? 'New Employee',
+            'email': profile['email'] ?? '',
+            'linked_user_id': id,
+            'status': 'active',
+            'employment_type': 'full_time',
+            'department': '',
+            'designation': '',
+          });
+        }
+      }
+
       await fetchProfiles();
     } catch (error) {
       String errorMessage = error.toString();

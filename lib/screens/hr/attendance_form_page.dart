@@ -374,7 +374,7 @@ class _AttendanceFormPageState extends ConsumerState<AttendanceFormPage> {
                 )
               : LayoutBuilder(
                   builder: (context, constraints) {
-                    const double minTableWidth = 600;
+                    const double minTableWidth = 500;
                     final bool needsScroll =
                         constraints.maxWidth < minTableWidth;
                     final double tableWidth = needsScroll
@@ -394,8 +394,8 @@ class _AttendanceFormPageState extends ConsumerState<AttendanceFormPage> {
                             children: [
                               _headerCell('Employee', flex: 2),
                               _headerCell('Status', flex: 2),
-                              _headerCell('Check-in', flex: 2),
-                              _headerCell('Check-out', flex: 2),
+                              _headerCell('Check-in', flex: 1),
+                              _headerCell('Check-out', flex: 1),
                               _headerCell('Hours', flex: 1),
                             ],
                           ),
@@ -628,7 +628,7 @@ class _AttendanceFormPageState extends ConsumerState<AttendanceFormPage> {
           ),
           // Check-in
           Expanded(
-            flex: 2,
+            flex: 1,
             child: _TimeCell(
               time: row.checkIn,
               hint: 'In',
@@ -637,7 +637,7 @@ class _AttendanceFormPageState extends ConsumerState<AttendanceFormPage> {
           ),
           // Check-out
           Expanded(
-            flex: 2,
+            flex: 1,
             child: _TimeCell(
               time: row.checkOut,
               hint: 'Out',

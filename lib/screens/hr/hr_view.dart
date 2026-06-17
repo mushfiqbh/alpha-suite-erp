@@ -281,7 +281,7 @@ class _EmployeeCard extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: const EdgeInsets.symmetric(vertical: 2),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
@@ -526,6 +526,25 @@ class _TabShell extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (!isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: FilledButton.icon(
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 6,
+                        ),
+                        textStyle: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      onPressed: onCreate,
+                      icon: const Icon(Icons.add_rounded, size: 16),
+                      label: const Text('Create'),
+                    ),
+                  ),
                 if (isLoading)
                   const SizedBox(
                     width: 14,

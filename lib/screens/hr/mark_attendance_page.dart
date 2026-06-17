@@ -988,32 +988,12 @@ class _SummaryCard extends StatelessWidget {
     final r = record;
     final entries = <_SummaryEntry>[
       _SummaryEntry(
-        icon: Icons.calendar_today_rounded,
-        label: 'Date',
-        value: r?.attendanceDate == null
-            ? '—'
-            : '${r!.attendanceDate!.year.toString().padLeft(4, '0')}-${r.attendanceDate!.month.toString().padLeft(2, '0')}-${r.attendanceDate!.day.toString().padLeft(2, '0')}',
-        color: const Color(0xFF4F46E5),
-      ),
-      _SummaryEntry(
         icon: Icons.label_important_rounded,
         label: 'Status',
         value: r == null ? '—' : AttendanceStatusOptions.label(r.status),
         color: r == null
             ? const Color(0xFF94A3B8)
             : AttendanceStatusOptions.color(r.status),
-      ),
-      _SummaryEntry(
-        icon: Icons.login_rounded,
-        label: 'Check In',
-        value: r?.checkIn == null ? '—' : formatTime(r!.checkIn!),
-        color: const Color(0xFF10B981),
-      ),
-      _SummaryEntry(
-        icon: Icons.logout_rounded,
-        label: 'Check Out',
-        value: r?.checkOut == null ? '—' : formatTime(r!.checkOut!),
-        color: const Color(0xFFEF4444),
       ),
       _SummaryEntry(
         icon: Icons.timelapse_rounded,
@@ -1078,38 +1058,6 @@ class _SummaryCard extends StatelessWidget {
               );
             },
           ),
-          if (punchState != _PunchState.completed) ...[
-            const SizedBox(height: 14),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: const Color(0xFFEFF6FF),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFDBEAFE)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.info_outline_rounded,
-                    size: 16,
-                    color: Color(0xFF2563EB),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      punchState == _PunchState.beforeCheckIn
-                          ? 'Punch in to begin tracking. Work hours, late and overtime will fill in when you punch out.'
-                          : 'Your work hours, late minutes and overtime will be calculated automatically on check out.',
-                      style: GoogleFonts.inter(
-                        fontSize: 11,
-                        color: const Color(0xFF1E40AF),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
         ],
       ),
     );

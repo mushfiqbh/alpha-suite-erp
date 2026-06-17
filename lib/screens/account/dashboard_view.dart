@@ -23,6 +23,7 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final role = ref.watch(roleProvider);
     final isViewer = role == UserRole.viewer;
+    final isAdmin = role == UserRole.admin;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9FF),
@@ -38,13 +39,21 @@ class DashboardScreen extends ConsumerWidget {
                   const _GreetingHeader(),
                   const SizedBox(height: 20),
                   const _AccessRequestSection(),
+                  // Non‑viewer roles see KPIs and role‑specific cards
                   if (!isViewer) ...[
                     const SizedBox(height: 20),
                     const _KpiGrid(),
-                    const SizedBox(height: 24),
-                    const SalesChartWidget(),
-                    const SizedBox(height: 24),
-                    const ActivityFeedWidget(),
+                    // Admin gets chart + activity feed
+                    if (isAdmin) ...[
+                      const SizedBox(height: 24),
+                      const SalesChartWidget(),
+                      const SizedBox(height: 24),
+                      const ActivityFeedWidget(),
+                    ] else ...[
+                      // Non‑admin, non‑viewer → quick‑action card
+                      const SizedBox(height: 24),
+                      const _MarkAttendanceCard(),
+                    ],
                   ],
                 ],
               ),
@@ -539,6 +548,77 @@ class _AccessButton extends StatelessWidget {
       style: FilledButton.styleFrom(
         minimumSize: const Size.fromHeight(44),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+  }
+}
+
+/// Quick‑action card that navigates to the self‑service mark‑attendance page.
+/// Shown for non‑admin, non‑viewer roles (operations, sales, hr).
+class _MarkAttendanceCard extends StatelessWidget {
+  const _MarkAttendanceCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => context.push(AppRoutes.hrAttendanceMark),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: <Color>[Color(0xFF4F46E5), Color(0xFF7C3AED)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Icon(
+                Icons.fingerprint_rounded,
+                size: 28,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'উপস্থিতি চিহ্নিত করুন',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'আজকের উপস্থিতি 기록 করতে টাচ করুন',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: Colors.white.withValues(alpha: 0.85),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 16,
+              color: Colors.white.withValues(alpha: 0.7),
+            ),
+          ],
+        ),
       ),
     );
   }

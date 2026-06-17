@@ -269,17 +269,6 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
                       color: const Color(0xFF0F172A),
                     ),
                   ),
-                  Text(
-                    isEdit
-                        ? 'Update employee profile and assignments.'
-                        : 'Create a new employee record and assign to a department.',
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      color: const Color(0xFF64748B),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
                 ],
               ),
             ),
@@ -402,46 +391,75 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
                     ],
                   ),
                   const SizedBox(height: 22),
-                  const _SectionTitle(title: 'Assignment'),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _TextInput(
-                          controller: _departmentController,
-                          label: 'Department',
-                          hintText: 'e.g. Engineering, Marketing',
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _TextInput(
-                          controller: _designationController,
-                          label: 'Designation',
-                          hintText: 'e.g. Senior Engineer, Manager',
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
+                  const _SectionTitle(title: 'Employment'),
+                  const SizedBox(height: 22),
                   profilesAsync.when(
-                    data: (profiles) => _DropdownInput<String>(
-                      label: 'Linked User',
-                      value: _linkedUserId,
-                      items: profiles
-                          .where((p) => p['id'] != null && p['role'] != 'admin')
-                          .map<DropdownMenuItem<String>>(
-                            (p) => DropdownMenuItem<String>(
-                              value: p['id'].toString(),
-                              child: Text(
-                                '${p['full_name'] ?? 'Unknown'}  •  ${p['email'] ?? ''}  (${p['role'] ?? 'no role'})',
+                    data: (profiles) {
+                      // Collect linked_user_id values that are already taken,
+                      // excluding the one we are currently editing.
+                      final dir = ref.watch(employeeDirectoryProvider);
+                      final linkedIds = dir.employees
+                          .where(
+                            (e) =>
+                                e.linkedUserId != null &&
+                                e.linkedUserId !=
+                                    _initialExisting?.linkedUserId,
+                          )
+                          .map((e) => e.linkedUserId!)
+                          .toSet();
+                      final available = profiles.where(
+                        (p) =>
+                            p['id'] != null &&
+                            p['role'] != 'admin' &&
+                            !linkedIds.contains(p['id'].toString()),
+                      );
+                      // Ensure the currently-selected value is always in the
+                      // items list so the dropdown does not assert.
+                      var safeItems = available.toList();
+                      if (_linkedUserId != null &&
+                          !safeItems.any(
+                            (p) => p['id'].toString() == _linkedUserId,
+                          )) {
+                        final selected = profiles.firstWhere(
+                          (p) => p['id'].toString() == _linkedUserId,
+                          orElse: () => <String, dynamic>{},
+                        );
+                        if (selected.isNotEmpty) {
+                          safeItems = [...safeItems, selected];
+                        }
+                      }
+                      return _DropdownInput<String>(
+                        label: 'Linked User',
+                        value: _linkedUserId ?? '',
+                        items: [
+                          DropdownMenuItem<String>(
+                            value: '',
+                            child: Text(
+                              'None',
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: const Color(0xFF94A3B8),
                               ),
                             ),
-                          )
-                          .toList(),
-                      onChanged: (value) =>
-                          setState(() => _linkedUserId = value),
-                    ),
+                          ),
+                          ...safeItems
+                              .map<DropdownMenuItem<String>>(
+                                (p) => DropdownMenuItem<String>(
+                                  value: p['id'].toString(),
+                                  child: Text(
+                                    '${p['full_name'] ?? 'Unknown'}  •  ${p['email'] ?? ''}  (${p['role'] ?? 'no role'})',
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                        ],
+                        onChanged: (value) => setState(
+                          () => _linkedUserId = (value == '' || value == null)
+                              ? null
+                              : value,
+                        ),
+                      );
+                    },
                     error: (_, __) => const Text('Failed to load users'),
                     loading: () => _DropdownInput<String>(
                       label: 'Linked User',
@@ -451,8 +469,6 @@ class _EmployeeFormPageState extends ConsumerState<EmployeeFormPage> {
                     ),
                   ),
                   const SizedBox(height: 22),
-                  const _SectionTitle(title: 'Employment'),
-                  const SizedBox(height: 12),
                   Row(
                     children: [
                       Expanded(

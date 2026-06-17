@@ -101,6 +101,31 @@ class AccessRequestService {
 
     // Promote the user's role.
     await _client.from('profiles').update({'role': role}).eq('id', userId);
+
+    // Auto-create an employee record for the user if one does not exist.
+    final existing = await _client
+        .from('employees')
+        .select('id')
+        .eq('linked_user_id', userId)
+        .maybeSingle();
+
+    if (existing == null) {
+      final profile = await _client
+          .from('profiles')
+          .select('full_name, email')
+          .eq('id', userId)
+          .single();
+
+      await _client.from('employees').insert({
+        'full_name': profile['full_name'] ?? 'New Employee',
+        'email': profile['email'] ?? '',
+        'linked_user_id': userId,
+        'status': 'active',
+        'employment_type': 'full_time',
+        'department': '',
+        'designation': '',
+      });
+    }
   }
 
   /// Reject an access request.

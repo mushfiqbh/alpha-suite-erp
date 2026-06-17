@@ -151,6 +151,27 @@ class EmployeeDirectoryController
     }
   }
 
+  /// Checks whether a *different* employee already uses the given
+  /// [linkedUserId].  Returns `true` (conflict) when found.
+  Future<bool> _linkedUserIdConflict(
+    String? linkedUserId,
+    String? excludeId,
+  ) async {
+    if (linkedUserId == null || linkedUserId.isEmpty) return false;
+    final data = await _client
+        .from('employees')
+        .select('id')
+        .eq('linked_user_id', linkedUserId);
+    final results = List<Map<String, dynamic>>.from(data);
+    if (results.isEmpty) return false;
+    // If the only match is the employee we are updating, no conflict.
+    if (excludeId != null && results.length == 1) {
+      return results[0]['id']?.toString() != excludeId;
+    }
+    // Multiple matches or a match that is not the excluded employee.
+    return true;
+  }
+
   Future<void> saveEmployee(EmployeeRecord employee) async {
     if (!_supabaseReady()) {
       state = state.copyWith(
@@ -163,11 +184,32 @@ class EmployeeDirectoryController
     try {
       final payload = employee.toMap();
       if (employee.id == null) {
+        // Prevent duplicate linked_user_id when creating a new employee.
+        final conflict = await _linkedUserIdConflict(
+          employee.linkedUserId,
+          null,
+        );
+        if (conflict) {
+          throw Exception(
+            'The selected user is already linked to another employee record. '
+            'Edit that record instead.',
+          );
+        }
         if ((payload['employee_code'] as String?)?.trim().isEmpty ?? true) {
           payload['employee_code'] = _nextCode('EMP');
         }
         await _client.from('employees').insert(payload);
       } else {
+        // Prevent assigning linked_user_id to a different employee.
+        final conflict = await _linkedUserIdConflict(
+          employee.linkedUserId,
+          employee.id,
+        );
+        if (conflict) {
+          throw Exception(
+            'The selected user is already linked to another employee record.',
+          );
+        }
         await _client.from('employees').update(payload).eq('id', employee.id!);
       }
       await refresh();
