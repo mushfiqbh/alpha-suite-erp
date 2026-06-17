@@ -272,7 +272,7 @@ class ProductRecord {
   }
 
   String get priceLabel {
-    return '\$${price.toStringAsFixed(2)}';
+    return '৳${price.toStringAsFixed(2)}';
   }
 
   String get stockLabel {

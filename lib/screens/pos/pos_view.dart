@@ -165,7 +165,7 @@ class _PosViewState extends ConsumerState<PosView> {
                               ),
                               const SizedBox(width: 12),
                               Text(
-                                '\$${item.lineSubtotal.toStringAsFixed(2)}',
+                                '৳${item.lineSubtotal.toStringAsFixed(2)}',
                                 style: const TextStyle(
                                   color: Color(0xFF0F172A),
                                   fontWeight: FontWeight.w600,
@@ -783,7 +783,7 @@ class _SummaryRow extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: labelStyle),
-          Text('\$${value.toStringAsFixed(2)}', style: valueStyle),
+          Text('৳${value.toStringAsFixed(2)}', style: valueStyle),
         ],
       ),
     );
@@ -1461,7 +1461,7 @@ class _CartPanel extends ConsumerWidget {
                 label: Text(
                   customer == null
                       ? 'Pick a customer to checkout'
-                      : 'Checkout • \$${summary.grandTotal.toStringAsFixed(2)}',
+                      : 'Checkout • ৳${summary.grandTotal.toStringAsFixed(2)}',
                   style: GoogleFonts.poppins(
                     fontWeight: FontWeight.w700,
                     fontSize: 14,
@@ -1536,7 +1536,7 @@ class _CartLineTile extends ConsumerWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '\$${item.lineSubtotal.toStringAsFixed(2)}',
+                  '৳${item.lineSubtotal.toStringAsFixed(2)}',
                   style: GoogleFonts.poppins(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,

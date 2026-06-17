@@ -210,6 +210,40 @@ class RecentSalesOrdersController
       state = AsyncValue.error(error, stack);
     }
   }
+
+  Future<void> markAsUnpaid(String orderId) async {
+    try {
+      await _service.markAsUnpaid(orderId);
+      // Update local state in-place.
+      state = state.whenData((orders) {
+        return orders.map((order) {
+          if (order.id != orderId) return order;
+          return SalesOrderRecord(
+            id: order.id,
+            invoiceNo: order.invoiceNo,
+            customerId: order.customerId,
+            orderDate: order.orderDate,
+            dueDate: order.dueDate,
+            subtotal: order.subtotal,
+            discountAmount: order.discountAmount,
+            taxAmount: order.taxAmount,
+            shippingAmount: order.shippingAmount,
+            grandTotal: order.grandTotal,
+            paidAmount: 0,
+            dueAmount: order.grandTotal,
+            paymentStatus: 'UNPAID',
+            salesStatus: order.salesStatus,
+            notes: order.notes,
+            createdBy: order.createdBy,
+            createdAt: order.createdAt,
+            updatedAt: DateTime.now(),
+          );
+        }).toList();
+      });
+    } catch (error, stack) {
+      state = AsyncValue.error(error, stack);
+    }
+  }
 }
 
 final recentSalesOrdersProvider =

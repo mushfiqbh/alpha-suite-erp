@@ -9,6 +9,7 @@ import 'package:erp/providers/auth_providers.dart';
 import 'package:erp/providers/hr_providers.dart';
 import 'package:erp/providers/product_providers.dart';
 import 'package:erp/providers/sales_providers.dart';
+import 'package:erp/services/permission_service.dart';
 import 'package:erp/widgets/activity_feed.dart';
 import 'package:erp/widgets/kpi_card.dart';
 import 'package:erp/widgets/sales_chart.dart';
@@ -115,6 +116,12 @@ class _KpiGrid extends ConsumerWidget {
     final revenueAsync = ref.watch(revenueSummaryProvider);
     final productsState = ref.watch(productDirectoryProvider);
     final employeesAsync = ref.watch(activeHrEmployeeCountProvider);
+    final role = ref.watch(roleProvider);
+    final permissionService = ref.watch(permissionServiceProvider);
+    final canAccessHr = permissionService.canAccess(
+      role: role,
+      route: AppRoutes.hr,
+    );
 
     return Column(
       children: [
@@ -127,7 +134,10 @@ class _KpiGrid extends ConsumerWidget {
                   title: 'TOTAL SALES',
                   message: 'Unable to load',
                 ),
-                data: (summary) => _buildTotalSalesKpi(summary),
+                data: (summary) => _buildTotalSalesKpi(
+                  summary,
+                  onTap: () => context.push(AppRoutes.sales),
+                ),
               ),
             ),
             const SizedBox(width: 14),
@@ -159,6 +169,7 @@ class _KpiGrid extends ConsumerWidget {
                   description: 'Active in the system',
                   descriptionColor: const Color(0xFF464555),
                   icon: _EmployeesIcon(),
+                  onTap: canAccessHr ? () => context.push(AppRoutes.hr) : null,
                 ),
               ),
             ),
@@ -170,7 +181,10 @@ class _KpiGrid extends ConsumerWidget {
     );
   }
 
-  static Widget _buildTotalSalesKpi(DashboardRevenueSummary summary) {
+  static Widget _buildTotalSalesKpi(
+    DashboardRevenueSummary summary, {
+    VoidCallback? onTap,
+  }) {
     final hasPrev = summary.previousMonthTotal > 0;
     final deltaPct = hasPrev
         ? ((summary.thisMonthTotal - summary.previousMonthTotal) /
@@ -193,6 +207,7 @@ class _KpiGrid extends ConsumerWidget {
       description: description,
       descriptionColor: descriptionColor,
       icon: _SalesIcon(),
+      onTap: onTap,
       trendWidget: deltaPct != null && deltaPct >= 0
           ? const _TrendArrow(up: true)
           : (deltaPct != null ? const _TrendArrow(up: false) : null),
@@ -295,13 +310,13 @@ class _KpiError extends StatelessWidget {
 
 String _formatMoney(double value) {
   if (value >= 1000000) {
-    return '\$${(value / 1000000).toStringAsFixed(1)}M';
+    return '৳${(value / 1000000).toStringAsFixed(1)}M';
   }
   if (value >= 1000) {
     final k = value / 1000;
-    return '\$${k.toStringAsFixed(k >= 100 ? 0 : 1)}k';
+    return '৳${k.toStringAsFixed(k >= 100 ? 0 : 1)}k';
   }
-  return '\$${value.toStringAsFixed(0)}';
+  return '৳${value.toStringAsFixed(0)}';
 }
 
 String _formatCount(int value) {

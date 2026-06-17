@@ -130,6 +130,9 @@ class _SalesListViewState extends ConsumerState<SalesListView> {
                 onMarkPaymentDone: (orderId) => ref
                     .read(recentSalesOrdersProvider.notifier)
                     .markPaymentDone(orderId),
+                onMarkAsUnpaid: (orderId) => ref
+                    .read(recentSalesOrdersProvider.notifier)
+                    .markAsUnpaid(orderId),
               ),
             )
           else
@@ -143,6 +146,9 @@ class _SalesListViewState extends ConsumerState<SalesListView> {
                 onMarkPaymentDone: (orderId) => ref
                     .read(recentSalesOrdersProvider.notifier)
                     .markPaymentDone(orderId),
+                onMarkAsUnpaid: (orderId) => ref
+                    .read(recentSalesOrdersProvider.notifier)
+                    .markAsUnpaid(orderId),
               ),
             ),
         ],
@@ -212,53 +218,54 @@ class _FiltersBar extends StatelessWidget {
           SizedBox(
             width: 320,
             child: TextField(
-            onChanged: onSearchChanged,
-            decoration: InputDecoration(
-              prefixIcon: const Icon(Icons.search_rounded, size: 20),
-              hintText: 'Search invoice or notes',
-              hintStyle: GoogleFonts.inter(
-                fontSize: 13,
-                color: const Color(0xFF94A3B8),
-              ),
-              filled: true,
-              fillColor: Colors.white,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 12,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(
-                  color: Color(0xFF4F46E5),
-                  width: 1.5,
+              onChanged: onSearchChanged,
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                hintText: 'Search invoice or notes',
+                hintStyle: GoogleFonts.inter(
+                  fontSize: 13,
+                  color: const Color(0xFF94A3B8),
+                ),
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: Color(0xFF4F46E5),
+                    width: 1.5,
+                  ),
                 ),
               ),
-            ),
-            style: GoogleFonts.inter(fontSize: 13),
-          ),
-        ),
-        FilledButton.icon(
-          onPressed: onRefresh,
-          style: FilledButton.styleFrom(
-            backgroundColor: const Color(0xFF4F46E5),
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              style: GoogleFonts.inter(fontSize: 13),
             ),
           ),
-          icon: const Icon(Icons.refresh_rounded, size: 18),
-          label: const Text('Refresh'),
-        ),
-      ],
-    ));
+          FilledButton.icon(
+            onPressed: onRefresh,
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFF4F46E5),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            icon: const Icon(Icons.refresh_rounded, size: 18),
+            label: const Text('Refresh'),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -354,6 +361,7 @@ class _SalesOrdersTable extends StatelessWidget {
     required this.dateTime,
     required this.onTapOrder,
     required this.onMarkPaymentDone,
+    required this.onMarkAsUnpaid,
   });
 
   final List<SalesOrderRecord> orders;
@@ -362,6 +370,7 @@ class _SalesOrdersTable extends StatelessWidget {
   final DateTimeFormatter dateTime;
   final ValueChanged<SalesOrderRecord> onTapOrder;
   final Future<void> Function(String orderId) onMarkPaymentDone;
+  final Future<void> Function(String orderId) onMarkAsUnpaid;
 
   String _customerNameFor(SalesOrderRecord order) {
     final id = order.customerId;
@@ -473,6 +482,24 @@ class _SalesOrdersTable extends StatelessWidget {
                                 style: TextStyle(fontSize: 11),
                               ),
                             )
+                          : order.paymentStatus.toUpperCase() == 'PAID'
+                          ? FilledButton(
+                              onPressed: () => onMarkAsUnpaid(order.id ?? ''),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: const Color(0xFFF59E0B),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: const Text(
+                                'Unpaid',
+                                style: TextStyle(fontSize: 11),
+                              ),
+                            )
                           : const Icon(
                               Icons.check_circle_rounded,
                               color: Color(0xFF10B981),
@@ -497,6 +524,7 @@ class _SalesOrdersCards extends StatelessWidget {
     required this.dateTime,
     required this.onTapOrder,
     required this.onMarkPaymentDone,
+    required this.onMarkAsUnpaid,
   });
 
   final List<SalesOrderRecord> orders;
@@ -505,6 +533,7 @@ class _SalesOrdersCards extends StatelessWidget {
   final DateTimeFormatter dateTime;
   final ValueChanged<SalesOrderRecord> onTapOrder;
   final Future<void> Function(String orderId) onMarkPaymentDone;
+  final Future<void> Function(String orderId) onMarkAsUnpaid;
 
   String _customerNameFor(SalesOrderRecord order) {
     final id = order.customerId;
@@ -602,6 +631,23 @@ class _SalesOrdersCards extends StatelessWidget {
                           ),
                           child: const Text(
                             'Payment Done',
+                            style: TextStyle(fontSize: 11),
+                          ),
+                        ),
+                      if (order.paymentStatus.toUpperCase() == 'PAID')
+                        TextButton(
+                          onPressed: () => onMarkAsUnpaid(order.id ?? ''),
+                          style: TextButton.styleFrom(
+                            foregroundColor: const Color(0xFFF59E0B),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: const Text(
+                            'Make Unpaid',
                             style: TextStyle(fontSize: 11),
                           ),
                         ),
@@ -807,6 +853,29 @@ class _OrderDetailsSheet extends ConsumerWidget {
                             ),
                             child: const Text(
                               'Payment Done',
+                              style: TextStyle(fontSize: 12),
+                            ),
+                          ),
+                        if (order.paymentStatus.toUpperCase() == 'PAID')
+                          FilledButton(
+                            onPressed: () {
+                              ref
+                                  .read(recentSalesOrdersProvider.notifier)
+                                  .markAsUnpaid(order.id ?? '');
+                              Navigator.of(context).pop();
+                            },
+                            style: FilledButton.styleFrom(
+                              backgroundColor: const Color(0xFFF59E0B),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 6,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: const Text(
+                              'Make Unpaid',
                               style: TextStyle(fontSize: 12),
                             ),
                           ),

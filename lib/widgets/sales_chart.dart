@@ -198,7 +198,7 @@ class _ChartBody extends StatelessWidget {
                       return touchedSpots.map((spot) {
                         return LineTooltipItem(
                           '${series.tooltipLabel(spot.x.toInt())}\n'
-                          '\$${_formatK(spot.y)}',
+                          '৳${_formatK(spot.y)}',
                           GoogleFonts.inter(
                             color: Colors.white,
                             fontSize: 12,
@@ -264,7 +264,7 @@ class _ChartBody extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '\$${_formatK(series.currentValue)}',
+                    '৳${_formatK(series.currentValue)}',
                     style: GoogleFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
