@@ -205,6 +205,7 @@ class AuthController extends StateNotifier<AuthState> {
   Future<void> signUp({
     required String identifier,
     required String password,
+    String? name,
   }) async {
     state = state.copyWith(isLoading: true, clearError: true);
 
@@ -222,6 +223,7 @@ class AuthController extends StateNotifier<AuthState> {
       final session = await _authService.signUp(
         identifier: identifier,
         password: password,
+        name: name,
       );
 
       if (session == null) {

@@ -47,8 +47,6 @@ double _parseDouble(dynamic value) {
   return double.tryParse(value.toString()) ?? 0;
 }
 
-
-
 // ---------------------------------------------------------------------------
 // Attendance status options
 // ---------------------------------------------------------------------------
@@ -160,8 +158,9 @@ class AttendanceRecord {
       workHours: _parseDouble(data['work_hours']),
       lateMinutes: _parseInt(data['late_minutes']),
       overtimeHours: _parseDouble(data['overtime_hours']),
-      status: (data['attendance_status'] ?? AttendanceStatusOptions.defaultValue)
-          .toString(),
+      status:
+          (data['attendance_status'] ?? AttendanceStatusOptions.defaultValue)
+              .toString(),
       remarks: data['remarks']?.toString(),
       createdAt: DateTime.tryParse(data['created_at']?.toString() ?? ''),
       updatedAt: DateTime.tryParse(data['updated_at']?.toString() ?? ''),
@@ -316,8 +315,8 @@ class AttendanceLogRecord {
       id: data['id']?.toString(),
       employeeId: data['employee_id']?.toString(),
       logTime: _parseTimestamp(data['log_time']?.toString()),
-      logType:
-          (data['log_type'] ?? AttendanceLogTypeOptions.defaultValue).toString(),
+      logType: (data['log_type'] ?? AttendanceLogTypeOptions.defaultValue)
+          .toString(),
       deviceId: data['device_id']?.toString(),
       location: data['location']?.toString(),
       createdAt: DateTime.tryParse(data['created_at']?.toString() ?? ''),
@@ -372,4 +371,3 @@ class AttendanceLogRecord {
 // ---------------------------------------------------------------------------
 
 // ignore: unused_element
-

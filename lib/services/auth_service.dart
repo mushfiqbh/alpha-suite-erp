@@ -119,6 +119,7 @@ class AuthService {
   Future<AuthSession?> signUp({
     required String identifier,
     required String password,
+    String? name,
   }) async {
     if (!_isConfigured) {
       throw StateError(
@@ -131,17 +132,21 @@ class AuthService {
       throw StateError('Email is required for sign-up.');
     }
 
+    final displayName = name?.trim().isNotEmpty == true
+        ? name!.trim()
+        : normalizedIdentifier.split('@').first;
+
     final response = _looksLikeEmail(normalizedIdentifier)
         ? await _client.auth.signUp(
             email: normalizedIdentifier,
             password: password,
-            data: {'full_name': normalizedIdentifier.split('@').first},
+            data: {'full_name': displayName},
           )
         : await _client.auth.signUp(
             phone: _normalizePhone(normalizedIdentifier),
             password: password,
             data: {
-              'full_name': normalizedIdentifier,
+              'full_name': displayName,
               'phone': _normalizePhone(normalizedIdentifier),
             },
           );

@@ -65,9 +65,12 @@ class ProductDirectoryState {
       isLoading: isLoading ?? this.isLoading,
       isSaving: isSaving ?? this.isSaving,
       searchQuery: searchQuery ?? this.searchQuery,
-      statusFilter: clearStatusFilter ? null : (statusFilter ?? this.statusFilter),
-      categoryFilter:
-          clearCategoryFilter ? null : (categoryFilter ?? this.categoryFilter),
+      statusFilter: clearStatusFilter
+          ? null
+          : (statusFilter ?? this.statusFilter),
+      categoryFilter: clearCategoryFilter
+          ? null
+          : (categoryFilter ?? this.categoryFilter),
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     );
   }
@@ -104,9 +107,9 @@ class ProductDirectoryController extends StateNotifier<ProductDirectoryState> {
 
       state = state.copyWith(
         isLoading: false,
-        products: List<Map<String, dynamic>>.from(data)
-            .map(ProductRecord.fromMap)
-            .toList(),
+        products: List<Map<String, dynamic>>.from(
+          data,
+        ).map(ProductRecord.fromMap).toList(),
         clearError: true,
       );
     } catch (error) {
@@ -199,8 +202,12 @@ class ProductDirectoryController extends StateNotifier<ProductDirectoryState> {
   }
 
   String _generateProductSku() {
-    final token = DateTime.now().millisecondsSinceEpoch.toRadixString(36).toUpperCase();
-    final compact = token.length > 8 ? token.substring(token.length - 8) : token;
+    final token = DateTime.now().millisecondsSinceEpoch
+        .toRadixString(36)
+        .toUpperCase();
+    final compact = token.length > 8
+        ? token.substring(token.length - 8)
+        : token;
     return 'PROD-$compact';
   }
 
@@ -218,6 +225,8 @@ class ProductDirectoryController extends StateNotifier<ProductDirectoryState> {
 }
 
 final productDirectoryProvider =
-    StateNotifierProvider<ProductDirectoryController, ProductDirectoryState>((ref) {
-  return ProductDirectoryController();
-});
+    StateNotifierProvider<ProductDirectoryController, ProductDirectoryState>((
+      ref,
+    ) {
+      return ProductDirectoryController();
+    });

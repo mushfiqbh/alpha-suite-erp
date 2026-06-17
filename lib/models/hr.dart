@@ -383,7 +383,6 @@ class PayrollPeriodRecord {
   final DateTime? updatedAt;
 
   String get periodLabel {
-    final m = month.toString().padLeft(2, '0');
     return '${_monthName(month)} $year';
   }
 

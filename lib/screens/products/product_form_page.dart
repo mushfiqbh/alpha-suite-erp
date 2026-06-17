@@ -45,7 +45,9 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
     final token = DateTime.now().millisecondsSinceEpoch
         .toRadixString(36)
         .toUpperCase();
-    final compact = token.length > 8 ? token.substring(token.length - 8) : token;
+    final compact = token.length > 8
+        ? token.substring(token.length - 8)
+        : token;
     return 'PROD-$compact';
   }
 
@@ -64,9 +66,7 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
     _descriptionController = TextEditingController(
       text: existing?.description ?? '',
     );
-    _categoryController = TextEditingController(
-      text: existing?.category ?? '',
-    );
+    _categoryController = TextEditingController(text: existing?.category ?? '');
     final initialUnitRaw = (existing == null || existing.unit.isEmpty)
         ? 'pcs'
         : existing.unit;
@@ -90,15 +90,9 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
     _reorderController = TextEditingController(
       text: existing != null ? existing.reorderLevel.toString() : '0',
     );
-    _barcodeController = TextEditingController(
-      text: existing?.barcode ?? '',
-    );
-    _supplierController = TextEditingController(
-      text: existing?.supplier ?? '',
-    );
-    _locationController = TextEditingController(
-      text: existing?.location ?? '',
-    );
+    _barcodeController = TextEditingController(text: existing?.barcode ?? '');
+    _supplierController = TextEditingController(text: existing?.supplier ?? '');
+    _locationController = TextEditingController(text: existing?.location ?? '');
     _taxController = TextEditingController(
       text: existing != null ? existing.taxRate.toStringAsFixed(2) : '0.00',
     );
@@ -116,8 +110,7 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
       text: existing.description ?? '',
     );
     _categoryController = TextEditingController(text: existing.category ?? '');
-    final initialUnitRaw =
-        existing.unit.isEmpty ? 'pcs' : existing.unit;
+    final initialUnitRaw = existing.unit.isEmpty ? 'pcs' : existing.unit;
     final initialUnit = initialUnitRaw.toLowerCase();
     if (ProductUnitOptions.isKnown(initialUnit)) {
       _selectedUnit = initialUnit;
@@ -314,9 +307,9 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
   @override
   Widget build(BuildContext context) {
     final isEditing = _initialExisting != null;
-    final isSaving = _isSubmitting || ref.watch(
-      productDirectoryProvider.select((state) => state.isSaving),
-    );
+    final isSaving =
+        _isSubmitting ||
+        ref.watch(productDirectoryProvider.select((state) => state.isSaving));
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FB),
@@ -418,10 +411,12 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
                               hint: '0.00',
                               keyboardType:
                                   const TextInputType.numberWithOptions(
-                                decimal: true,
+                                    decimal: true,
+                                  ),
+                              validator: (value) => _nonNegativeNumber(
+                                value,
+                                allowDecimals: true,
                               ),
-                              validator: (value) =>
-                                  _nonNegativeNumber(value, allowDecimals: true),
                             ),
                             _TextField(
                               controller: _costController,
@@ -429,10 +424,12 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
                               hint: '0.00',
                               keyboardType:
                                   const TextInputType.numberWithOptions(
-                                decimal: true,
+                                    decimal: true,
+                                  ),
+                              validator: (value) => _nonNegativeNumber(
+                                value,
+                                allowDecimals: true,
                               ),
-                              validator: (value) =>
-                                  _nonNegativeNumber(value, allowDecimals: true),
                             ),
                           ],
                         ),
@@ -443,8 +440,10 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
                               label: 'Stock on hand',
                               hint: '0',
                               keyboardType: TextInputType.number,
-                              validator: (value) =>
-                                  _nonNegativeNumber(value, allowDecimals: false),
+                              validator: (value) => _nonNegativeNumber(
+                                value,
+                                allowDecimals: false,
+                              ),
                             ),
                             _TextField(
                               controller: _taxController,
@@ -452,11 +451,12 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
                               hint: '0.00',
                               keyboardType:
                                   const TextInputType.numberWithOptions(
-                                decimal: true,
+                                    decimal: true,
+                                  ),
+                              validator: (value) => _nonNegativeNumber(
+                                value,
+                                allowDecimals: true,
                               ),
-                              validator: (value) =>
-                                  _nonNegativeNumber(value,
-                                      allowDecimals: true),
                             ),
                           ],
                         ),
@@ -523,9 +523,9 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
                                     if (Navigator.of(context).canPop()) {
                                       Navigator.of(context).pop();
                                     } else {
-                                      GoRouter.of(context).go(
-                                        AppRoutes.products,
-                                      );
+                                      GoRouter.of(
+                                        context,
+                                      ).go(AppRoutes.products);
                                     }
                                   },
                             style: OutlinedButton.styleFrom(
@@ -555,8 +555,8 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
                               isSaving
                                   ? 'Saving...'
                                   : isEditing
-                                      ? 'Update product'
-                                      : 'Create product',
+                                  ? 'Update product'
+                                  : 'Create product',
                             ),
                             style: FilledButton.styleFrom(
                               backgroundColor: const Color(0xFF4F46E5),
@@ -623,8 +623,10 @@ class _SectionCard extends StatelessWidget {
 
 class _FormRow extends StatelessWidget {
   const _FormRow({this.children, this.full = false, this.child})
-      : assert((children == null) != (child == null),
-            'Provide either children or child, not both.');
+    : assert(
+        (children == null) != (child == null),
+        'Provide either children or child, not both.',
+      );
 
   final List<Widget>? children;
   final bool full;
@@ -633,10 +635,7 @@ class _FormRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (full) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 16),
-        child: child!,
-      );
+      return Padding(padding: const EdgeInsets.only(bottom: 16), child: child!);
     }
 
     final kids = children!;

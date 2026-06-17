@@ -192,12 +192,15 @@ class CustomerRecord {
     return parts.isEmpty ? 'No location set' : parts.join(', ');
   }
 
-  String get typeLabel => customerType.trim().isEmpty ? 'Unspecified' : _titleCase(customerType);
+  String get typeLabel =>
+      customerType.trim().isEmpty ? 'Unspecified' : _titleCase(customerType);
 
   Map<String, dynamic> toInsertMap({required String? createdById}) {
     return <String, dynamic>{
       'customer_code': customerCode.trim(),
-      'customer_type': customerType.trim().isEmpty ? 'company' : customerType.trim(),
+      'customer_type': customerType.trim().isEmpty
+          ? 'company'
+          : customerType.trim(),
       'company_name': _emptyToNull(companyName),
       'first_name': _emptyToNull(firstName),
       'last_name': _emptyToNull(lastName),
@@ -209,7 +212,9 @@ class CustomerRecord {
       'shipping_address': _emptyToNull(shippingAddress),
       'city': _emptyToNull(city),
       'country': _emptyToNull(country),
-      'status': status.trim().isEmpty ? 'prospect' : status.trim().toLowerCase(),
+      'status': status.trim().isEmpty
+          ? 'prospect'
+          : status.trim().toLowerCase(),
       'source': _emptyToNull(source),
       'assigned_to': _emptyToNull(assignedTo),
       'created_by': _emptyToNull(createdById),
@@ -219,7 +224,9 @@ class CustomerRecord {
   Map<String, dynamic> toUpdateMap() {
     return <String, dynamic>{
       'customer_code': customerCode.trim(),
-      'customer_type': customerType.trim().isEmpty ? 'company' : customerType.trim(),
+      'customer_type': customerType.trim().isEmpty
+          ? 'company'
+          : customerType.trim(),
       'company_name': _emptyToNull(companyName),
       'first_name': _emptyToNull(firstName),
       'last_name': _emptyToNull(lastName),
@@ -231,7 +238,9 @@ class CustomerRecord {
       'shipping_address': _emptyToNull(shippingAddress),
       'city': _emptyToNull(city),
       'country': _emptyToNull(country),
-      'status': status.trim().isEmpty ? 'prospect' : status.trim().toLowerCase(),
+      'status': status.trim().isEmpty
+          ? 'prospect'
+          : status.trim().toLowerCase(),
       'source': _emptyToNull(source),
       'assigned_to': _emptyToNull(assignedTo),
       'updated_at': DateTime.now().toUtc().toIso8601String(),
