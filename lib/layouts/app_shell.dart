@@ -57,7 +57,16 @@ class _AppShellState extends ConsumerState<AppShell> {
       icon: Icons.point_of_sale_outlined,
       route: AppRoutes.sales,
     ),
-    ShellNavItem(label: 'Manager', icon: Icons.badge_outlined, route: AppRoutes.hr),
+    ShellNavItem(
+      label: 'Manager',
+      icon: Icons.badge_outlined,
+      route: AppRoutes.hr,
+    ),
+    ShellNavItem(
+      label: 'Attendance',
+      icon: Icons.calendar_today_rounded,
+      route: AppRoutes.hrAttendanceMark,
+    ),
     ShellNavItem(
       label: 'Access Requests',
       icon: Icons.verified_user_outlined,
@@ -81,7 +90,11 @@ class _AppShellState extends ConsumerState<AppShell> {
       icon: Icons.dashboard_outlined,
       route: AppRoutes.dashboard,
     ),
-    ShellNavItem(label: 'Manager', icon: Icons.badge_outlined, route: AppRoutes.hr),
+    ShellNavItem(
+      label: 'Manager',
+      icon: Icons.badge_outlined,
+      route: AppRoutes.hr,
+    ),
     ShellNavItem(
       label: 'Products',
       icon: Icons.inventory_2_rounded,
@@ -96,6 +109,11 @@ class _AppShellState extends ConsumerState<AppShell> {
       label: 'Sales',
       icon: Icons.point_of_sale_outlined,
       route: AppRoutes.sales,
+    ),
+    ShellNavItem(
+      label: 'Attendance',
+      icon: Icons.calendar_today_rounded,
+      route: AppRoutes.hrAttendanceMark,
     ),
     ShellNavItem(
       label: 'Account',
@@ -143,6 +161,8 @@ class _AppShellState extends ConsumerState<AppShell> {
         return 'Management';
       case AppRoutes.hrEmployeeNew:
         return 'Employee Details';
+      case AppRoutes.hrAttendanceMark:
+        return 'Mark Attendance';
       case AppRoutes.accessRequests:
         return 'Access Requests';
       case AppRoutes.users:

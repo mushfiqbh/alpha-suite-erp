@@ -39,12 +39,14 @@ class PermissionService {
       AppRoutes.customers,
       AppRoutes.customerNew,
       AppRoutes.stockOut,
+      AppRoutes.hrAttendanceMark,
     },
     UserRole.hr: {
       AppRoutes.dashboard,
       AppRoutes.hr,
       AppRoutes.hrEmployeeNew,
       AppRoutes.hrAttendanceNew,
+      AppRoutes.hrAttendanceMark,
     },
     UserRole.viewer: {AppRoutes.dashboard},
   };

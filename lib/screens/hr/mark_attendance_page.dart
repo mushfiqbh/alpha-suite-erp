@@ -6,14 +6,15 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:erp/core/app_routes.dart';
 import 'package:erp/models/attendance.dart';
 import 'package:erp/providers/attendance_providers.dart';
+import 'package:erp/providers/auth_providers.dart';
 import 'package:erp/providers/hr_providers.dart';
 
-/// Mark / edit attendance for a single employee on a specific day.
+/// Mark / edit attendance for your own account.
+///
+/// Available to non-admin, non-viewer roles. The employee is automatically
+/// resolved from the authenticated user's linked employee record.
 class MarkAttendancePage extends ConsumerStatefulWidget {
-  const MarkAttendancePage({super.key, this.employeeId, this.embedded = false});
-
-  /// Optional pre-selected employee ID.
-  final String? employeeId;
+  const MarkAttendancePage({super.key, this.embedded = false});
 
   /// When [embedded] is `true` the page renders without its own
   /// [Scaffold] / [AppBar] / bottom-navigation so it can be placed
@@ -27,8 +28,11 @@ class MarkAttendancePage extends ConsumerStatefulWidget {
 class _MarkAttendancePageState extends ConsumerState<MarkAttendancePage> {
   final _formKey = GlobalKey<FormState>();
   bool _isSubmitting = false;
+  bool _isLoadingEmployee = true;
+  String? _loadError;
 
   String? _employeeId;
+  String? _employeeName;
   DateTime? _attendanceDate;
   TimeOfDay? _checkIn;
   TimeOfDay? _checkOut;
@@ -44,18 +48,77 @@ class _MarkAttendancePageState extends ConsumerState<MarkAttendancePage> {
   @override
   void initState() {
     super.initState();
-    _employeeId = widget.employeeId;
     _attendanceDate = DateTime.now();
     _workHoursController = TextEditingController(text: '0');
     _lateMinutesController = TextEditingController(text: '0');
     _overtimeHoursController = TextEditingController(text: '0');
     _remarksController = TextEditingController();
+    // Resolve employee after the first frame so providers are ready.
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _resolveCurrentEmployee(),
+    );
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _loadExistingIfAvailable();
+    // Employee is resolved in initState — no-op here.
+  }
+
+  /// Finds the employee record linked to the currently authenticated user
+  /// and populates [_employeeId] / [_employeeName].
+  void _resolveCurrentEmployee() {
+    final authState = ref.read(authProvider);
+    if (!authState.isAuthenticated || authState.userId.isEmpty) {
+      setState(() {
+        _isLoadingEmployee = false;
+        _employeeId = null;
+        _employeeName = null;
+        _loadError = 'You must be logged in.';
+      });
+      return;
+    }
+
+    final dirState = ref.read(employeeDirectoryProvider);
+
+    // If the employee directory is still loading, stay in loading state.
+    if (dirState.isLoading) {
+      setState(() {
+        _isLoadingEmployee = true;
+        _employeeId = null;
+        _employeeName = null;
+        _loadError = null;
+      });
+      return;
+    }
+
+    final matched = dirState.employees.where(
+      (e) => e.linkedUserId == authState.userId,
+    );
+
+    if (matched.isEmpty) {
+      setState(() {
+        _isLoadingEmployee = false;
+        _employeeId = null;
+        _employeeName = null;
+        _loadError =
+            'No employee record linked to your account. '
+            'Please contact an administrator.';
+      });
+      return;
+    }
+
+    final employee = matched.first;
+    final changed = employee.id != _employeeId;
+    setState(() {
+      _employeeId = employee.id;
+      _employeeName = employee.fullName;
+      _isLoadingEmployee = false;
+      _loadError = null;
+    });
+    if (changed) {
+      _loadExistingIfAvailable();
+    }
   }
 
   void _loadExistingIfAvailable() {
@@ -161,7 +224,7 @@ class _MarkAttendancePageState extends ConsumerState<MarkAttendancePage> {
     if (_employeeId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please select an employee.'),
+          content: Text('Employee profile not found on your account.'),
           backgroundColor: Color(0xFFEF4444),
         ),
       );
@@ -243,8 +306,49 @@ class _MarkAttendancePageState extends ConsumerState<MarkAttendancePage> {
 
   @override
   Widget build(BuildContext context) {
-    final hrState = ref.watch(employeeDirectoryProvider);
-    final employees = hrState.employees;
+    // Loading / error states when the employee could not be resolved.
+    if (_isLoadingEmployee) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(height: 16),
+            Text(
+              'Loading your profile...',
+              style: GoogleFonts.inter(color: const Color(0xFF64748B)),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_loadError != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.error_outline_rounded,
+                size: 48,
+                color: Color(0xFFEF4444),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                _loadError!,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(
+                  fontSize: 15,
+                  color: const Color(0xFF475569),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     final formContent = Center(
       child: ConstrainedBox(
@@ -264,30 +368,66 @@ class _MarkAttendancePageState extends ConsumerState<MarkAttendancePage> {
                 // ── Employee & Date section ──
                 _SectionTitle(title: 'Employee & Date'),
                 const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  initialValue: _employeeId,
-                  isExpanded: true,
-                  decoration: _inputDecoration('Employee'),
-                  items: employees
-                      .where((e) => e.id != null)
-                      .map(
-                        (e) => DropdownMenuItem<String>(
-                          value: e.id,
-                          child: Text(
-                            '${e.fullName}  •  ${e.employeeCode}',
-                            overflow: TextOverflow.ellipsis,
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF1E3A8A), Color(0xFF4F46E5)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                      )
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() => _employeeId = value);
-                    _loadExistingIfAvailable();
-                  },
-                  validator: (value) {
-                    if (value == null) return 'Employee is required';
-                    return null;
-                  },
+                        alignment: Alignment.center,
+                        child: const Icon(
+                          Icons.badge_outlined,
+                          color: Colors.white,
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _employeeName ?? 'Your Account',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF0F172A),
+                              ),
+                            ),
+                            Text(
+                              'Marking your own attendance',
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                color: const Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(
+                        Icons.person_pin_rounded,
+                        size: 20,
+                        color: Color(0xFF4F46E5),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 14),
                 InkWell(
@@ -613,8 +753,8 @@ class _MarkAttendancePageState extends ConsumerState<MarkAttendancePage> {
                   ),
                   Text(
                     _hasExistingRecord
-                        ? 'Update the attendance entry for this employee.'
-                        : 'Record attendance for an individual employee.',
+                        ? 'Update your attendance entry.'
+                        : 'Record your own attendance for the day.',
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       color: const Color(0xFF64748B),

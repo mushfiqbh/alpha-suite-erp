@@ -382,6 +382,20 @@ class AccountView extends ConsumerWidget {
                             subtitle: 'Update your full name',
                             onTap: () => showEditProfileModal(context, ref),
                           ),
+                          if (role == UserRole.operations ||
+                              role == UserRole.sales ||
+                              role == UserRole.hr) ...[
+                            const SizedBox(height: 12),
+                            _ActionCard(
+                              icon: Icons.calendar_today_rounded,
+                              iconColor: const Color(0xFF4F46E5),
+                              iconBgColor: const Color(0xFFEEF2FF),
+                              title: 'Mark Attendance',
+                              subtitle: 'Record or update your own attendance',
+                              onTap: () =>
+                                  context.go(AppRoutes.hrAttendanceMark),
+                            ),
+                          ],
                           if (role == UserRole.admin) ...[
                             const SizedBox(height: 12),
                             _ActionCard(

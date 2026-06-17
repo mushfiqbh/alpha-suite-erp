@@ -61,8 +61,8 @@ class ActivityFeedWidget extends ConsumerWidget {
       // Avoid a jarring empty box: render a single muted placeholder.
       items.add(
         const ActivityItem(
-          title: 'No recent activity',
-          meta: 'Sales and inventory will appear here',
+          title: 'সাম্প্রতিক কোনো কার্যকলাপ নেই',
+          meta: 'বিক্রয় ও ইনভেন্টরি তথ্য এখানে দেখানো হবে',
           iconType: ActivityIconType.system,
           muted: true,
         ),
@@ -90,7 +90,7 @@ class ActivityFeedWidget extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Recent Activity',
+            'সাম্প্রতিক কার্যকলাপ',
             style: GoogleFonts.poppins(
               fontSize: 20,
               fontWeight: FontWeight.w500,
@@ -164,7 +164,7 @@ class ActivityFeedWidget extends ConsumerWidget {
           GestureDetector(
             onTap: () => context.push(AppRoutes.sales),
             child: Text(
-              'View all logs →',
+              'সব লগ দেখুন →',
               style: GoogleFonts.inter(
                 fontSize: 13,
                 fontWeight: FontWeight.w400,
@@ -188,9 +188,9 @@ class ActivityFeedWidget extends ConsumerWidget {
         ? null
         : customersById[order.customerId]?.displayName;
     final amount = '৳${order.grandTotal.toStringAsFixed(2)}';
-    final title = 'Invoice ${order.invoiceNo} • $amount';
+    final title = 'ইনভয়েস ${order.invoiceNo} • $amount';
     final metaParts = <String>[
-      if (customerName != null) 'CLIENT: ${customerName.toUpperCase()}',
+      if (customerName != null) 'গ্রাহক: ${customerName.toUpperCase()}',
       order.paymentStatus.toUpperCase(),
       _relativeTime(order.orderDate),
     ];
@@ -207,7 +207,7 @@ class ActivityFeedWidget extends ConsumerWidget {
     BuildContext context,
   ) {
     return ActivityItem(
-      title: 'New inventory: ${product.displayName}',
+      title: 'নতুন ইনভেন্টরি: ${product.displayName}',
       meta:
           '${(product.category ?? 'INVENTORY').toUpperCase()} • ${_relativeTime(product.createdAt ?? DateTime.now())}',
       iconType: ActivityIconType.inventory,
@@ -259,8 +259,8 @@ class ActivityFeedWidget extends ConsumerWidget {
                     Expanded(
                       child: Text(
                         order.invoiceNo.isEmpty
-                            ? 'Order details'
-                            : 'Invoice ${order.invoiceNo}',
+                            ? 'অর্ডার বিবরণ'
+                            : 'ইনভয়েস ${order.invoiceNo}',
                         style: GoogleFonts.poppins(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
@@ -283,9 +283,9 @@ class ActivityFeedWidget extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                _DetailRow(label: 'Customer', value: customerName ?? 'Walk-in'),
+                _DetailRow(label: 'গ্রাহক', value: customerName ?? 'ওয়াক-ইন'),
                 _DetailRow(
-                  label: 'Payment',
+                  label: 'পেমেন্ট',
                   value: order.paymentStatus.toUpperCase(),
                   valueColor: order.paymentStatus.toUpperCase() == 'PAID'
                       ? const Color(0xFF10B981)
@@ -315,7 +315,7 @@ class ActivityFeedWidget extends ConsumerWidget {
                         ),
                       ),
                       child: const Text(
-                        'Payment Done',
+                        'পেমেন্ট সম্পন্ন',
                         style: TextStyle(fontSize: 12),
                       ),
                     ),
@@ -341,7 +341,7 @@ class ActivityFeedWidget extends ConsumerWidget {
                         ),
                       ),
                       child: const Text(
-                        'Make Unpaid',
+                        'অপরিশোধিত করুন',
                         style: TextStyle(fontSize: 12),
                       ),
                     ),
@@ -350,38 +350,38 @@ class ActivityFeedWidget extends ConsumerWidget {
                 const Divider(height: 1, color: Color(0xFFE2E8F0)),
                 const SizedBox(height: 16),
                 _TotalLine(
-                  label: 'Subtotal',
+                  label: 'সাবটোটাল',
                   value: money.format(order.subtotal),
                 ),
                 if (order.discountAmount > 0)
                   _TotalLine(
-                    label: 'Discount',
+                    label: 'ডিসকাউন্ট',
                     value: '- ${money.format(order.discountAmount)}',
                     valueColor: const Color(0xFFDC2626),
                   ),
                 if (order.taxAmount > 0)
                   _TotalLine(
-                    label: 'Tax',
+                    label: 'ট্যাক্স',
                     value: money.format(order.taxAmount),
                   ),
                 if (order.shippingAmount > 0)
                   _TotalLine(
-                    label: 'Shipping',
+                    label: 'শিপিং',
                     value: money.format(order.shippingAmount),
                   ),
                 const Divider(height: 18, color: Color(0xFFE2E8F0)),
                 _TotalLine(
-                  label: 'Grand Total',
+                  label: 'সর্বমোট',
                   value: money.format(order.grandTotal),
                   isBold: true,
                 ),
                 _TotalLine(
-                  label: 'Paid',
+                  label: 'পরিশোধিত',
                   value: money.format(order.paidAmount),
                   valueColor: const Color(0xFF10B981),
                 ),
                 _TotalLine(
-                  label: 'Outstanding',
+                  label: 'বাকি',
                   value: money.format(order.dueAmount),
                   valueColor: order.dueAmount > 0
                       ? const Color(0xFFDC2626)
@@ -400,7 +400,7 @@ class ActivityFeedWidget extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'NOTES',
+                          'নোট',
                           style: GoogleFonts.inter(
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
@@ -463,12 +463,12 @@ class ActivityFeedWidget extends ConsumerWidget {
 
 String _relativeTime(DateTime when) {
   final diff = DateTime.now().difference(when);
-  if (diff.inMinutes < 1) return 'JUST NOW';
-  if (diff.inMinutes < 60) return '${diff.inMinutes}M AGO';
-  if (diff.inHours < 24) return '${diff.inHours}H AGO';
-  if (diff.inDays < 7) return '${diff.inDays}D AGO';
-  if (diff.inDays < 30) return '${(diff.inDays / 7).floor()}W AGO';
-  return '${(diff.inDays / 30).floor()}MO AGO';
+  if (diff.inMinutes < 1) return 'এইমাত্র';
+  if (diff.inMinutes < 60) return '${diff.inMinutes}মি আগে';
+  if (diff.inHours < 24) return '${diff.inHours}ঘ আগে';
+  if (diff.inDays < 7) return '${diff.inDays}দি আগে';
+  if (diff.inDays < 30) return '${(diff.inDays / 7).floor()}সপ্তা আগে';
+  return '${(diff.inDays / 30).floor()}মা আগে';
 }
 
 class _ActivityIconContainer extends StatelessWidget {

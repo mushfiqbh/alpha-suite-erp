@@ -93,7 +93,7 @@ class _GreetingHeader extends ConsumerWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                "Here's what's happening across your enterprise today.",
+                "আজ আপনার এন্টারপ্রাইজে কী ঘটছে তা দেখুন।",
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   fontWeight: FontWeight.w400,
@@ -148,12 +148,12 @@ class _GreetingHeader extends ConsumerWidget {
   static String _greetingText(String? firstName) {
     final hour = DateTime.now().hour;
     final salutation = hour < 12
-        ? 'Good morning'
+        ? 'সুপ্রভাত'
         : hour < 18
-        ? 'Good afternoon'
-        : 'Good evening';
+        ? 'শুভ অপরাহ্ন'
+        : 'শুভ সন্ধ্যা';
     final name = (firstName == null || firstName.trim().isEmpty)
-        ? 'there'
+        ? 'আপনি'
         : firstName.trim();
     return '$salutation, $name';
   }
@@ -190,8 +190,8 @@ class _KpiGrid extends ConsumerWidget {
               child: revenueAsync.when(
                 loading: () => const _KpiSkeleton(),
                 error: (_, __) => const _KpiError(
-                  title: 'TOTAL SALES',
-                  message: 'Unable to load',
+                  title: 'মোট বিক্রয়',
+                  message: 'লোড করা যায়নি',
                 ),
                 data: (summary) => _buildTotalSalesKpi(
                   summary,
@@ -203,10 +203,8 @@ class _KpiGrid extends ConsumerWidget {
             Expanded(
               child: revenueAsync.when(
                 loading: () => const _KpiSkeleton(),
-                error: (_, __) => const _KpiError(
-                  title: 'REVENUE',
-                  message: 'Unable to load',
-                ),
+                error: (_, __) =>
+                    const _KpiError(title: 'রাজস্ব', message: 'লোড করা যায়নি'),
                 data: (summary) => _buildRevenueKpi(summary),
               ),
             ),
@@ -219,13 +217,13 @@ class _KpiGrid extends ConsumerWidget {
               child: employeesAsync.when(
                 loading: () => const _KpiSkeleton(),
                 error: (_, __) => const _KpiError(
-                  title: 'EMPLOYEES',
-                  message: 'Unable to load',
+                  title: 'কর্মচারী',
+                  message: 'লোড করা যায়নি',
                 ),
                 data: (count) => KpiCardWidget(
-                  title: 'EMPLOYEES',
+                  title: 'কর্মচারী',
                   value: _formatCount(count),
-                  description: 'Active in the system',
+                  description: 'সিস্টেমে সক্রিয়',
                   descriptionColor: const Color(0xFF464555),
                   icon: _EmployeesIcon(),
                   onTap: canAccessHr ? () => context.push(AppRoutes.hr) : null,
@@ -252,16 +250,16 @@ class _KpiGrid extends ConsumerWidget {
               .round()
         : null;
     final description = deltaPct == null
-        ? 'This month'
+        ? 'এই মাসে'
         : (deltaPct >= 0
-              ? '+${deltaPct.toString()}% this month'
-              : '${deltaPct.toString()}% this month');
+              ? '+${deltaPct.toString()}% এই মাসে'
+              : '${deltaPct.toString()}% এই মাসে');
     final descriptionColor = deltaPct == null || deltaPct < 0
         ? const Color(0xFFB23B3B)
         : const Color(0xFF006C49);
 
     return KpiCardWidget(
-      title: 'TOTAL SALES',
+      title: 'মোট বিক্রয়',
       value: _formatMoney(summary.thisMonthTotal),
       description: description,
       descriptionColor: descriptionColor,
@@ -275,11 +273,11 @@ class _KpiGrid extends ConsumerWidget {
 
   static Widget _buildRevenueKpi(DashboardRevenueSummary summary) {
     return KpiCardWidget(
-      title: 'REVENUE',
+      title: 'রাজস্ব',
       value: _formatMoney(summary.thisMonthPaid),
       description: summary.thisMonthOrders == 0
-          ? 'No sales yet'
-          : 'Collected this month',
+          ? 'এখনো কোনো বিক্রয় নেই'
+          : 'এই মাসে সংগ্রহ',
       descriptionColor: const Color(0xFF464555),
       icon: _RevenueIcon(),
     );
@@ -291,7 +289,7 @@ class _KpiGrid extends ConsumerWidget {
   ) {
     if (state.isLoading) return const _KpiSkeleton();
     if (state.errorMessage != null && state.products.isEmpty) {
-      return const _KpiError(title: 'LOW STOCK', message: 'Unable to load');
+      return const _KpiError(title: 'স্টক সীমিত', message: 'লোড করা যায়নি');
     }
     final outOfStock = state.products.where((p) => p.stock <= 0).length;
     final lowStockCount = state.products
@@ -301,18 +299,18 @@ class _KpiGrid extends ConsumerWidget {
     final description = StringBuffer();
     if (outOfStock > 0) {
       description.write(
-        '$outOfStock out of stock${lowStockCount > 0 ? ', ' : ''}',
+        '$outOfStock স্টকে নেই${lowStockCount > 0 ? ', ' : ''}',
       );
     }
     if (lowStockCount > 0) {
-      description.write('$lowStockCount low');
+      description.write('$lowStockCount সীমিত');
     }
     if (description.isEmpty) {
-      description.write('No alerts');
+      description.write('কোনো সতর্কতা নেই');
     }
     final hasAlerts = totalAlerts > 0;
     return KpiCardWidget(
-      title: 'LOW STOCK',
+      title: 'স্টক সীমিত',
       value: _formatCount(totalAlerts),
       description: description.toString(),
       descriptionColor: hasAlerts
@@ -366,7 +364,7 @@ class _AccessRequestSection extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Request Access',
+              'অ্যাক্সেসের অনুরোধ',
               style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -375,7 +373,7 @@ class _AccessRequestSection extends ConsumerWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Request access to additional modules',
+              'অতিরিক্ত মডিউল অ্যাক্সেসের অনুরোধ করুন',
               style: GoogleFonts.inter(
                 fontSize: 13,
                 fontWeight: FontWeight.w400,
@@ -387,7 +385,7 @@ class _AccessRequestSection extends ConsumerWidget {
               children: [
                 Expanded(
                   child: _AccessButton(
-                    label: 'Operations',
+                    label: 'অপারেশনস',
                     icon: Icons.inventory_2_outlined,
                     onPressed: hasPendingRequest
                         ? null
@@ -397,7 +395,7 @@ class _AccessRequestSection extends ConsumerWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: _AccessButton(
-                    label: 'Manager',
+                    label: 'ম্যানেজার',
                     icon: Icons.people_outline,
                     onPressed: hasPendingRequest
                         ? null
@@ -407,7 +405,7 @@ class _AccessRequestSection extends ConsumerWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: _AccessButton(
-                    label: 'Sales',
+                    label: 'সেলস',
                     icon: Icons.shopping_cart_outlined,
                     onPressed: hasPendingRequest
                         ? null
@@ -420,7 +418,7 @@ class _AccessRequestSection extends ConsumerWidget {
               const SizedBox(height: 12),
               Center(
                 child: Text(
-                  'Pending request for ${pendingRequest.requestedRole.toUpperCase()} access. Wait for admin approval.',
+                  '${pendingRequest.requestedRole.toUpperCase()} অ্যাক্সেসের অনুরোধ pending. অ্যাডমিনের অনুমোদনের জন্য অপেক্ষা করুন।',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
                     fontSize: 12,
@@ -435,7 +433,7 @@ class _AccessRequestSection extends ConsumerWidget {
               const Divider(height: 1),
               const SizedBox(height: 12),
               Text(
-                'Previous Requests',
+                'পূর্ববর্তী অনুরোধ',
                 style: GoogleFonts.inter(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
@@ -467,14 +465,14 @@ class _AccessRequestSection extends ConsumerWidget {
       ref.invalidate(myAccessRequestsProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Request for $role access submitted')),
+          SnackBar(content: Text('$role অ্যাক্সেসের অনুরোধ জমা দেওয়া হয়েছে')),
         );
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ).showSnackBar(SnackBar(content: Text('ত্রুটি: $e')));
       }
     }
   }
@@ -508,7 +506,7 @@ class _PreviousRequestTile extends StatelessWidget {
           ),
           const Spacer(),
           Text(
-            request.isApproved ? 'Approved' : 'Rejected',
+            request.isApproved ? 'অনুমোদিত' : 'প্রত্যাখ্যাত',
             style: GoogleFonts.inter(
               fontSize: 12,
               fontWeight: FontWeight.w400,
