@@ -89,6 +89,46 @@ ON public.attendance
 FOR DELETE
 USING (public.can_manage_attendance());
 
+-- Self-service policies — employees can manage their own attendance records.
+-- The employee record must be linked to the current auth user via
+-- employees.linked_user_id.
+CREATE OR REPLACE FUNCTION public.is_own_employee(target_employee_id UUID)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER SET search_path = ''
+AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1
+    FROM public.employees
+    WHERE id = target_employee_id
+      AND linked_user_id = auth.uid()
+  );
+END;
+$$;
+
+DROP POLICY IF EXISTS "Employees can insert their own attendance"
+  ON public.attendance;
+CREATE POLICY "Employees can insert their own attendance"
+  ON public.attendance
+  FOR INSERT
+  WITH CHECK (public.is_own_employee(employee_id));
+
+DROP POLICY IF EXISTS "Employees can update their own attendance"
+  ON public.attendance;
+CREATE POLICY "Employees can update their own attendance"
+  ON public.attendance
+  FOR UPDATE
+  USING (public.is_own_employee(employee_id))
+  WITH CHECK (public.is_own_employee(employee_id));
+
+DROP POLICY IF EXISTS "Employees can read their own attendance"
+  ON public.attendance;
+CREATE POLICY "Employees can read their own attendance"
+  ON public.attendance
+  FOR SELECT
+  USING (public.is_own_employee(employee_id));
+
 -- ---------------------------------------------------------------------------
 -- attendance_logs (raw punch in/out events)
 -- ---------------------------------------------------------------------------
@@ -137,3 +177,17 @@ CREATE POLICY "HR managers can delete attendance_logs"
 ON public.attendance_logs
 FOR DELETE
 USING (public.can_manage_attendance());
+
+DROP POLICY IF EXISTS "Employees can insert their own attendance_logs"
+  ON public.attendance_logs;
+CREATE POLICY "Employees can insert their own attendance_logs"
+  ON public.attendance_logs
+  FOR INSERT
+  WITH CHECK (public.is_own_employee(employee_id));
+
+DROP POLICY IF EXISTS "Employees can read their own attendance_logs"
+  ON public.attendance_logs;
+CREATE POLICY "Employees can read their own attendance_logs"
+  ON public.attendance_logs
+  FOR SELECT
+  USING (public.is_own_employee(employee_id));
