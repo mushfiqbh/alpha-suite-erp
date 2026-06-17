@@ -13,6 +13,8 @@ class LoginView extends ConsumerStatefulWidget {
   ConsumerState<LoginView> createState() => _LoginViewState();
 }
 
+enum _AuthMode { signIn, signUp, admin }
+
 class _LoginViewState extends ConsumerState<LoginView> {
   final _identifierController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -23,7 +25,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
   final _emailFocusNode = FocusNode();
   final _passwordFocusNode = FocusNode();
 
-  bool _isSignUp = false;
+  _AuthMode _authMode = _AuthMode.signIn;
   bool _obscurePassword = true;
 
   // Focus tracking for styling
@@ -102,7 +104,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
     }
 
     // --- Name validation (only for sign up) ---
-    if (_isSignUp) {
+    if (_authMode == _AuthMode.signUp) {
       final name = _nameController.text.trim();
       if (name.isEmpty) {
         _nameError = 'Name is required.';
@@ -122,7 +124,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
   Future<void> _submit() async {
     if (!_validateForm()) return;
 
-    if (_isSignUp) {
+    if (_authMode == _AuthMode.signUp) {
       await ref
           .read(authProvider.notifier)
           .signUp(
@@ -187,8 +189,10 @@ class _LoginViewState extends ConsumerState<LoginView> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    _isSignUp
+                    _authMode == _AuthMode.signUp
                         ? 'Create your account'
+                        : _authMode == _AuthMode.admin
+                        ? 'Admin quick login'
                         : 'Sign in with your account',
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
@@ -196,26 +200,35 @@ class _LoginViewState extends ConsumerState<LoginView> {
                   ),
                   const SizedBox(height: 32),
 
-                  // Sign In / Sign Up Toggle
+                  // Sign In / Sign Up / Admin Toggle
                   Center(
-                    child: SegmentedButton<bool>(
+                    child: SegmentedButton<_AuthMode>(
                       segments: const [
                         ButtonSegment(
-                          value: false,
+                          value: _AuthMode.signIn,
                           label: Text('Sign In'),
                           icon: Icon(Icons.login),
                         ),
                         ButtonSegment(
-                          value: true,
+                          value: _AuthMode.signUp,
                           label: Text('Sign Up'),
                           icon: Icon(Icons.person_add),
                         ),
+                        ButtonSegment(
+                          value: _AuthMode.admin,
+                          label: Text('Admin'),
+                          icon: Icon(Icons.shield_outlined),
+                        ),
                       ],
-                      selected: {_isSignUp},
+                      selected: {_authMode},
                       onSelectionChanged: (selected) {
+                        final mode = selected.first;
                         setState(() {
-                          _isSignUp = selected.first;
+                          _authMode = mode;
                           _clearAllErrors();
+                          if (mode == _AuthMode.admin) {
+                            _identifierController.text = 'mushfiqbh@gmail.com';
+                          }
                         });
                       },
                       style: SegmentedButton.styleFrom(
@@ -254,7 +267,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                   ],
 
                   // Name Input Field (only for sign up)
-                  if (_isSignUp) ...[
+                  if (_authMode == _AuthMode.signUp) ...[
                     TextField(
                       controller: _nameController,
                       focusNode: _nameFocusNode,
@@ -303,48 +316,53 @@ class _LoginViewState extends ConsumerState<LoginView> {
                     const SizedBox(height: 16),
                   ],
 
-                  // Email Input Field
-                  TextField(
-                    controller: _identifierController,
-                    focusNode: _emailFocusNode,
-                    keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.next,
-                    decoration: InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: const Icon(Icons.email_outlined),
-                      errorText: _emailError,
-                      filled: true,
-                      fillColor: _emailFocused
-                          ? theme.colorScheme.primaryContainer.withOpacity(0.5)
-                          : theme.colorScheme.surface.withOpacity(0.7),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
-                          color: theme.colorScheme.primary,
-                          width: 1.5,
+                  // Email Input Field (hidden in admin mode – auto-filled)
+                  if (_authMode != _AuthMode.admin)
+                    TextField(
+                      controller: _identifierController,
+                      focusNode: _emailFocusNode,
+                      keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      decoration: InputDecoration(
+                        labelText: 'Email',
+                        prefixIcon: const Icon(Icons.email_outlined),
+                        errorText: _emailError,
+                        filled: true,
+                        fillColor: _emailFocused
+                            ? theme.colorScheme.primaryContainer.withOpacity(
+                                0.5,
+                              )
+                            : theme.colorScheme.surface.withOpacity(0.7),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: theme.colorScheme.primary,
+                            width: 1.5,
+                          ),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: theme.colorScheme.error,
+                          ),
+                        ),
+                        focusedErrorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: theme.colorScheme.error,
+                            width: 1.5,
+                          ),
                         ),
                       ),
-                      errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: theme.colorScheme.error),
-                      ),
-                      focusedErrorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
-                          color: theme.colorScheme.error,
-                          width: 1.5,
-                        ),
-                      ),
+                      onChanged: (_) {
+                        if (_emailError != null)
+                          setState(() => _emailError = null);
+                      },
                     ),
-                    onChanged: (_) {
-                      if (_emailError != null)
-                        setState(() => _emailError = null);
-                    },
-                  ),
                   const SizedBox(height: 16),
 
                   // Password Input Field
@@ -414,7 +432,13 @@ class _LoginViewState extends ConsumerState<LoginView> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: Text(_isSignUp ? 'Sign Up' : 'Sign In'),
+                      child: Text(
+                        _authMode == _AuthMode.signUp
+                            ? 'Sign Up'
+                            : _authMode == _AuthMode.admin
+                            ? 'Admin Login'
+                            : 'Sign In',
+                      ),
                     ),
                   ),
 

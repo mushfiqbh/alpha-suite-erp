@@ -354,8 +354,8 @@ class AccountView extends ConsumerWidget {
                                   color: const Color(0xFFE0F2FE),
                                   borderRadius: BorderRadius.circular(999),
                                 ),
-                                child: const Text(
-                                  'সক্রিয়',
+                                child: Text(
+                                  roleLabel,
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
@@ -367,19 +367,12 @@ class AccountView extends ConsumerWidget {
                           ),
                           const SizedBox(height: 24),
                           const Divider(height: 1),
-                          const SizedBox(height: 14),
-                          _DetailRow(
-                            icon: Icons.verified_user_outlined,
-                            title: 'ভূমিকা',
-                            value: roleLabel,
-                          ),
                           const SizedBox(height: 24),
                           _ActionCard(
                             icon: Icons.edit_outlined,
                             iconColor: const Color(0xFFD97706),
                             iconBgColor: const Color(0xFFFEF3C7),
                             title: 'প্রোফাইল সম্পাদনা',
-                            subtitle: 'আপনার পূর্ণ নাম আপডেট করুন',
                             onTap: () => showEditProfileModal(context, ref),
                           ),
                           if (role == UserRole.operations ||
@@ -390,8 +383,7 @@ class AccountView extends ConsumerWidget {
                               icon: Icons.calendar_today_rounded,
                               iconColor: const Color(0xFF4F46E5),
                               iconBgColor: const Color(0xFFEEF2FF),
-                              title: 'উপস্থিতি নিন',
-                              subtitle: 'আপনার উপস্থিতি রেকর্ড বা আপডেট করুন',
+                              title: 'হাজিরা দিন',
                               onTap: () =>
                                   context.go(AppRoutes.hrAttendanceMark),
                             ),
@@ -402,9 +394,7 @@ class AccountView extends ConsumerWidget {
                               icon: Icons.verified_user_outlined,
                               iconColor: const Color(0xFF7C3AED),
                               iconBgColor: const Color(0xFFEDE9FE),
-                              title: 'অ্যাক্সেস অনুরোধ',
-                              subtitle:
-                                  'ভূমিকা অনুরোধ পর্যালোচনা ও ব্যবস্থাপনা',
+                              title: 'অ্যাক্সেস অ্যাপ্রুভাল',
                               onTap: () => context.go(AppRoutes.accessRequests),
                             ),
                             const SizedBox(height: 12),
@@ -412,9 +402,7 @@ class AccountView extends ConsumerWidget {
                               icon: Icons.people_outlined,
                               iconColor: const Color(0xFF059669),
                               iconBgColor: const Color(0xFFD1FAE5),
-                              title: 'ব্যবহারকারী ব্যবস্থাপনা',
-                              subtitle:
-                                  'সিস্টেম ব্যবহারকারী দেখুন ও ব্যবস্থাপনা করুন',
+                              title: 'ইউজার ব্যবস্থাপনা',
                               onTap: () => context.go(AppRoutes.users),
                             ),
                           ],
@@ -424,7 +412,6 @@ class AccountView extends ConsumerWidget {
                             iconColor: const Color(0xFFDC2626),
                             iconBgColor: const Color(0xFFFEE2E2),
                             title: 'সাইন আউট',
-                            subtitle: 'আপনার অ্যাকাউন্ট থেকে সাইন আউট করুন',
                             onTap: authState.isLoading
                                 ? null
                                 : () async {
@@ -459,67 +446,12 @@ class AccountView extends ConsumerWidget {
   }
 }
 
-class _DetailRow extends StatelessWidget {
-  const _DetailRow({
-    required this.icon,
-    required this.title,
-    required this.value,
-  });
-
-  final IconData icon;
-  final String title;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: const Color(0xFFF1F5F9),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, color: const Color(0xFF334155), size: 20),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF64748B),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF0F172A),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class _ActionCard extends StatelessWidget {
   const _ActionCard({
     required this.icon,
     required this.iconColor,
     required this.iconBgColor,
     required this.title,
-    required this.subtitle,
     required this.onTap,
   });
 
@@ -527,7 +459,6 @@ class _ActionCard extends StatelessWidget {
   final Color iconColor;
   final Color iconBgColor;
   final String title;
-  final String subtitle;
   final VoidCallback? onTap;
 
   @override
@@ -539,7 +470,7 @@ class _ActionCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: const Color(0xFFE2E8F0)),
@@ -566,14 +497,6 @@ class _ActionCard extends StatelessWidget {
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFF0F172A),
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF64748B),
                       ),
                     ),
                   ],

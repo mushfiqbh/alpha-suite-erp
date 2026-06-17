@@ -304,6 +304,16 @@ class AuthController extends StateNotifier<AuthState> {
     );
   }
 
+  Future<void> resetPassword() async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      await _authService.resetPassword();
+      state = state.copyWith(isLoading: false);
+    } catch (error) {
+      state = state.copyWith(isLoading: false, errorMessage: error.toString());
+    }
+  }
+
   Future<void> updateProfile({required String fullName, String? phone}) async {
     try {
       await _authService.updateProfile(fullName: fullName, phone: phone);

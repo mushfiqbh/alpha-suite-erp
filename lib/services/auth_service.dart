@@ -196,6 +196,21 @@ class AuthService {
     await _client.auth.updateUser(UserAttributes(data: metadata));
   }
 
+  /// Send a password reset email to the current user's email address via Supabase.
+  Future<void> resetPassword() async {
+    if (!_isConfigured) return;
+
+    final user = _client.auth.currentUser;
+    if (user == null) throw Exception('Not authenticated');
+
+    final email = user.email;
+    if (email == null || email.isEmpty) {
+      throw Exception('No email address found on your account.');
+    }
+
+    await _client.auth.resetPasswordForEmail(email);
+  }
+
   /// Upload an avatar image to Supabase Storage and update the profile.
   /// Returns the public URL of the uploaded avatar.
   Future<String> uploadAvatar(Uint8List bytes) async {
