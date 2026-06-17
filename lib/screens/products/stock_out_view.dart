@@ -291,7 +291,7 @@ class _StockOutViewState extends ConsumerState<StockOutView> {
   List<ProductRecord> _stockOutProducts(List<ProductRecord> allProducts) {
     final query = _searchQuery.trim().toLowerCase();
     return allProducts.where((p) {
-      if (!p.isLowStock) return false;
+      if (p.stock > 0 && !p.isLowStock) return false;
       if (query.isEmpty) return true;
       return p.displayName.toLowerCase().contains(query) ||
           p.sku.toLowerCase().contains(query) ||

@@ -219,18 +219,31 @@ class _KpiGrid extends ConsumerWidget {
     if (state.errorMessage != null && state.products.isEmpty) {
       return const _KpiError(title: 'LOW STOCK', message: 'Unable to load');
     }
-    final lowStockCount = state.products.where((p) => p.isLowStock).length;
     final outOfStock = state.products.where((p) => p.stock <= 0).length;
-    final description = outOfStock > 0
-        ? '$outOfStock out of stock'
-        : 'Critical alerts';
+    final lowStockCount = state.products
+        .where((p) => p.isLowStock && p.stock > 0)
+        .length;
+    final totalAlerts = lowStockCount + outOfStock;
+    final description = StringBuffer();
+    if (outOfStock > 0) {
+      description.write(
+        '$outOfStock out of stock${lowStockCount > 0 ? ', ' : ''}',
+      );
+    }
+    if (lowStockCount > 0) {
+      description.write('$lowStockCount low');
+    }
+    if (description.isEmpty) {
+      description.write('No alerts');
+    }
+    final hasAlerts = totalAlerts > 0;
     return KpiCardWidget(
       title: 'LOW STOCK',
-      value: _formatCount(lowStockCount),
-      description: description,
-      descriptionColor: outOfStock > 0
+      value: _formatCount(totalAlerts),
+      description: description.toString(),
+      descriptionColor: hasAlerts
           ? const Color(0xFFB23B3B)
-          : const Color(0xFF684000),
+          : const Color(0xFF464555),
       icon: _LowStockIcon(),
       onTap: () => context.push(AppRoutes.stockOut),
     );
