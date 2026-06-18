@@ -45,7 +45,9 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
     final token = DateTime.now().millisecondsSinceEpoch
         .toRadixString(36)
         .toUpperCase();
-    final compact = token.length > 8 ? token.substring(token.length - 8) : token;
+    final compact = token.length > 8
+        ? token.substring(token.length - 8)
+        : token;
     return 'PROD-$compact';
   }
 
@@ -64,9 +66,7 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
     _descriptionController = TextEditingController(
       text: existing?.description ?? '',
     );
-    _categoryController = TextEditingController(
-      text: existing?.category ?? '',
-    );
+    _categoryController = TextEditingController(text: existing?.category ?? '');
     final initialUnitRaw = (existing == null || existing.unit.isEmpty)
         ? 'pcs'
         : existing.unit;
@@ -90,15 +90,9 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
     _reorderController = TextEditingController(
       text: existing != null ? existing.reorderLevel.toString() : '0',
     );
-    _barcodeController = TextEditingController(
-      text: existing?.barcode ?? '',
-    );
-    _supplierController = TextEditingController(
-      text: existing?.supplier ?? '',
-    );
-    _locationController = TextEditingController(
-      text: existing?.location ?? '',
-    );
+    _barcodeController = TextEditingController(text: existing?.barcode ?? '');
+    _supplierController = TextEditingController(text: existing?.supplier ?? '');
+    _locationController = TextEditingController(text: existing?.location ?? '');
     _taxController = TextEditingController(
       text: existing != null ? existing.taxRate.toStringAsFixed(2) : '0.00',
     );
@@ -116,8 +110,7 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
       text: existing.description ?? '',
     );
     _categoryController = TextEditingController(text: existing.category ?? '');
-    final initialUnitRaw =
-        existing.unit.isEmpty ? 'pcs' : existing.unit;
+    final initialUnitRaw = existing.unit.isEmpty ? 'pcs' : existing.unit;
     final initialUnit = initialUnitRaw.toLowerCase();
     if (ProductUnitOptions.isKnown(initialUnit)) {
       _selectedUnit = initialUnit;
@@ -263,7 +256,7 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
       if (latestState.errorMessage == null) {
         messenger.showSnackBar(
           const SnackBar(
-            content: Text('Product saved successfully.'),
+            content: Text('পণ্য সফলভাবে সংরক্ষিত হয়েছে।'),
             backgroundColor: Color(0xFF10B981),
           ),
         );
@@ -290,23 +283,23 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
 
   String? _requiredText(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Required';
+      return 'প্রয়োজন';
     }
     return null;
   }
 
   String? _nonNegativeNumber(String? value, {bool allowDecimals = true}) {
     if (value == null || value.trim().isEmpty) {
-      return 'Required';
+      return 'প্রয়োজন';
     }
     final numeric = allowDecimals
         ? double.tryParse(value.trim())
         : int.tryParse(value.trim());
     if (numeric == null) {
-      return 'Enter a valid number';
+      return 'একটি বৈধ সংখ্যা লিখুন';
     }
     if (numeric < 0) {
-      return 'Must be zero or greater';
+      return 'শূন্য বা তার বেশি হতে হবে';
     }
     return null;
   }
@@ -314,9 +307,9 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
   @override
   Widget build(BuildContext context) {
     final isEditing = _initialExisting != null;
-    final isSaving = _isSubmitting || ref.watch(
-      productDirectoryProvider.select((state) => state.isSaving),
-    );
+    final isSaving =
+        _isSubmitting ||
+        ref.watch(productDirectoryProvider.select((state) => state.isSaving));
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FB),
@@ -335,7 +328,7 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
           },
         ),
         title: Text(
-          isEditing ? 'Edit Product' : 'New Product',
+          isEditing ? 'পণ্য সম্পাদনা' : 'নতুন পণ্য',
           style: GoogleFonts.poppins(
             fontSize: 20,
             fontWeight: FontWeight.w700,
@@ -355,20 +348,20 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _SectionCard(
-                      title: 'General information',
+                      title: 'সাধারণ তথ্য',
                       children: [
                         _FormRow(
                           children: [
                             _TextField(
                               controller: _skuController,
                               label: 'SKU',
-                              hint: 'Internal product code',
+                              hint: 'অভ্যন্তরীণ পণ্য কোড',
                               validator: _requiredText,
                             ),
                             _TextField(
                               controller: _nameController,
-                              label: 'Product name',
-                              hint: 'What is this product called?',
+                              label: 'পণ্যের নাম',
+                              hint: 'এই পণ্যের নাম কী?',
                               validator: _requiredText,
                             ),
                           ],
@@ -377,8 +370,8 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
                           children: [
                             _TextField(
                               controller: _categoryController,
-                              label: 'Category',
-                              hint: 'e.g. Beverages, Hardware',
+                              label: 'বিভাগ',
+                              hint: 'যেমন: পানীয়, হার্ডওয়্যার',
                             ),
                             _UnitField(
                               selectedUnit: _selectedUnit,
@@ -399,8 +392,8 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
                           full: true,
                           child: _TextField(
                             controller: _descriptionController,
-                            label: 'Description',
-                            hint: 'Add details, notes, or specifications',
+                            label: 'বিবরণ',
+                            hint: 'বিবরণ, নোট বা স্পেসিফিকেশন যোগ করুন',
                             maxLines: 3,
                           ),
                         ),
@@ -408,31 +401,35 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
                     ),
                     const SizedBox(height: 16),
                     _SectionCard(
-                      title: 'Pricing & stock',
+                      title: 'মূল্য ও স্টক',
                       children: [
                         _FormRow(
                           children: [
                             _TextField(
                               controller: _priceController,
-                              label: 'Selling price',
-                              hint: '0.00',
+                              label: 'বিক্রয় মূল্য',
+                              hint: '০.০০',
                               keyboardType:
                                   const TextInputType.numberWithOptions(
-                                decimal: true,
+                                    decimal: true,
+                                  ),
+                              validator: (value) => _nonNegativeNumber(
+                                value,
+                                allowDecimals: true,
                               ),
-                              validator: (value) =>
-                                  _nonNegativeNumber(value, allowDecimals: true),
                             ),
                             _TextField(
                               controller: _costController,
-                              label: 'Cost price',
-                              hint: '0.00',
+                              label: 'মূল্য মূল্য',
+                              hint: '০.০০',
                               keyboardType:
                                   const TextInputType.numberWithOptions(
-                                decimal: true,
+                                    decimal: true,
+                                  ),
+                              validator: (value) => _nonNegativeNumber(
+                                value,
+                                allowDecimals: true,
                               ),
-                              validator: (value) =>
-                                  _nonNegativeNumber(value, allowDecimals: true),
                             ),
                           ],
                         ),
@@ -440,23 +437,26 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
                           children: [
                             _TextField(
                               controller: _stockController,
-                              label: 'Stock on hand',
-                              hint: '0',
+                              label: 'হাতে থাকা স্টক',
+                              hint: '০',
                               keyboardType: TextInputType.number,
-                              validator: (value) =>
-                                  _nonNegativeNumber(value, allowDecimals: false),
+                              validator: (value) => _nonNegativeNumber(
+                                value,
+                                allowDecimals: false,
+                              ),
                             ),
                             _TextField(
                               controller: _taxController,
-                              label: 'Tax rate (%)',
-                              hint: '0.00',
+                              label: 'কর হার (%)',
+                              hint: '০.০০',
                               keyboardType:
                                   const TextInputType.numberWithOptions(
-                                decimal: true,
+                                    decimal: true,
+                                  ),
+                              validator: (value) => _nonNegativeNumber(
+                                value,
+                                allowDecimals: true,
                               ),
-                              validator: (value) =>
-                                  _nonNegativeNumber(value,
-                                      allowDecimals: true),
                             ),
                           ],
                         ),
@@ -467,14 +467,14 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
                             value: _isTaxable,
                             activeThumbColor: const Color(0xFF4F46E5),
                             title: const Text(
-                              'Apply tax to this product',
+                              'এই পণ্যে কর প্রয়োগ করুন',
                               style: TextStyle(
                                 fontWeight: FontWeight.w700,
                                 color: Color(0xFF0F172A),
                               ),
                             ),
                             subtitle: const Text(
-                              'Toggle off for tax-exempt items.',
+                              'কর-মুক্ত আইটেমের জন্য বন্ধ করুন।',
                               style: TextStyle(color: Color(0xFF64748B)),
                             ),
                             onChanged: (value) {
@@ -486,19 +486,19 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
                     ),
                     const SizedBox(height: 16),
                     _SectionCard(
-                      title: 'Logistics',
+                      title: 'লজিস্টিকস',
                       children: [
                         _FormRow(
                           children: [
                             _TextField(
                               controller: _barcodeController,
-                              label: 'Barcode',
-                              hint: 'UPC / EAN code',
+                              label: 'বারকোড',
+                              hint: 'UPC / EAN কোড',
                             ),
                             _TextField(
                               controller: _supplierController,
-                              label: 'Supplier',
-                              hint: 'Preferred vendor',
+                              label: 'সরবরাহকারী',
+                              hint: 'পছন্দের বিক্রেতা',
                             ),
                           ],
                         ),
@@ -506,8 +506,8 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
                           full: true,
                           child: _TextField(
                             controller: _locationController,
-                            label: 'Storage location',
-                            hint: 'Warehouse, shelf, bin',
+                            label: 'সংরক্ষণের অবস্থান',
+                            hint: 'গোদাম, শেল্ফ, বিন',
                           ),
                         ),
                       ],
@@ -523,9 +523,9 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
                                     if (Navigator.of(context).canPop()) {
                                       Navigator.of(context).pop();
                                     } else {
-                                      GoRouter.of(context).go(
-                                        AppRoutes.products,
-                                      );
+                                      GoRouter.of(
+                                        context,
+                                      ).go(AppRoutes.products);
                                     }
                                   },
                             style: OutlinedButton.styleFrom(
@@ -534,7 +534,7 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
                                 borderRadius: BorderRadius.circular(18),
                               ),
                             ),
-                            child: const Text('Cancel'),
+                            child: const Text('বাতিল'),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -553,10 +553,10 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
                                 : const Icon(Icons.save_rounded),
                             label: Text(
                               isSaving
-                                  ? 'Saving...'
+                                  ? 'সংরক্ষণ হচ্ছে...'
                                   : isEditing
-                                      ? 'Update product'
-                                      : 'Create product',
+                                  ? 'পণ্য আপডেট'
+                                  : 'পণ্য তৈরি করুন',
                             ),
                             style: FilledButton.styleFrom(
                               backgroundColor: const Color(0xFF4F46E5),
@@ -623,8 +623,10 @@ class _SectionCard extends StatelessWidget {
 
 class _FormRow extends StatelessWidget {
   const _FormRow({this.children, this.full = false, this.child})
-      : assert((children == null) != (child == null),
-            'Provide either children or child, not both.');
+    : assert(
+        (children == null) != (child == null),
+        'শুধুমাত্র children বা child এর একটি প্রদান করুন, উভয় নয়।',
+      );
 
   final List<Widget>? children;
   final bool full;
@@ -633,10 +635,7 @@ class _FormRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (full) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 16),
-        child: child!,
-      );
+      return Padding(padding: const EdgeInsets.only(bottom: 16), child: child!);
     }
 
     final kids = children!;
@@ -768,7 +767,7 @@ class _UnitField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _DropdownField<String>(
-          label: 'Unit',
+          label: 'একক',
           value: selectedUnit,
           items: <DropdownMenuItem<String>>[
             for (final value in ProductUnitOptions.values)
@@ -778,7 +777,7 @@ class _UnitField extends StatelessWidget {
               ),
             const DropdownMenuItem<String>(
               value: ProductUnitOptions.customSentinel,
-              child: Text('Custom...'),
+              child: Text('নিজস্ব...'),
             ),
           ],
           onChanged: (value) {
@@ -791,8 +790,8 @@ class _UnitField extends StatelessWidget {
           TextFormField(
             controller: customController,
             decoration: const InputDecoration(
-              labelText: 'Custom unit',
-              hintText: 'e.g. bundle, kit, licence',
+              labelText: 'নিজস্ব একক',
+              hintText: 'যেমন: বান্ডেল, কিট, লাইসেন্স',
               filled: true,
               fillColor: Color(0xFFF8FAFC),
               border: OutlineInputBorder(
@@ -809,7 +808,7 @@ class _UnitField extends StatelessWidget {
                 return null;
               }
               if (value == null || value.trim().isEmpty) {
-                return 'Enter a custom unit';
+                return 'একটি নিজস্ব একক লিখুন';
               }
               return null;
             },

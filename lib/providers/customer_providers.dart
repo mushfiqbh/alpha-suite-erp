@@ -57,21 +57,25 @@ class CustomerDirectoryState {
       isLoading: isLoading ?? this.isLoading,
       isSaving: isSaving ?? this.isSaving,
       searchQuery: searchQuery ?? this.searchQuery,
-      statusFilter: clearStatusFilter ? null : (statusFilter ?? this.statusFilter),
+      statusFilter: clearStatusFilter
+          ? null
+          : (statusFilter ?? this.statusFilter),
       typeFilter: clearTypeFilter ? null : (typeFilter ?? this.typeFilter),
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     );
   }
 }
 
-class CustomerDirectoryController extends StateNotifier<CustomerDirectoryState> {
+class CustomerDirectoryController
+    extends StateNotifier<CustomerDirectoryState> {
   CustomerDirectoryController() : super(CustomerDirectoryState.initial()) {
     refresh();
   }
 
   SupabaseClient get _client => Supabase.instance.client;
 
-  bool get _isConfigured => SupabaseConfig.isConfigured && Supabase.instance.isInitialized;
+  bool get _isConfigured =>
+      SupabaseConfig.isConfigured && Supabase.instance.isInitialized;
 
   Future<void> refresh() async {
     if (!_isConfigured) {
@@ -99,18 +103,18 @@ class CustomerDirectoryController extends StateNotifier<CustomerDirectoryState> 
             .from('profiles')
             .select('id, full_name, email')
             .order('full_name', ascending: true);
-        assignees = List<Map<String, dynamic>>.from(profileData)
-            .map(ProfileOption.fromMap)
-            .toList();
+        assignees = List<Map<String, dynamic>>.from(
+          profileData,
+        ).map(ProfileOption.fromMap).toList();
       } catch (_) {
         assignees = const <ProfileOption>[];
       }
 
       state = state.copyWith(
         isLoading: false,
-        customers: List<Map<String, dynamic>>.from(customerData)
-            .map(CustomerRecord.fromMap)
-            .toList(),
+        customers: List<Map<String, dynamic>>.from(
+          customerData,
+        ).map(CustomerRecord.fromMap).toList(),
         assignees: assignees,
         clearError: true,
       );
@@ -206,8 +210,12 @@ class CustomerDirectoryController extends StateNotifier<CustomerDirectoryState> 
   }
 
   String _generateCustomerCode() {
-    final token = DateTime.now().millisecondsSinceEpoch.toRadixString(36).toUpperCase();
-    final compact = token.length > 8 ? token.substring(token.length - 8) : token;
+    final token = DateTime.now().millisecondsSinceEpoch
+        .toRadixString(36)
+        .toUpperCase();
+    final compact = token.length > 8
+        ? token.substring(token.length - 8)
+        : token;
     return 'CUST-$compact';
   }
 
@@ -225,6 +233,8 @@ class CustomerDirectoryController extends StateNotifier<CustomerDirectoryState> 
 }
 
 final customerDirectoryProvider =
-    StateNotifierProvider<CustomerDirectoryController, CustomerDirectoryState>((ref) {
-  return CustomerDirectoryController();
-});
+    StateNotifierProvider<CustomerDirectoryController, CustomerDirectoryState>((
+      ref,
+    ) {
+      return CustomerDirectoryController();
+    });

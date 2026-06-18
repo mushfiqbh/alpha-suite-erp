@@ -201,19 +201,6 @@ class _AttendanceFormPageState extends ConsumerState<AttendanceFormPage> {
     }
   }
 
-  void _markAll(String status) {
-    setState(() {
-      for (final row in _rows) {
-        row.status = status;
-        if (status == 'Present') {
-          row.checkIn ??= const TimeOfDay(hour: 9, minute: 0);
-          row.checkOut ??= const TimeOfDay(hour: 17, minute: 0);
-          _autoCalcWorkHours(row);
-        }
-      }
-    });
-  }
-
   Future<void> _handleSaveAll() async {
     if (_attendanceDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -338,24 +325,6 @@ class _AttendanceFormPageState extends ConsumerState<AttendanceFormPage> {
                     ),
                   ),
                 ),
-                ActionChip(
-                  avatar: const Icon(
-                    Icons.check_circle_outline,
-                    size: 18,
-                    color: Color(0xFF10B981),
-                  ),
-                  label: const Text('All Present'),
-                  onPressed: () => _markAll('Present'),
-                ),
-                ActionChip(
-                  avatar: const Icon(
-                    Icons.cancel_outlined,
-                    size: 18,
-                    color: Color(0xFFEF4444),
-                  ),
-                  label: const Text('All Absent'),
-                  onPressed: () => _markAll('Absent'),
-                ),
                 if (employees.length != _rows.length &&
                     !attState.isLoading &&
                     !_isSubmitting)
@@ -405,7 +374,7 @@ class _AttendanceFormPageState extends ConsumerState<AttendanceFormPage> {
                 )
               : LayoutBuilder(
                   builder: (context, constraints) {
-                    const double minTableWidth = 600;
+                    const double minTableWidth = 500;
                     final bool needsScroll =
                         constraints.maxWidth < minTableWidth;
                     final double tableWidth = needsScroll
@@ -423,10 +392,10 @@ class _AttendanceFormPageState extends ConsumerState<AttendanceFormPage> {
                           ),
                           child: Row(
                             children: [
-                              _headerCell('Employee', flex: 3),
+                              _headerCell('Employee', flex: 2),
                               _headerCell('Status', flex: 2),
-                              _headerCell('Check-in', flex: 2),
-                              _headerCell('Check-out', flex: 2),
+                              _headerCell('Check-in', flex: 1),
+                              _headerCell('Check-out', flex: 1),
                               _headerCell('Hours', flex: 1),
                             ],
                           ),
@@ -535,7 +504,7 @@ class _AttendanceFormPageState extends ConsumerState<AttendanceFormPage> {
         surfaceTintColor: Colors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
-          tooltip: 'Back to HR',
+          tooltip: 'Back to Manage',
           onPressed: () {
             if (GoRouter.of(context).canPop()) {
               context.pop();
@@ -631,7 +600,7 @@ class _AttendanceFormPageState extends ConsumerState<AttendanceFormPage> {
         children: [
           // Employee info
           Expanded(
-            flex: 3,
+            flex: 2,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -642,15 +611,6 @@ class _AttendanceFormPageState extends ConsumerState<AttendanceFormPage> {
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: const Color(0xFF0F172A),
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  employee?.employeeCode ?? '',
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    color: const Color(0xFF94A3B8),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -668,7 +628,7 @@ class _AttendanceFormPageState extends ConsumerState<AttendanceFormPage> {
           ),
           // Check-in
           Expanded(
-            flex: 2,
+            flex: 1,
             child: _TimeCell(
               time: row.checkIn,
               hint: 'In',
@@ -677,7 +637,7 @@ class _AttendanceFormPageState extends ConsumerState<AttendanceFormPage> {
           ),
           // Check-out
           Expanded(
-            flex: 2,
+            flex: 1,
             child: _TimeCell(
               time: row.checkOut,
               hint: 'Out',

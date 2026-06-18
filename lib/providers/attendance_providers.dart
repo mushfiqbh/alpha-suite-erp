@@ -16,6 +16,9 @@ String _formatError(Object error, String fallback) {
       message.contains('SocketException')) {
     return 'Connection error: Unable to reach Supabase. Check your network and configuration.';
   }
+  if (message.contains('row-level security') || message.contains('42501')) {
+    return 'Permission denied: Your account does not have the required role to perform this action. Contact an administrator.';
+  }
   return message.isEmpty ? fallback : message;
 }
 

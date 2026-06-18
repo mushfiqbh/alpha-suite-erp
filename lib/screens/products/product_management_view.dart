@@ -68,21 +68,21 @@ class _ProductManagementViewState extends ConsumerState<ProductManagementView> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(24),
           ),
-          title: const Text('Delete product?'),
+          title: const Text('পণ্য মুছবেন?'),
           content: Text(
-            'This will permanently remove "${product.displayName}" from the catalogue. This action cannot be undone.',
+            'এটি "${product.displayName}" কে ক্যাটালগ থেকে স্থায়ীভাবে সরিয়ে ফেলবে। এই কাজ পূর্বাবস্থায় ফেরানো যাবে না।',
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Cancel'),
+              child: const Text('বাতিল'),
             ),
             FilledButton(
               style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFFDC2626),
               ),
               onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('Delete'),
+              child: const Text('মুছুন'),
             ),
           ],
         );
@@ -95,7 +95,7 @@ class _ProductManagementViewState extends ConsumerState<ProductManagementView> {
         .deleteProduct(product.id!);
     messenger.showSnackBar(
       SnackBar(
-        content: Text('${product.displayName} removed from catalogue.'),
+        content: Text('${product.displayName} ক্যাটালগ থেকে সরানো হয়েছে।'),
         backgroundColor: const Color(0xFF0F172A),
       ),
     );
@@ -168,7 +168,7 @@ class _ProductManagementViewState extends ConsumerState<ProductManagementView> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Adjust stock & price',
+                                'স্টক ও মূল্য সামঞ্জস্য',
                                 style: GoogleFonts.poppins(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w700,
@@ -200,16 +200,18 @@ class _ProductManagementViewState extends ConsumerState<ProductManagementView> {
                             enabled: !isSaving,
                             keyboardType: TextInputType.number,
                             decoration: _sheetInputDecoration(
-                              label: 'Stock on hand',
-                              hint: '0',
+                              label: 'হাতে থাকা স্টক',
+                              hint: '০',
                               icon: Icons.inventory_2_outlined,
                             ),
                             validator: (value) {
                               final raw = value?.trim() ?? '';
-                              if (raw.isEmpty) return 'Required';
+                              if (raw.isEmpty) return 'প্রয়োজন';
                               final parsed = int.tryParse(raw);
-                              if (parsed == null) return 'Whole numbers only';
-                              if (parsed < 0) return 'Must be zero or greater';
+                              if (parsed == null)
+                                return 'শুধুমাত্র পূর্ণ সংখ্যা';
+                              if (parsed < 0)
+                                return 'শূন্য বা তার বেশি হতে হবে';
                               return null;
                             },
                           ),
@@ -223,16 +225,18 @@ class _ProductManagementViewState extends ConsumerState<ProductManagementView> {
                               decimal: true,
                             ),
                             decoration: _sheetInputDecoration(
-                              label: 'Selling price',
-                              hint: '0.00',
+                              label: 'বিক্রয় মূল্য',
+                              hint: '০.০০',
                               icon: Icons.payments_outlined,
                             ),
                             validator: (value) {
                               final raw = value?.trim() ?? '';
-                              if (raw.isEmpty) return 'Required';
+                              if (raw.isEmpty) return 'প্রয়োজন';
                               final parsed = double.tryParse(raw);
-                              if (parsed == null) return 'Enter a valid number';
-                              if (parsed < 0) return 'Must be zero or greater';
+                              if (parsed == null)
+                                return 'একটি বৈধ সংখ্যা লিখুন';
+                              if (parsed < 0)
+                                return 'শূন্য বা তার বেশি হতে হবে';
                               return null;
                             },
                           ),
@@ -256,7 +260,7 @@ class _ProductManagementViewState extends ConsumerState<ProductManagementView> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'Cost price, SKU and other details stay the same. Only stock and selling price will be updated.',
+                              'মূল্য মূল্য, SKU এবং অন্যান্য বিবরণ অপরিবর্তিত থাকবে। শুধুমাত্র স্টক এবং বিক্রয় মূল্য আপডেট হবে।',
                               style: const TextStyle(
                                 color: Color(0xFF475569),
                                 fontSize: 12,
@@ -281,7 +285,7 @@ class _ProductManagementViewState extends ConsumerState<ProductManagementView> {
                                 borderRadius: BorderRadius.circular(18),
                               ),
                             ),
-                            child: const Text('Cancel'),
+                            child: const Text('বাতিল'),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -317,7 +321,7 @@ class _ProductManagementViewState extends ConsumerState<ProductManagementView> {
                                       messenger.showSnackBar(
                                         SnackBar(
                                           content: Text(
-                                            '${product.displayName} updated.',
+                                            '${product.displayName} আপডেট করা হয়েছে।',
                                           ),
                                           backgroundColor: const Color(
                                             0xFF10B981,
@@ -349,7 +353,9 @@ class _ProductManagementViewState extends ConsumerState<ProductManagementView> {
                                     ),
                                   )
                                 : const Icon(Icons.save_rounded, size: 18),
-                            label: Text(isSaving ? 'Saving...' : 'Save'),
+                            label: Text(
+                              isSaving ? 'সংরক্ষণ হচ্ছে...' : 'সংরক্ষণ',
+                            ),
                             style: FilledButton.styleFrom(
                               backgroundColor: const Color(0xFF4F46E5),
                               padding: const EdgeInsets.symmetric(vertical: 14),
@@ -431,7 +437,7 @@ class _ProductManagementViewState extends ConsumerState<ProductManagementView> {
                   Row(
                     children: [
                       Text(
-                        'Filter products',
+                        'পণ্য ফিল্টার',
                         style: GoogleFonts.poppins(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
@@ -446,12 +452,12 @@ class _ProductManagementViewState extends ConsumerState<ProductManagementView> {
                             selectedCategory = null;
                           });
                         },
-                        child: const Text('Reset'),
+                        child: const Text('রিসেট'),
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  _SheetLabel(text: 'Status'),
+                  _SheetLabel(text: 'অবস্থা'),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
@@ -470,11 +476,11 @@ class _ProductManagementViewState extends ConsumerState<ProductManagementView> {
                     }).toList(),
                   ),
                   const SizedBox(height: 18),
-                  _SheetLabel(text: 'Category'),
+                  _SheetLabel(text: 'বিভাগ'),
                   const SizedBox(height: 8),
                   if (categories.isEmpty)
                     const Text(
-                      'Categories will appear once products are added.',
+                      'পণ্য যুক্ত হওয়ার পর বিভাগসমূহ প্রদর্শিত হবে।',
                       style: TextStyle(color: Color(0xFF64748B), fontSize: 13),
                     )
                   else
@@ -503,7 +509,7 @@ class _ProductManagementViewState extends ConsumerState<ProductManagementView> {
                         controller.setCategoryFilter(selectedCategory);
                         Navigator.of(sheetContext).pop();
                       },
-                      child: const Text('Apply filters'),
+                      child: const Text('ফিল্টার প্রয়োগ করুন'),
                     ),
                   ),
                 ],
@@ -549,7 +555,6 @@ class _ProductManagementViewState extends ConsumerState<ProductManagementView> {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 1380),
@@ -565,12 +570,10 @@ class _ProductManagementViewState extends ConsumerState<ProductManagementView> {
                     },
                     onFilterTap: () => _showFiltersSheet(context, ref, state),
                   ),
-                  const SizedBox(height: 16),
                   Container(
                     padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(28),
                       border: Border.all(color: const Color(0xFFE2E8F0)),
                       boxShadow: [
                         BoxShadow(
@@ -591,8 +594,8 @@ class _ProductManagementViewState extends ConsumerState<ProductManagementView> {
                                 children: [
                                   Text(
                                     filteredProducts.isEmpty
-                                        ? 'No products match the current search and filters.'
-                                        : 'Showing $pageStart-$pageEnd of ${filteredProducts.length} products',
+                                        ? 'বর্তমান অনুসন্ধান এবং ফিল্টারের সাথে মিলে এমন কোনো পণ্য নেই।'
+                                        : '${filteredProducts.length}টি পণ্যের মধ্যে $pageStart-$pageEnd দেখানো হচ্ছে',
                                     style: const TextStyle(
                                       color: Color(0xFF64748B),
                                       fontSize: 13,
@@ -617,7 +620,7 @@ class _ProductManagementViewState extends ConsumerState<ProductManagementView> {
                                   ? null
                                   : controller.refresh,
                               icon: const Icon(Icons.refresh_rounded),
-                              label: const Text('Refresh'),
+                              label: const Text('রিফ্রেশ'),
                             ),
                           ],
                         ),
@@ -740,7 +743,7 @@ class _NewProductFab extends StatelessWidget {
                 Icon(Icons.add_box_rounded, size: 18, color: Colors.white),
                 SizedBox(width: 8),
                 Text(
-                  'New Product',
+                  'নতুন পণ্য',
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
@@ -775,7 +778,6 @@ class SearchBarSection extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
@@ -796,7 +798,7 @@ class SearchBarSection extends StatelessWidget {
                 ),
               onChanged: onChanged,
               decoration: InputDecoration(
-                hintText: 'Search products, SKU or category...',
+                hintText: 'পণ্য, SKU বা বিভাগ অনুসন্ধান...',
                 hintStyle: const TextStyle(
                   color: Color(0xFF94A3B8),
                   fontSize: 14,
@@ -914,19 +916,19 @@ class _PaginationBar extends StatelessWidget {
               OutlinedButton.icon(
                 onPressed: onPreviousPage,
                 icon: const Icon(Icons.chevron_left_rounded),
-                label: const Text('Prev'),
+                label: const Text('পূর্ববর্তী'),
               ),
               const SizedBox(width: 10),
               OutlinedButton.icon(
                 onPressed: onNextPage,
                 icon: const Icon(Icons.chevron_right_rounded),
-                label: const Text('Next'),
+                label: const Text('পরবর্তী'),
               ),
             ],
           );
 
           final pageLabel = Text(
-            'Page ${pageIndex + 1} of $pageCount',
+            'পৃষ্ঠা ${pageIndex + 1} / $pageCount',
             style: const TextStyle(
               color: Color(0xFF94A3B8),
               fontSize: 12,
@@ -1006,11 +1008,11 @@ class _TableHeader extends StatelessWidget {
       child: Row(
         children: [
           _HeaderCell(width: 48, label: '#'),
-          _HeaderCell(width: 130, label: 'Product'),
-          _HeaderCell(width: 150, label: 'Category'),
-          _HeaderCell(width: 90, label: 'Price'),
-          _HeaderCell(width: 90, label: 'Stock'),
-          _HeaderCell(width: 130, label: 'Actions'),
+          _HeaderCell(width: 130, label: 'পণ্য'),
+          _HeaderCell(width: 150, label: 'বিভাগ'),
+          _HeaderCell(width: 90, label: 'মূল্য'),
+          _HeaderCell(width: 90, label: 'স্টক'),
+          _HeaderCell(width: 130, label: 'ক্রিয়া'),
         ],
       ),
     );
@@ -1187,21 +1189,21 @@ class _ProductRow extends StatelessWidget {
                   children: [
                     _ActionIconButton(
                       icon: Icons.tune_rounded,
-                      tooltip: 'Adjust stock / price',
+                      tooltip: 'স্টক / মূল্য সামঞ্জস্য',
                       color: const Color(0xFF4F46E5),
                       onTap: onAdjustStockPrice,
                     ),
                     const SizedBox(width: 2),
                     _ActionIconButton(
                       icon: Icons.edit_outlined,
-                      tooltip: 'Edit',
+                      tooltip: 'সম্পাদনা',
                       color: const Color(0xFF64748B),
                       onTap: onEdit,
                     ),
                     const SizedBox(width: 2),
                     _ActionIconButton(
                       icon: Icons.delete_outline,
-                      tooltip: 'Delete',
+                      tooltip: 'মুছুন',
                       color: const Color(0xFFDC2626),
                       onTap: onDelete,
                     ),
@@ -1294,7 +1296,9 @@ class _EmptyProductsState extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            hasFilters ? 'No matching products found' : 'No products yet',
+            hasFilters
+                ? 'কোন মিলে যাওয়া পণ্য পাওয়া যায়নি'
+                : 'এখনো কোনো পণ্য নেই',
             style: GoogleFonts.poppins(
               fontSize: 20,
               fontWeight: FontWeight.w700,
@@ -1304,8 +1308,8 @@ class _EmptyProductsState extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             hasFilters
-                ? 'Try a different search term or clear the filters to continue.'
-                : 'Create your first product to start tracking stock, prices, and sales.',
+                ? 'অনুগ্রহ করে ভিন্ন অনুসন্ধান শব্দ ব্যবহার করুন অথবা ফিল্টার সাফ করে আবার চেষ্টা করুন।'
+                : 'স্টক, মূল্য এবং বিক্রয় ট্র্যাকিং শুরু করতে আপনার প্রথম পণ্য তৈরি করুন।',
             textAlign: TextAlign.center,
             style: const TextStyle(color: Color(0xFF64748B), height: 1.5),
           ),
@@ -1313,7 +1317,7 @@ class _EmptyProductsState extends StatelessWidget {
           FilledButton.icon(
             onPressed: onCreate,
             icon: const Icon(Icons.add_box_rounded),
-            label: const Text('Add Product'),
+            label: const Text('পণ্য যোগ করুন'),
           ),
         ],
       ),

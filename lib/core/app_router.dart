@@ -15,18 +15,16 @@ import 'package:erp/screens/products/product_management_view.dart';
 import 'package:erp/screens/products/stock_out_view.dart';
 import 'package:erp/screens/auth/login_view.dart';
 import 'package:erp/screens/auth/splash_view.dart';
-import 'package:erp/screens/dashboard/dashboard_view.dart';
 import 'package:erp/screens/account/account_view.dart';
+import 'package:erp/screens/account/dashboard_view.dart';
 import 'package:erp/screens/hr/attendance_form_page.dart';
 import 'package:erp/screens/hr/employee_form_page.dart';
 import 'package:erp/screens/hr/hr_view.dart';
 import 'package:erp/screens/hr/mark_attendance_page.dart';
-import 'package:erp/screens/hr/payroll_period_form_page.dart';
-import 'package:erp/screens/hr/payroll_list_page.dart';
-import 'package:erp/screens/hr/payroll_form_page.dart';
-import 'package:erp/screens/pos/pos_view.dart';
+import 'package:erp/screens/sales/pos_view.dart';
 import 'package:erp/screens/sales/sales_list_view.dart';
 import 'package:erp/screens/admin/users_management_view.dart';
+import 'package:erp/screens/admin/access_requests_view.dart';
 import 'package:erp/services/permission_service.dart';
 import 'package:erp/layouts/app_shell.dart';
 
@@ -122,39 +120,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: AppRoutes.hrAttendanceMark,
-            builder: (context, state) => MarkAttendancePage(
-              employeeId: state.extra is String ? state.extra as String : null,
-            ),
-          ),
-          GoRoute(
-            path: AppRoutes.hrPayrollPeriods,
-            builder: (context, state) => const PayrollPeriodFormPage(),
-          ),
-          GoRoute(
-            path: AppRoutes.hrPayrollPeriodNew,
-            builder: (context, state) => PayrollPeriodFormPage(
-              existing: state.extra is PayrollPeriodRecord
-                  ? state.extra as PayrollPeriodRecord
-                  : null,
-            ),
-          ),
-          GoRoute(
-            path: AppRoutes.hrPayrollList,
-            builder: (context, state) => PayrollListPage(
-              periodId: state.extra is String ? state.extra as String : null,
-            ),
-          ),
-          GoRoute(
-            path: AppRoutes.hrPayrollNew,
-            builder: (context, state) => PayrollFormPage(
-              existing: state.extra is PayrollRecord
-                  ? state.extra as PayrollRecord
-                  : null,
-            ),
+            builder: (context, state) => const MarkAttendancePage(),
           ),
           GoRoute(
             path: AppRoutes.users,
             builder: (context, state) => const UsersManagementView(),
+          ),
+          GoRoute(
+            path: AppRoutes.accessRequests,
+            builder: (context, state) => const AccessRequestsView(),
           ),
           GoRoute(
             path: AppRoutes.account,

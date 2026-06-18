@@ -22,7 +22,7 @@ class _AppBottomNavState extends State<AppBottomNav> {
     BottomNavItem(label: 'Dashboard', icon: Icons.grid_view_rounded),
     BottomNavItem(label: 'Inventory', icon: Icons.inventory_2_outlined),
     BottomNavItem(label: 'CRM', icon: Icons.bar_chart_rounded),
-    BottomNavItem(label: 'HR', icon: Icons.people_outline_rounded),
+    BottomNavItem(label: 'Manager', icon: Icons.people_outline_rounded),
     BottomNavItem(label: 'More', icon: Icons.more_horiz_rounded),
   ];
 

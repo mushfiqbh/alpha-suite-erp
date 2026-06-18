@@ -353,6 +353,30 @@ class SalesService {
         .eq('id', orderId);
   }
 
+  /// Revert a sales order back to unpaid. Sets [payment_status] to 'UNPAID',
+  /// [paid_amount] to 0 and [due_amount] to [grand_total].
+  Future<void> markAsUnpaid(String orderId) async {
+    if (!_isConfigured) return;
+    if (orderId.isEmpty) return;
+
+    final row = await _client
+        .from('sales_orders')
+        .select('grand_total')
+        .eq('id', orderId)
+        .single();
+
+    final grandTotal = _parseDouble(row['grand_total']);
+
+    await _client
+        .from('sales_orders')
+        .update({
+          'payment_status': 'UNPAID',
+          'paid_amount': '0.00',
+          'due_amount': _money(grandTotal),
+        })
+        .eq('id', orderId);
+  }
+
   double _parseDouble(dynamic value, {double fallback = 0}) {
     if (value == null) return fallback;
     if (value is num) return value.toDouble();

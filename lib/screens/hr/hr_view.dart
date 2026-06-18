@@ -9,7 +9,6 @@ import 'package:erp/core/app_routes.dart';
 import 'package:erp/models/hr.dart';
 import 'package:erp/providers/hr_providers.dart';
 import 'package:erp/screens/hr/attendance_form_page.dart';
-import 'package:erp/screens/hr/mark_attendance_page.dart';
 
 class HrView extends ConsumerStatefulWidget {
   const HrView({super.key});
@@ -25,7 +24,7 @@ class _HrViewState extends ConsumerState<HrView>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
@@ -57,21 +56,10 @@ class _HrViewState extends ConsumerState<HrView>
               fontWeight: FontWeight.w500,
             ),
             tabs: const [
-              Tab(
-                icon: Icon(Icons.badge_outlined, size: 18),
-                text: 'Employees',
-              ),
+              Tab(icon: Icon(Icons.badge_outlined, size: 18), text: 'কর্মচারী'),
               Tab(
                 icon: Icon(Icons.table_chart_outlined, size: 18),
-                text: 'Attendance Sheet',
-              ),
-              Tab(
-                icon: Icon(Icons.person_add_alt_1_rounded, size: 18),
-                text: 'Attend',
-              ),
-              Tab(
-                icon: Icon(Icons.payments_outlined, size: 18),
-                text: 'Payroll',
+                text: 'উপস্থিতি শীট',
               ),
             ],
           ),
@@ -79,12 +67,7 @@ class _HrViewState extends ConsumerState<HrView>
         Expanded(
           child: TabBarView(
             controller: _tabController,
-            children: const [
-              _EmployeesTab(),
-              _BulkAttendanceTab(),
-              _IndividualAttendanceTab(),
-              _PayrollTab(),
-            ],
+            children: const [_EmployeesTab(), _BulkAttendanceTab()],
           ),
         ),
       ],
@@ -159,12 +142,14 @@ class _EmployeesTabState extends ConsumerState<_EmployeesTab> {
       filterContent: const SizedBox.shrink(),
       activeFilterChips: const <Widget>[],
       summary: filtered.isEmpty
-          ? (state.isLoading ? 'Loading employees...' : 'No employees found')
-          : 'Showing $pageStart-$pageEnd of ${filtered.length} employees',
+          ? (state.isLoading
+                ? 'কর্মচারী লোড হচ্ছে...'
+                : 'কোন কর্মচারী পাওয়া যায়নি')
+          : '$pageStart-$pageEnd দেখানো হচ্ছে (মোট ${filtered.length} জন কর্মচারী)',
       isEmpty: filtered.isEmpty,
-      emptyTitle: 'No employees yet',
+      emptyTitle: 'এখনো কোনো কর্মচারী নেই',
       emptyMessage:
-          'Add your first employee to start building your team. They\'ll appear here once saved.',
+          'আপনার প্রথম কর্মচারী যোগ করুন। সংরক্ষণের পর তারা এখানে প্রদর্শিত হবে।',
       onCreate: () => context.push(AppRoutes.hrEmployeeNew),
       gridBuilder: (crossAxisCount) => GridView.builder(
         padding: const EdgeInsets.fromLTRB(20, 4, 20, 4),
@@ -187,9 +172,9 @@ class _EmployeesTabState extends ConsumerState<_EmployeesTab> {
                 context.push(AppRoutes.hrEmployeeNew, extra: employee),
             onDelete: () => _confirmDelete(
               context,
-              title: 'Delete employee?',
+              title: 'কর্মচারী মুছবেন?',
               message:
-                  'This will permanently delete ${employee.fullName}. This action cannot be undone.',
+                  '${employee.fullName} কে স্থায়ীভাবে মুছে ফেলা হবে। এই action পূর্বাবস্থায় ফেরানো যাবে না।',
               onConfirm: () async {
                 final messenger = ScaffoldMessenger.of(context);
                 final controller = ref.read(employeeDirectoryProvider.notifier);
@@ -199,7 +184,7 @@ class _EmployeesTabState extends ConsumerState<_EmployeesTab> {
                 if (latest.errorMessage == null) {
                   messenger.showSnackBar(
                     SnackBar(
-                      content: Text('${employee.fullName} deleted.'),
+                      content: Text('${employee.fullName} মুছে ফেলা হয়েছে।'),
                       backgroundColor: const Color(0xFF10B981),
                     ),
                   );
@@ -249,136 +234,133 @@ class _EmployeeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusColor = EmployeeStatusOptions.color(employee.status);
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Row(
-        children: [
-          Container(
-            width: 6,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF1E3A8A), Color(0xFF4F46E5)],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
+    return GestureDetector(
+      onTap: onEdit,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Row(
+          children: [
+            Container(
+              width: 6,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF1E3A8A), Color(0xFF4F46E5)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 10),
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF1E3A8A), Color(0xFF4F46E5)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+            const SizedBox(width: 10),
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF1E3A8A), Color(0xFF4F46E5)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(8),
               ),
-              borderRadius: BorderRadius.circular(8),
+              alignment: Alignment.center,
+              child: Icon(Icons.badge_outlined, color: Colors.white, size: 18),
             ),
-            alignment: Alignment.center,
-            child: Icon(Icons.badge_outlined, color: Colors.white, size: 18),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          employee.fullName,
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFF0F172A),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Container(
-                        width: 6,
-                        height: 6,
-                        decoration: BoxDecoration(
-                          color: statusColor,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 3),
-                      Text(
-                        EmployeeStatusOptions.label(employee.status),
-                        style: GoogleFonts.inter(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w600,
-                          color: statusColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Text(
-                    employee.employeeCode,
-                    style: GoogleFonts.inter(
-                      fontSize: 10,
-                      color: const Color(0xFF94A3B8),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (departmentName != null || designationTitle != null) ...[
-                    const SizedBox(height: 4),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
                     Row(
                       children: [
-                        if (departmentName != null) ...[
-                          _Pill(text: departmentName!),
-                          const SizedBox(width: 4),
-                        ],
-                        if (designationTitle != null)
-                          _Pill(text: designationTitle!),
+                        Flexible(
+                          child: Text(
+                            employee.fullName,
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF0F172A),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: statusColor,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 3),
+                        Text(
+                          EmployeeStatusOptions.label(employee.status),
+                          style: GoogleFonts.inter(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w600,
+                            color: statusColor,
+                          ),
+                        ),
                       ],
                     ),
+                    Text(
+                      employee.employeeCode,
+                      style: GoogleFonts.inter(
+                        fontSize: 10,
+                        color: const Color(0xFF94A3B8),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (departmentName != null || designationTitle != null) ...[
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          if (departmentName != null) ...[
+                            _Pill(text: departmentName!),
+                            const SizedBox(width: 4),
+                          ],
+                          if (designationTitle != null)
+                            _Pill(text: designationTitle!),
+                        ],
+                      ),
+                    ],
                   ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _CompactIconButton(
+                    icon: Icons.delete_outline,
+                    tooltip: 'মুছুন',
+                    onPressed: onDelete,
+                  ),
                 ],
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _CompactIconButton(
-                  icon: Icons.edit_outlined,
-                  tooltip: 'Edit',
-                  onPressed: onEdit,
-                ),
-                const SizedBox(height: 2),
-                _CompactIconButton(
-                  icon: Icons.delete_outline,
-                  tooltip: 'Delete',
-                  onPressed: onDelete,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 6),
-        ],
+            const SizedBox(width: 6),
+          ],
+        ),
       ),
     );
   }
@@ -394,19 +376,6 @@ class _BulkAttendanceTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const AttendanceFormPage(embedded: true);
-  }
-}
-
-// ===========================================================================
-// Individual Attendance tab — inline form
-// ===========================================================================
-
-class _IndividualAttendanceTab extends StatelessWidget {
-  const _IndividualAttendanceTab();
-
-  @override
-  Widget build(BuildContext context) {
-    return const MarkAttendancePage(embedded: true);
   }
 }
 
@@ -469,7 +438,7 @@ class SearchBarSection extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.close_rounded, color: Color(0xFF94A3B8)),
               onPressed: () => onSearchChanged(''),
-              tooltip: 'Clear',
+              tooltip: 'সাফ করুন',
             ),
         ],
       ),
@@ -523,7 +492,7 @@ class _TabShell extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: SearchBarSection(
               searchQuery: searchQuery,
-              hintText: 'Search by name, code, email, or shift...',
+              hintText: 'নাম, কোড, ইমেইল বা শিফট দ্বারা অনুসন্ধান...',
               onSearchChanged: onSearch,
             ),
           ),
@@ -556,6 +525,25 @@ class _TabShell extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (!isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: FilledButton.icon(
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 6,
+                        ),
+                        textStyle: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      onPressed: onCreate,
+                      icon: const Icon(Icons.add_rounded, size: 16),
+                      label: const Text('তৈরি করুন'),
+                    ),
+                  ),
                 if (isLoading)
                   const SizedBox(
                     width: 14,
@@ -842,384 +830,5 @@ Future<void> _confirmDelete(
   );
   if (result == true) {
     await onConfirm();
-  }
-}
-
-// ===========================================================================
-// Payroll tab — periods list
-// ===========================================================================
-
-class _PayrollTab extends ConsumerStatefulWidget {
-  const _PayrollTab();
-
-  @override
-  ConsumerState<_PayrollTab> createState() => _PayrollTabState();
-}
-
-class _PayrollTabState extends ConsumerState<_PayrollTab> {
-  @override
-  void initState() {
-    super.initState();
-    Future.microtask(
-      () => ref.read(payrollPeriodListProvider.notifier).refresh(),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final state = ref.watch(payrollPeriodListProvider);
-    final periods = state.periods;
-
-    return RefreshIndicator(
-      onRefresh: () => ref.read(payrollPeriodListProvider.notifier).refresh(),
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  periods.isEmpty
-                      ? 'No payroll periods yet'
-                      : '${periods.length} payroll period${periods.length == 1 ? '' : 's'}',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: const Color(0xFF64748B),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-              if (state.isLoading)
-                const SizedBox(
-                  width: 14,
-                  height: 14,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              const SizedBox(width: 8),
-              FilledButton.icon(
-                onPressed: () => context.push(AppRoutes.hrPayrollPeriodNew),
-                icon: const Icon(Icons.add_rounded, size: 16),
-                label: const Text('New Period'),
-                style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF1E3A8A),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 8,
-                  ),
-                  textStyle: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          if (state.errorMessage != null) ...[
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFEE2E2),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFFCA5A5)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.error_outline,
-                    color: Color(0xFFB91C1C),
-                    size: 18,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      state.errorMessage!,
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        color: const Color(0xFFB91C1C),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-          const SizedBox(height: 12),
-          if (periods.isEmpty && !state.isLoading)
-            _EmptyPayrollState(
-              onCreate: () => context.push(AppRoutes.hrPayrollPeriodNew),
-            )
-          else
-            ...periods.map(
-              (period) => _PayrollPeriodCard(
-                period: period,
-                onView: () =>
-                    context.push(AppRoutes.hrPayrollList, extra: period.id),
-                onEdit: () =>
-                    context.push(AppRoutes.hrPayrollPeriodNew, extra: period),
-                onDelete: () => _confirmDeletePeriod(context, period),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _confirmDeletePeriod(
-    BuildContext context,
-    PayrollPeriodRecord period,
-  ) async {
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Delete period?'),
-        content: Text(
-          'This will permanently delete the ${period.periodLabel} period '
-          'and all associated payroll entries. This cannot be undone.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFFEF4444),
-            ),
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-    if (result == true) {
-      final messenger = ScaffoldMessenger.of(context);
-      await ref
-          .read(payrollPeriodListProvider.notifier)
-          .deletePeriod(period.id!);
-      if (!mounted) return;
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('${period.periodLabel} deleted.'),
-          backgroundColor: const Color(0xFF10B981),
-        ),
-      );
-    }
-  }
-}
-
-class _PayrollPeriodCard extends StatelessWidget {
-  const _PayrollPeriodCard({
-    required this.period,
-    required this.onView,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  final PayrollPeriodRecord period;
-  final VoidCallback onView;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  @override
-  Widget build(BuildContext context) {
-    final statusColor = PayrollPeriodStatusOptions.color(period.status);
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onView,
-        child: Row(
-          children: [
-            Container(
-              width: 6,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF1E3A8A), Color(0xFF4F46E5)],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF1E3A8A), Color(0xFF4F46E5)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              alignment: Alignment.center,
-              child: const Icon(
-                Icons.calendar_month_outlined,
-                color: Colors.white,
-                size: 18,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            period.periodLabel,
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF0F172A),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Container(
-                          width: 6,
-                          height: 6,
-                          decoration: BoxDecoration(
-                            color: statusColor,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 3),
-                        Text(
-                          PayrollPeriodStatusOptions.label(period.status),
-                          style: GoogleFonts.inter(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w600,
-                            color: statusColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (period.startDate != null && period.endDate != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        '${_fmtDate(period.startDate!)} — ${_fmtDate(period.endDate!)}',
-                        style: GoogleFonts.inter(
-                          fontSize: 10,
-                          color: const Color(0xFF94A3B8),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _CompactIconButton(
-                    icon: Icons.edit_outlined,
-                    tooltip: 'Edit',
-                    onPressed: onEdit,
-                  ),
-                  const SizedBox(width: 2),
-                  _CompactIconButton(
-                    icon: Icons.delete_outline,
-                    tooltip: 'Delete',
-                    onPressed: onDelete,
-                  ),
-                  const SizedBox(width: 4),
-                  const Icon(
-                    Icons.chevron_right_rounded,
-                    color: Color(0xFF94A3B8),
-                    size: 20,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 6),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _fmtDate(DateTime d) =>
-      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-}
-
-class _EmptyPayrollState extends StatelessWidget {
-  const _EmptyPayrollState({required this.onCreate});
-
-  final VoidCallback onCreate;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 40),
-      child: Column(
-        children: [
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF1E3A8A), Color(0xFF4F46E5)],
-              ),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Icon(
-              Icons.payments_outlined,
-              color: Colors.white,
-              size: 32,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No payroll periods',
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFF0F172A),
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Create a payroll period to start managing employee payroll.',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              color: const Color(0xFF64748B),
-            ),
-          ),
-          const SizedBox(height: 20),
-          FilledButton.icon(
-            onPressed: onCreate,
-            icon: const Icon(Icons.add_rounded, size: 18),
-            label: const Text('Create Period'),
-            style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF1E3A8A),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }

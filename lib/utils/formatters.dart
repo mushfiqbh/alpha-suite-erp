@@ -9,7 +9,7 @@ library;
 /// Mirrors the `_money` helper used in `SalesService` so the POS, sales list,
 /// and reports all render totals the same way.
 class MoneyFormatter {
-  const MoneyFormatter({this.symbol = '\$', this.decimals = 2});
+  const MoneyFormatter({this.symbol = '৳', this.decimals = 2});
 
   /// Currency symbol prepended to the formatted value. Defaults to `$`.
   final String symbol;

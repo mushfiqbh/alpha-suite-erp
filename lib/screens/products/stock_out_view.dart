@@ -26,7 +26,7 @@ class _StockOutViewState extends ConsumerState<StockOutView> {
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.white,
         title: Text(
-          'Stock Out Products',
+          'স্টকআউট পণ্য',
           style: GoogleFonts.poppins(
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -67,7 +67,7 @@ class _StockOutViewState extends ConsumerState<StockOutView> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'All products are well-stocked!',
+                          'সব পণ্যই পর্যাপ্ত মজুত আছে!',
                           style: GoogleFonts.inter(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
@@ -91,7 +91,7 @@ class _StockOutViewState extends ConsumerState<StockOutView> {
       child: TextField(
         onChanged: (value) => setState(() => _searchQuery = value),
         decoration: InputDecoration(
-          hintText: 'Search products...',
+          hintText: 'পণ্য অনুসন্ধান...',
           hintStyle: GoogleFonts.inter(
             fontSize: 14,
             color: const Color(0xFF9E9BB8),
@@ -142,12 +142,12 @@ class _StockOutViewState extends ConsumerState<StockOutView> {
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
       children: [
         if (outOfStock.isNotEmpty) ...[
-          _buildSectionHeader('Out of Stock', outOfStock.length, true),
+          _buildSectionHeader('স্টক শেষ', outOfStock.length, true),
           ...outOfStock.map((p) => _buildProductTile(p)),
           const SizedBox(height: 8),
         ],
         if (lowStock.isNotEmpty) ...[
-          _buildSectionHeader('Low Stock', lowStock.length, false),
+          _buildSectionHeader('স্বল্প স্টক', lowStock.length, false),
           ...lowStock.map((p) => _buildProductTile(p)),
         ],
       ],
@@ -180,7 +180,7 @@ class _StockOutViewState extends ConsumerState<StockOutView> {
           ),
           const SizedBox(width: 8),
           Text(
-            '$count product${count == 1 ? '' : 's'}',
+            '$countটি পণ্য',
             style: GoogleFonts.inter(
               fontSize: 13,
               color: const Color(0xFF9E9BB8),
@@ -291,7 +291,7 @@ class _StockOutViewState extends ConsumerState<StockOutView> {
   List<ProductRecord> _stockOutProducts(List<ProductRecord> allProducts) {
     final query = _searchQuery.trim().toLowerCase();
     return allProducts.where((p) {
-      if (!p.isLowStock) return false;
+      if (p.stock > 0 && !p.isLowStock) return false;
       if (query.isEmpty) return true;
       return p.displayName.toLowerCase().contains(query) ||
           p.sku.toLowerCase().contains(query) ||

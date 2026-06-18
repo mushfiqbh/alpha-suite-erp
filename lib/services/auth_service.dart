@@ -119,6 +119,7 @@ class AuthService {
   Future<AuthSession?> signUp({
     required String identifier,
     required String password,
+    String? name,
   }) async {
     if (!_isConfigured) {
       throw StateError(
@@ -131,17 +132,21 @@ class AuthService {
       throw StateError('Email is required for sign-up.');
     }
 
+    final displayName = name?.trim().isNotEmpty == true
+        ? name!.trim()
+        : normalizedIdentifier.split('@').first;
+
     final response = _looksLikeEmail(normalizedIdentifier)
         ? await _client.auth.signUp(
             email: normalizedIdentifier,
             password: password,
-            data: {'full_name': normalizedIdentifier.split('@').first},
+            data: {'full_name': displayName},
           )
         : await _client.auth.signUp(
             phone: _normalizePhone(normalizedIdentifier),
             password: password,
             data: {
-              'full_name': normalizedIdentifier,
+              'full_name': displayName,
               'phone': _normalizePhone(normalizedIdentifier),
             },
           );
@@ -168,22 +173,42 @@ class AuthService {
     await _client.auth.signOut();
   }
 
-  /// Update the current user's profile (full_name in the profiles table
+  /// Update the current user's profile (full_name and phone in the profiles table
   /// and auth user_metadata).
-  Future<void> updateProfile({required String fullName}) async {
+  Future<void> updateProfile({required String fullName, String? phone}) async {
     if (!_isConfigured) return;
 
     final user = _client.auth.currentUser;
     if (user == null) return;
 
-    await _client
-        .from('profiles')
-        .update({'full_name': fullName})
-        .eq('id', user.id);
+    final profileUpdate = <String, dynamic>{'full_name': fullName};
+    if (phone != null) {
+      profileUpdate['phone'] = _normalizePhone(phone);
+    }
 
-    await _client.auth.updateUser(
-      UserAttributes(data: {'full_name': fullName}),
-    );
+    await _client.from('profiles').update(profileUpdate).eq('id', user.id);
+
+    final metadata = <String, dynamic>{'full_name': fullName};
+    if (phone != null) {
+      metadata['phone'] = _normalizePhone(phone);
+    }
+
+    await _client.auth.updateUser(UserAttributes(data: metadata));
+  }
+
+  /// Send a password reset email to the current user's email address via Supabase.
+  Future<void> resetPassword() async {
+    if (!_isConfigured) return;
+
+    final user = _client.auth.currentUser;
+    if (user == null) throw Exception('Not authenticated');
+
+    final email = user.email;
+    if (email == null || email.isEmpty) {
+      throw Exception('No email address found on your account.');
+    }
+
+    await _client.auth.resetPasswordForEmail(email);
   }
 
   /// Upload an avatar image to Supabase Storage and update the profile.

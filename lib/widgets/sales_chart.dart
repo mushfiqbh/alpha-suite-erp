@@ -52,7 +52,7 @@ class _SalesChartWidgetState extends ConsumerState<SalesChartWidget> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Sales Performance',
+                    'বিক্রয় কর্মক্ষমতা',
                     style: GoogleFonts.poppins(
                       fontSize: 20,
                       fontWeight: FontWeight.w500,
@@ -62,7 +62,7 @@ class _SalesChartWidgetState extends ConsumerState<SalesChartWidget> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Monthly revenue and growth trends',
+                    'মাসিক আয় ও প্রবৃদ্ধির ধারা',
                     style: GoogleFonts.inter(
                       fontSize: 13,
                       fontWeight: FontWeight.w400,
@@ -74,8 +74,8 @@ class _SalesChartWidgetState extends ConsumerState<SalesChartWidget> {
               Row(
                 children: _ChartRange.values.map((range) {
                   final label = range == _ChartRange.yearly
-                      ? 'YEARLY'
-                      : 'MONTHLY';
+                      ? 'বার্ষিক'
+                      : 'মাসিক';
                   final isActive = _activeRange == range;
                   return GestureDetector(
                     onTap: () => setState(() => _activeRange = range),
@@ -123,7 +123,7 @@ class _SalesChartWidgetState extends ConsumerState<SalesChartWidget> {
               height: 220,
               child: Center(
                 child: Text(
-                  'Unable to load sales data',
+                  'বিক্রয় তথ্য লোড করা যায়নি',
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     color: const Color(0xFF464555),
@@ -156,7 +156,7 @@ class _ChartBody extends StatelessWidget {
         height: 220,
         child: Center(
           child: Text(
-            'No sales recorded yet',
+            'এখনো কোনো বিক্রয় রেকর্ড করা হয়নি',
             style: GoogleFonts.inter(
               fontSize: 13,
               color: const Color(0xFF464555),
@@ -198,7 +198,7 @@ class _ChartBody extends StatelessWidget {
                       return touchedSpots.map((spot) {
                         return LineTooltipItem(
                           '${series.tooltipLabel(spot.x.toInt())}\n'
-                          '\$${_formatK(spot.y)}',
+                          '৳${_formatK(spot.y)}',
                           GoogleFonts.inter(
                             color: Colors.white,
                             fontSize: 12,
@@ -264,7 +264,7 @@ class _ChartBody extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '\$${_formatK(series.currentValue)}',
+                    '৳${_formatK(series.currentValue)}',
                     style: GoogleFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -340,7 +340,7 @@ _ChartSeries _aggregateLast30Days(List<SalesOrderRecord> orders) {
   final now = DateTime.now();
   // Four roughly 7-day buckets: 21-30d, 14-21d, 7-14d, 0-7d.
   final buckets = List<double>.filled(4, 0);
-  final labels = <String>['Wk 1', 'Wk 2', 'Wk 3', 'Wk 4'];
+  final labels = <String>['সপ্তাহ ১', 'সপ্তাহ ২', 'সপ্তাহ ৩', 'সপ্তাহ ৪'];
 
   for (final order in orders) {
     final diff = now.difference(order.orderDate).inDays;
@@ -366,18 +366,18 @@ _ChartSeries _aggregateLast30Days(List<SalesOrderRecord> orders) {
 
 String _monthAbbr(int month) {
   const names = <String>[
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
+    'জানু',
+    'ফেব্রু',
+    'মার্চ',
+    'এপ্রি',
+    'মে',
+    'জুন',
+    'জুলা',
+    'আগ',
+    'সেপ্টে',
+    'অক্টো',
+    'নভে',
+    'ডিসে',
   ];
   return names[(month - 1).clamp(0, 11)];
 }

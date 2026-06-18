@@ -10,6 +10,7 @@ import 'package:erp/models/sales_order.dart';
 import 'package:erp/providers/customer_providers.dart';
 import 'package:erp/providers/product_providers.dart';
 import 'package:erp/providers/sales_providers.dart';
+import 'package:erp/utils/formatters.dart';
 
 enum ActivityIconType { invoice, inventory, system }
 
@@ -48,7 +49,7 @@ class ActivityFeedWidget extends ConsumerWidget {
     final navContext = context;
     ordersAsync.whenData((orders) {
       for (final order in orders.take(5)) {
-        items.add(_orderActivity(order, customersById, navContext));
+        items.add(_orderActivity(order, customersById, navContext, ref));
       }
     });
 
@@ -60,8 +61,8 @@ class ActivityFeedWidget extends ConsumerWidget {
       // Avoid a jarring empty box: render a single muted placeholder.
       items.add(
         const ActivityItem(
-          title: 'No recent activity',
-          meta: 'Sales and inventory will appear here',
+          title: 'সাম্প্রতিক কোনো কার্যকলাপ নেই',
+          meta: 'বিক্রয় ও ইনভেন্টরি তথ্য এখানে দেখানো হবে',
           iconType: ActivityIconType.system,
           muted: true,
         ),
@@ -89,7 +90,7 @@ class ActivityFeedWidget extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Recent Activity',
+            'সাম্প্রতিক কার্যকলাপ',
             style: GoogleFonts.poppins(
               fontSize: 20,
               fontWeight: FontWeight.w500,
@@ -163,7 +164,7 @@ class ActivityFeedWidget extends ConsumerWidget {
           GestureDetector(
             onTap: () => context.push(AppRoutes.sales),
             child: Text(
-              'View all logs →',
+              'সব লগ দেখুন →',
               style: GoogleFonts.inter(
                 fontSize: 13,
                 fontWeight: FontWeight.w400,
@@ -181,14 +182,15 @@ class ActivityFeedWidget extends ConsumerWidget {
     SalesOrderRecord order,
     Map<String, CustomerRecord> customersById,
     BuildContext context,
+    WidgetRef ref,
   ) {
     final customerName = order.customerId == null
         ? null
         : customersById[order.customerId]?.displayName;
-    final amount = '\$${order.grandTotal.toStringAsFixed(2)}';
-    final title = 'Invoice ${order.invoiceNo} • $amount';
+    final amount = '৳${order.grandTotal.toStringAsFixed(2)}';
+    final title = 'ইনভয়েস ${order.invoiceNo} • $amount';
     final metaParts = <String>[
-      if (customerName != null) 'CLIENT: ${customerName.toUpperCase()}',
+      if (customerName != null) 'গ্রাহক: ${customerName.toUpperCase()}',
       order.paymentStatus.toUpperCase(),
       _relativeTime(order.orderDate),
     ];
@@ -196,7 +198,7 @@ class ActivityFeedWidget extends ConsumerWidget {
       title: title,
       meta: metaParts.join(' • '),
       iconType: ActivityIconType.invoice,
-      onTap: () => context.push(AppRoutes.sales),
+      onTap: () => _showOrderDetailSheet(context, order, customerName, ref),
     );
   }
 
@@ -205,11 +207,224 @@ class ActivityFeedWidget extends ConsumerWidget {
     BuildContext context,
   ) {
     return ActivityItem(
-      title: 'New inventory: ${product.displayName}',
+      title: 'নতুন ইনভেন্টরি: ${product.displayName}',
       meta:
           '${(product.category ?? 'INVENTORY').toUpperCase()} • ${_relativeTime(product.createdAt ?? DateTime.now())}',
       iconType: ActivityIconType.inventory,
-      onTap: () => context.push(AppRoutes.products),
+      onTap: () => context.push(AppRoutes.productNew, extra: product),
+    );
+  }
+
+  static void _showOrderDetailSheet(
+    BuildContext context,
+    SalesOrderRecord order,
+    String? customerName,
+    WidgetRef ref,
+  ) {
+    final money = const MoneyFormatter();
+    final dateTime = const DateTimeFormatter();
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.5,
+        minChildSize: 0.35,
+        maxChildSize: 0.85,
+        expand: false,
+        builder: (scrollContext, scrollController) {
+          return Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: ListView(
+              controller: scrollController,
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE2E8F0),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        order.invoiceNo.isEmpty
+                            ? 'অর্ডার বিবরণ'
+                            : 'ইনভয়েস ${order.invoiceNo}',
+                        style: GoogleFonts.poppins(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF0F172A),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded),
+                      onPressed: () => Navigator.of(scrollContext).pop(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  dateTime.format(order.orderDate.toLocal()),
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: const Color(0xFF64748B),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _DetailRow(label: 'গ্রাহক', value: customerName ?? 'ওয়াক-ইন'),
+                _DetailRow(
+                  label: 'পেমেন্ট',
+                  value: order.paymentStatus.toUpperCase(),
+                  valueColor: order.paymentStatus.toUpperCase() == 'PAID'
+                      ? const Color(0xFF10B981)
+                      : order.paymentStatus.toUpperCase() == 'UNPAID'
+                      ? const Color(0xFFDC2626)
+                      : const Color(0xFFD97706),
+                ),
+                const SizedBox(height: 8),
+                if (order.paymentStatus.toUpperCase() == 'UNPAID')
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: () {
+                        ref
+                            .read(recentSalesOrdersProvider.notifier)
+                            .markPaymentDone(order.id ?? '');
+                        Navigator.of(scrollContext).pop();
+                      },
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFF10B981),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 8,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'পেমেন্ট সম্পন্ন',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ),
+                if (order.paymentStatus.toUpperCase() == 'PAID')
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: () {
+                        ref
+                            .read(recentSalesOrdersProvider.notifier)
+                            .markAsUnpaid(order.id ?? '');
+                        Navigator.of(scrollContext).pop();
+                      },
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFFF59E0B),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 8,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'অপরিশোধিত করুন',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 20),
+                const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                const SizedBox(height: 16),
+                _TotalLine(
+                  label: 'সাবটোটাল',
+                  value: money.format(order.subtotal),
+                ),
+                if (order.discountAmount > 0)
+                  _TotalLine(
+                    label: 'ডিসকাউন্ট',
+                    value: '- ${money.format(order.discountAmount)}',
+                    valueColor: const Color(0xFFDC2626),
+                  ),
+                if (order.taxAmount > 0)
+                  _TotalLine(
+                    label: 'ট্যাক্স',
+                    value: money.format(order.taxAmount),
+                  ),
+                if (order.shippingAmount > 0)
+                  _TotalLine(
+                    label: 'শিপিং',
+                    value: money.format(order.shippingAmount),
+                  ),
+                const Divider(height: 18, color: Color(0xFFE2E8F0)),
+                _TotalLine(
+                  label: 'সর্বমোট',
+                  value: money.format(order.grandTotal),
+                  isBold: true,
+                ),
+                _TotalLine(
+                  label: 'পরিশোধিত',
+                  value: money.format(order.paidAmount),
+                  valueColor: const Color(0xFF10B981),
+                ),
+                _TotalLine(
+                  label: 'বাকি',
+                  value: money.format(order.dueAmount),
+                  valueColor: order.dueAmount > 0
+                      ? const Color(0xFFDC2626)
+                      : const Color(0xFF10B981),
+                ),
+                if (order.notes != null && order.notes!.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFFBEB),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFFCD34D)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'নোট',
+                          style: GoogleFonts.inter(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF92400E),
+                            letterSpacing: 0.6,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          order.notes!,
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            color: const Color(0xFF0F172A),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -248,12 +463,12 @@ class ActivityFeedWidget extends ConsumerWidget {
 
 String _relativeTime(DateTime when) {
   final diff = DateTime.now().difference(when);
-  if (diff.inMinutes < 1) return 'JUST NOW';
-  if (diff.inMinutes < 60) return '${diff.inMinutes}M AGO';
-  if (diff.inHours < 24) return '${diff.inHours}H AGO';
-  if (diff.inDays < 7) return '${diff.inDays}D AGO';
-  if (diff.inDays < 30) return '${(diff.inDays / 7).floor()}W AGO';
-  return '${(diff.inDays / 30).floor()}MO AGO';
+  if (diff.inMinutes < 1) return 'এইমাত্র';
+  if (diff.inMinutes < 60) return '${diff.inMinutes}মি আগে';
+  if (diff.inHours < 24) return '${diff.inHours}ঘ আগে';
+  if (diff.inDays < 7) return '${diff.inDays}দি আগে';
+  if (diff.inDays < 30) return '${(diff.inDays / 7).floor()}সপ্তা আগে';
+  return '${(diff.inDays / 30).floor()}মা আগে';
 }
 
 class _ActivityIconContainer extends StatelessWidget {
@@ -275,6 +490,88 @@ class _ActivityIconContainer extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
       ),
       child: Center(child: child),
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  const _DetailRow({required this.label, required this.value, this.valueColor});
+
+  final String label;
+  final String value;
+  final Color? valueColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: const Color(0xFF64748B),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: valueColor ?? const Color(0xFF0F172A),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TotalLine extends StatelessWidget {
+  const _TotalLine({
+    required this.label,
+    required this.value,
+    this.valueColor,
+    this.isBold = false,
+  });
+
+  final String label;
+  final String value;
+  final Color? valueColor;
+  final bool isBold;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
+                color: const Color(0xFF475569),
+              ),
+            ),
+          ),
+          Text(
+            value,
+            style: GoogleFonts.poppins(
+              fontSize: isBold ? 14 : 12,
+              fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
+              color: valueColor ?? const Color(0xFF0F172A),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

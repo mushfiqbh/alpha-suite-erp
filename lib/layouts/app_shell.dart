@@ -38,33 +38,47 @@ class _AppShellState extends ConsumerState<AppShell> {
 
   static const List<ShellNavItem> _sidebarItems = [
     ShellNavItem(
-      label: 'Dashboard',
+      label: 'ড্যাশবোর্ড',
       icon: Icons.dashboard_outlined,
       route: AppRoutes.dashboard,
     ),
     ShellNavItem(
-      label: 'Customers',
+      label: 'গ্রাহক',
       icon: Icons.groups_rounded,
       route: AppRoutes.customers,
     ),
     ShellNavItem(
-      label: 'Products',
+      label: 'পণ্য',
       icon: Icons.inventory_2_rounded,
       route: AppRoutes.products,
     ),
     ShellNavItem(
-      label: 'Sales',
+      label: 'বিক্রয়',
       icon: Icons.point_of_sale_outlined,
       route: AppRoutes.sales,
     ),
-    ShellNavItem(label: 'HR', icon: Icons.badge_outlined, route: AppRoutes.hr),
     ShellNavItem(
-      label: 'Users',
+      label: 'ব্যবস্থাপনা',
+      icon: Icons.badge_outlined,
+      route: AppRoutes.hr,
+    ),
+    ShellNavItem(
+      label: 'উপস্থিতি',
+      icon: Icons.calendar_today_rounded,
+      route: AppRoutes.hrAttendanceMark,
+    ),
+    ShellNavItem(
+      label: 'অ্যাক্সেস অনুরোধ',
+      icon: Icons.verified_user_outlined,
+      route: AppRoutes.accessRequests,
+    ),
+    ShellNavItem(
+      label: 'ব্যবহারকারী',
       icon: Icons.manage_accounts_outlined,
       route: AppRoutes.users,
     ),
     ShellNavItem(
-      label: 'Account',
+      label: 'অ্যাকাউন্ট',
       icon: Icons.person_outline,
       route: AppRoutes.account,
     ),
@@ -72,28 +86,37 @@ class _AppShellState extends ConsumerState<AppShell> {
 
   static const List<ShellNavItem> _mobileNavItems = [
     ShellNavItem(
-      label: 'Home',
+      label: 'হোম',
       icon: Icons.dashboard_outlined,
       route: AppRoutes.dashboard,
     ),
-    ShellNavItem(label: 'HR', icon: Icons.badge_outlined, route: AppRoutes.hr),
     ShellNavItem(
-      label: 'Products',
+      label: 'ব্যবস্থাপনা',
+      icon: Icons.badge_outlined,
+      route: AppRoutes.hr,
+    ),
+    ShellNavItem(
+      label: 'পণ্য',
       icon: Icons.inventory_2_rounded,
       route: AppRoutes.products,
     ),
     ShellNavItem(
-      label: 'POS',
+      label: 'পিওএস',
       icon: Icons.groups_rounded,
       route: AppRoutes.pos,
     ),
     ShellNavItem(
-      label: 'Sales',
+      label: 'বিক্রয়',
       icon: Icons.point_of_sale_outlined,
       route: AppRoutes.sales,
     ),
     ShellNavItem(
-      label: 'Account',
+      label: 'উপস্থিতি',
+      icon: Icons.calendar_today_rounded,
+      route: AppRoutes.hrAttendanceMark,
+    ),
+    ShellNavItem(
+      label: 'অ্যাকাউন্ট',
       icon: Icons.person_outline,
       route: AppRoutes.account,
     ),
@@ -119,31 +142,35 @@ class _AppShellState extends ConsumerState<AppShell> {
   String _pageTitleFor(String currentLocation) {
     switch (currentLocation) {
       case AppRoutes.dashboard:
-        return 'Dashboard';
+        return 'ড্যাশবোর্ড';
       case AppRoutes.inventory:
-        return 'Inventory';
+        return 'ইনভেন্টরি';
       case AppRoutes.sales:
-        return 'Sales';
+        return 'বিক্রয়';
       case AppRoutes.pos:
-        return 'Point of Sale';
+        return 'পয়েন্ট অফ সেল';
       case AppRoutes.customers:
-        return 'Customers';
+        return 'গ্রাহক';
       case AppRoutes.customerNew:
-        return 'New Customer';
+        return 'নতুন গ্রাহক';
       case AppRoutes.products:
-        return 'Product Catalogue';
+        return 'পণ্য তালিকা';
       case AppRoutes.productNew:
-        return 'New Product';
+        return 'নতুন পণ্য';
       case AppRoutes.hr:
-        return 'HR Management';
+        return 'ব্যবস্থাপনা';
       case AppRoutes.hrEmployeeNew:
-        return 'Employee Details';
+        return 'কর্মচারীর বিবরণ';
+      case AppRoutes.hrAttendanceMark:
+        return 'উপস্থিতি নিন';
+      case AppRoutes.accessRequests:
+        return 'অ্যাক্সেস অনুরোধ';
       case AppRoutes.users:
-        return 'User Management';
+        return 'ব্যবহারকারী ব্যবস্থাপনা';
       case AppRoutes.account:
-        return 'Account';
+        return 'অ্যাকাউন্ট';
       default:
-        return 'Workspace';
+        return 'ওয়ার্কস্পেস';
     }
   }
 
@@ -186,18 +213,18 @@ class _AppShellState extends ConsumerState<AppShell> {
       (item) => item.route == currentLocation,
     );
 
-    String roleAbbreviation = 'VW';
-    String roleLabel = 'Viewer';
+    String roleAbbreviation = 'ভি';
+    String roleLabel = 'দর্শক';
     if (role != null) {
       roleLabel = role.label;
       if (role == UserRole.admin) {
-        roleAbbreviation = 'AD';
+        roleAbbreviation = 'এডি';
       } else if (role == UserRole.operations) {
-        roleAbbreviation = 'OP';
+        roleAbbreviation = 'অপি';
       } else if (role == UserRole.sales) {
-        roleAbbreviation = 'SL';
+        roleAbbreviation = 'সা';
       } else if (role == UserRole.hr) {
-        roleAbbreviation = 'HR';
+        roleAbbreviation = 'এইচআর';
       }
     }
 
@@ -332,8 +359,10 @@ class _TopBar extends StatelessWidget {
         children: [
           IconButton(
             tooltip: isDesktop
-                ? (isSidebarCollapsed ? 'Expand left panel' : 'Hide left panel')
-                : 'Open navigation',
+                ? (isSidebarCollapsed
+                      ? 'বাম প্যানেল বড় করুন'
+                      : 'বাম প্যানেল লুকান')
+                : 'নেভিগেশন খুলুন',
             onPressed: onMenuPressed,
             icon: Icon(
               isDesktop
@@ -354,10 +383,6 @@ class _TopBar extends StatelessWidget {
                   color: Color(0xFF0F172A),
                 ),
               ),
-              Text(
-                'Enterprise workspace',
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-              ),
             ],
           ),
           const Spacer(),
@@ -372,7 +397,7 @@ class _TopBar extends StatelessWidget {
               ),
               child: TextField(
                 decoration: InputDecoration(
-                  hintText: 'Search products, SKU or category...',
+                  hintText: 'পণ্য, SKU অথবা ক্যাটাগরি অনুসন্ধান...',
                   hintStyle: TextStyle(
                     fontSize: 14,
                     color: Colors.grey.shade500,
@@ -384,32 +409,6 @@ class _TopBar extends StatelessWidget {
               ),
             ),
           if (isDesktop) const SizedBox(width: 18),
-          IconButton(
-            tooltip: 'Notifications',
-            onPressed: () {},
-            icon: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Icon(
-                  Icons.notifications_none_rounded,
-                  color: Colors.grey.shade700,
-                ),
-                Positioned(
-                  right: -1,
-                  top: -1,
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
           InkWell(
             borderRadius: BorderRadius.circular(999),
             onTap: onAccountPressed,
@@ -422,7 +421,7 @@ class _TopBar extends StatelessWidget {
           const SizedBox(width: 12),
           if (isDesktop)
             PopupMenuButton<String>(
-              tooltip: 'Account actions',
+              tooltip: 'অ্যাকাউন্ট অপশন',
               onSelected: (value) async {
                 if (value == 'account') {
                   onAccountPressed();
@@ -432,8 +431,11 @@ class _TopBar extends StatelessWidget {
                 }
               },
               itemBuilder: (context) => const [
-                PopupMenuItem<String>(value: 'account', child: Text('Account')),
-                PopupMenuItem<String>(value: 'logout', child: Text('Sign out')),
+                PopupMenuItem<String>(
+                  value: 'account',
+                  child: Text('অ্যাকাউন্ট'),
+                ),
+                PopupMenuItem<String>(value: 'logout', child: Text('সাইন আউট')),
               ],
               child: Icon(Icons.more_vert, color: Colors.grey.shade600),
             ),
@@ -515,7 +517,7 @@ class _SidebarPanel extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Alpha Suite Pro',
+                          'আলফা স্যুট প্রো',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
@@ -523,7 +525,7 @@ class _SidebarPanel extends StatelessWidget {
                           ),
                         ),
                         const Text(
-                          'Enterprise admin console',
+                          'এন্টারপ্রাইজ অ্যাডমিন কনসোল',
                           style: TextStyle(
                             fontSize: 11,
                             letterSpacing: 0.4,
@@ -535,7 +537,7 @@ class _SidebarPanel extends StatelessWidget {
                   ),
                   if (onToggleCollapse != null)
                     IconButton(
-                      tooltip: 'Hide left panel',
+                      tooltip: 'বাম প্যানেল লুকান',
                       onPressed: onToggleCollapse,
                       icon: const Icon(Icons.chevron_left),
                     ),
@@ -557,7 +559,7 @@ class _SidebarPanel extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         IconButton(
-                          tooltip: 'Expand left panel',
+                          tooltip: 'বাম প্যানেল বড় করুন',
                           onPressed: onToggleCollapse,
                           icon: const Icon(Icons.chevron_right),
                         ),
@@ -607,7 +609,7 @@ class _SidebarPanel extends StatelessWidget {
                       _UpdateStatusIcon(status: updateState.status),
                       const SizedBox(height: 4),
                       IconButton(
-                        tooltip: 'Sign out',
+                        tooltip: 'সাইন আউট',
                         onPressed: onLogout,
                         icon: Icon(
                           Icons.logout_rounded,
@@ -645,25 +647,6 @@ class _SidebarPanel extends StatelessWidget {
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w700,
                                   color: Color(0xFF0F172A),
-                                ),
-                              ),
-                              const SizedBox(height: 3),
-                              GestureDetector(
-                                onTap: onCheckUpdates,
-                                child: Row(
-                                  children: [
-                                    Text(
-                                      updateState.appVersion,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey.shade600,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    _UpdateStatusIndicator(
-                                      status: updateState.status,
-                                    ),
-                                  ],
                                 ),
                               ),
                             ],
@@ -770,90 +753,6 @@ class _MobileNavigationBar extends StatelessWidget {
           )
           .toList(),
     );
-  }
-}
-
-/// Shown in the expanded sidebar — a small label next to the version text.
-class _UpdateStatusIndicator extends StatelessWidget {
-  const _UpdateStatusIndicator({required this.status});
-
-  final UpdateStatus status;
-
-  @override
-  Widget build(BuildContext context) {
-    switch (status) {
-      case UpdateStatus.idle:
-        return Icon(
-          Icons.system_update_outlined,
-          size: 14,
-          color: Colors.grey.shade500,
-        );
-      case UpdateStatus.checking:
-        return SizedBox(
-          width: 14,
-          height: 14,
-          child: CircularProgressIndicator(
-            strokeWidth: 1.5,
-            color: Colors.indigo.shade600,
-          ),
-        );
-      case UpdateStatus.upToDate:
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.check_circle, size: 14, color: Colors.green.shade600),
-            const SizedBox(width: 3),
-            Text(
-              'Up to date',
-              style: TextStyle(fontSize: 10, color: Colors.green.shade700),
-            ),
-          ],
-        );
-      case UpdateStatus.updateAvailable:
-      case UpdateStatus.downloading:
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: 14,
-              height: 14,
-              child: CircularProgressIndicator(
-                strokeWidth: 1.5,
-                color: Colors.orange.shade600,
-              ),
-            ),
-            const SizedBox(width: 3),
-            Text(
-              'Updating...',
-              style: TextStyle(fontSize: 10, color: Colors.orange.shade700),
-            ),
-          ],
-        );
-      case UpdateStatus.installing:
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.system_update, size: 14, color: Colors.orange.shade600),
-            const SizedBox(width: 3),
-            Text(
-              'Installing',
-              style: TextStyle(fontSize: 10, color: Colors.orange.shade700),
-            ),
-          ],
-        );
-      case UpdateStatus.error:
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.error_outline, size: 14, color: Colors.red.shade500),
-            const SizedBox(width: 3),
-            Text(
-              'Failed',
-              style: TextStyle(fontSize: 10, color: Colors.red.shade600),
-            ),
-          ],
-        );
-    }
   }
 }
 

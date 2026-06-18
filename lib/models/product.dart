@@ -224,7 +224,9 @@ class ProductRecord {
       supplier: _emptyToNull(data['supplier']?.toString()),
       location: _emptyToNull(data['location']?.toString()),
       taxRate: _parseDouble(data['tax_rate']),
-      isTaxable: data['is_taxable'] == null ? true : _parseBool(data['is_taxable']),
+      isTaxable: data['is_taxable'] == null
+          ? true
+          : _parseBool(data['is_taxable']),
       imageUrl: _emptyToNull(data['image_url']?.toString()),
       createdAt: DateTime.tryParse(data['created_at']?.toString() ?? ''),
       updatedAt: DateTime.tryParse(data['updated_at']?.toString() ?? ''),
@@ -270,7 +272,7 @@ class ProductRecord {
   }
 
   String get priceLabel {
-    return '\$${price.toStringAsFixed(2)}';
+    return '৳${price.toStringAsFixed(2)}';
   }
 
   String get stockLabel {
