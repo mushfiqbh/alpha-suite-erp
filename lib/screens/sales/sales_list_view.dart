@@ -21,8 +21,6 @@ class SalesListView extends ConsumerStatefulWidget {
 }
 
 class _SalesListViewState extends ConsumerState<SalesListView> {
-  static const double _desktopBreakpoint = 960;
-
   final MoneyFormatter _money = const MoneyFormatter();
   final DateTimeFormatter _dateTime = const DateTimeFormatter();
 
@@ -34,7 +32,6 @@ class _SalesListViewState extends ConsumerState<SalesListView> {
   Widget build(BuildContext context) {
     final ordersAsync = ref.watch(recentSalesOrdersProvider);
     final customers = ref.watch(customerDirectoryProvider).customers;
-    final isDesktop = MediaQuery.sizeOf(context).width >= _desktopBreakpoint;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
@@ -61,12 +58,8 @@ class _SalesListViewState extends ConsumerState<SalesListView> {
           const SizedBox(height: 18),
           Expanded(
             child: ordersAsync.when(
-              data: (orders) => _buildContent(
-                context,
-                orders: orders,
-                customers: customers,
-                isDesktop: isDesktop,
-              ),
+              data: (orders) =>
+                  _buildContent(context, orders: orders, customers: customers),
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, _) => _ErrorState(
                 message: error.toString(),
@@ -84,7 +77,6 @@ class _SalesListViewState extends ConsumerState<SalesListView> {
     BuildContext context, {
     required List<SalesOrderRecord> orders,
     required List<CustomerRecord> customers,
-    required bool isDesktop,
   }) {
     if (orders.isEmpty) {
       return const _EmptyState();
@@ -119,38 +111,21 @@ class _SalesListViewState extends ConsumerState<SalesListView> {
             money: _money,
           ),
           const Divider(height: 1, color: Color(0xFFE2E8F0)),
-          if (isDesktop)
-            Expanded(
-              child: _SalesOrdersTable(
-                orders: filtered,
-                customers: customers,
-                money: _money,
-                dateTime: _dateTime,
-                onTapOrder: (order) => _showOrderDetails(context, order),
-                onMarkPaymentDone: (orderId) => ref
-                    .read(recentSalesOrdersProvider.notifier)
-                    .markPaymentDone(orderId),
-                onMarkAsUnpaid: (orderId) => ref
-                    .read(recentSalesOrdersProvider.notifier)
-                    .markAsUnpaid(orderId),
-              ),
-            )
-          else
-            Expanded(
-              child: _SalesOrdersCards(
-                orders: filtered,
-                customers: customers,
-                money: _money,
-                dateTime: _dateTime,
-                onTapOrder: (order) => _showOrderDetails(context, order),
-                onMarkPaymentDone: (orderId) => ref
-                    .read(recentSalesOrdersProvider.notifier)
-                    .markPaymentDone(orderId),
-                onMarkAsUnpaid: (orderId) => ref
-                    .read(recentSalesOrdersProvider.notifier)
-                    .markAsUnpaid(orderId),
-              ),
+          Expanded(
+            child: _SalesOrdersCards(
+              orders: filtered,
+              customers: customers,
+              money: _money,
+              dateTime: _dateTime,
+              onTapOrder: (order) => _showOrderDetails(context, order),
+              onMarkPaymentDone: (orderId) => ref
+                  .read(recentSalesOrdersProvider.notifier)
+                  .markPaymentDone(orderId),
+              onMarkAsUnpaid: (orderId) => ref
+                  .read(recentSalesOrdersProvider.notifier)
+                  .markAsUnpaid(orderId),
             ),
+          ),
         ],
       ),
     );
@@ -353,169 +328,6 @@ class _SummaryCell extends StatelessWidget {
   }
 }
 
-class _SalesOrdersTable extends StatelessWidget {
-  const _SalesOrdersTable({
-    required this.orders,
-    required this.customers,
-    required this.money,
-    required this.dateTime,
-    required this.onTapOrder,
-    required this.onMarkPaymentDone,
-    required this.onMarkAsUnpaid,
-  });
-
-  final List<SalesOrderRecord> orders;
-  final List<CustomerRecord> customers;
-  final MoneyFormatter money;
-  final DateTimeFormatter dateTime;
-  final ValueChanged<SalesOrderRecord> onTapOrder;
-  final Future<void> Function(String orderId) onMarkPaymentDone;
-  final Future<void> Function(String orderId) onMarkAsUnpaid;
-
-  String _customerNameFor(SalesOrderRecord order) {
-    final id = order.customerId;
-    if (id == null) return '—';
-    for (final customer in customers) {
-      if (customer.id == id) return customer.displayName;
-    }
-    return 'গ্রাহক #$id';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minWidth: 960),
-        child: DataTable(
-          headingRowHeight: 48,
-          dataRowMinHeight: 60,
-          dataRowMaxHeight: 72,
-          columnSpacing: 24,
-          headingTextStyle: GoogleFonts.inter(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            color: const Color(0xFF64748B),
-            letterSpacing: 0.6,
-          ),
-          dataTextStyle: GoogleFonts.inter(
-            fontSize: 13,
-            color: const Color(0xFF0F172A),
-          ),
-          columns: const [
-            DataColumn(label: Text('ইনভয়েস')),
-            DataColumn(label: Text('গ্রাহক')),
-            DataColumn(label: Text('তারিখ')),
-            DataColumn(label: Text('আইটেম')),
-            DataColumn(label: Text('সর্বমোট'), numeric: true),
-            DataColumn(label: Text('পেমেন্ট')),
-            DataColumn(label: Text('অবস্থা')),
-            DataColumn(label: Text('')),
-          ],
-          rows: orders
-              .map(
-                (order) => DataRow(
-                  onSelectChanged: (_) => onTapOrder(order),
-                  cells: [
-                    DataCell(
-                      Text(
-                        order.invoiceNo.isEmpty ? '—' : order.invoiceNo,
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF0F172A),
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      Text(
-                        _customerNameFor(order),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    DataCell(
-                      Text(
-                        dateTime.format(order.orderDate.toLocal()),
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          color: const Color(0xFF475569),
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      Text(
-                        '—',
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          color: const Color(0xFF94A3B8),
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      Text(
-                        money.format(order.grandTotal),
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    DataCell(_PaymentChip(status: order.paymentStatus)),
-                    DataCell(_SalesStatusChip(status: order.salesStatus)),
-                    DataCell(
-                      order.paymentStatus.toUpperCase() == 'UNPAID'
-                          ? FilledButton(
-                              onPressed: () =>
-                                  onMarkPaymentDone(order.id ?? ''),
-                              style: FilledButton.styleFrom(
-                                backgroundColor: const Color(0xFF10B981),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              child: const Text(
-                                'পেমেন্ট',
-                                style: TextStyle(fontSize: 11),
-                              ),
-                            )
-                          : order.paymentStatus.toUpperCase() == 'PAID'
-                          ? FilledButton(
-                              onPressed: () => onMarkAsUnpaid(order.id ?? ''),
-                              style: FilledButton.styleFrom(
-                                backgroundColor: const Color(0xFFF59E0B),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              child: const Text(
-                                'অপরিশোধিত',
-                                style: TextStyle(fontSize: 11),
-                              ),
-                            )
-                          : const Icon(
-                              Icons.check_circle_rounded,
-                              color: Color(0xFF10B981),
-                              size: 20,
-                            ),
-                    ),
-                  ],
-                ),
-              )
-              .toList(),
-        ),
-      ),
-    );
-  }
-}
-
 class _SalesOrdersCards extends StatelessWidget {
   const _SalesOrdersCards({
     required this.orders,
@@ -641,52 +453,6 @@ class _PaymentChip extends StatelessWidget {
       'PARTIAL' => ('আংশিক', const Color(0xFFFEF3C7), const Color(0xFF92400E)),
       'UNPAID' => (
         'অপরিশোধিত',
-        const Color(0xFFFEE2E2),
-        const Color(0xFF991B1B),
-      ),
-      _ => (normalized, const Color(0xFFE2E8F0), const Color(0xFF334155)),
-    };
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        label,
-        style: GoogleFonts.inter(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: fg,
-        ),
-      ),
-    );
-  }
-}
-
-class _SalesStatusChip extends StatelessWidget {
-  const _SalesStatusChip({required this.status});
-
-  final String status;
-
-  @override
-  Widget build(BuildContext context) {
-    final normalized = status.toUpperCase();
-    final (label, bg, fg) = switch (normalized) {
-      'DRAFT' => ('খসড়া', const Color(0xFFE0E7FF), const Color(0xFF3730A3)),
-      'CONFIRMED' => (
-        'নিশ্চিত',
-        const Color(0xFFDBEAFE),
-        const Color(0xFF1D4ED8),
-      ),
-      'FULFILLED' || 'COMPLETED' => (
-        'সম্পন্ন',
-        const Color(0xFFDCFCE7),
-        const Color(0xFF166534),
-      ),
-      'CANCELLED' => (
-        'বাতিল',
         const Color(0xFFFEE2E2),
         const Color(0xFF991B1B),
       ),

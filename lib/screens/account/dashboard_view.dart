@@ -390,11 +390,12 @@ class _AccessRequestSection extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Row(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                   child: _AccessButton(
-                    label: 'অপারেশনস',
+                    label: 'এমপ্লয়ি',
                     icon: Icons.inventory_2_outlined,
                     onPressed: hasPendingRequest
                         ? null
