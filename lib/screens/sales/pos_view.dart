@@ -20,8 +20,6 @@ class PosView extends ConsumerStatefulWidget {
 }
 
 class _PosViewState extends ConsumerState<PosView> {
-  static const double _desktopBreakpoint = 960;
-
   String _localSearch = '';
   String? _localStatusFilter;
   String? _localCategoryFilter;
@@ -578,11 +576,10 @@ class _PosViewState extends ConsumerState<PosView> {
     );
 
     final products = _filteredProducts(productState);
-    final isDesktop = MediaQuery.of(context).size.width >= _desktopBreakpoint;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FB),
-      floatingActionButton: !isDesktop && cart.isNotEmpty
+      floatingActionButton: cart.isNotEmpty
           ? Padding(
               padding: const EdgeInsets.only(bottom: 8, right: 4),
               child: FloatingActionButton.extended(
@@ -609,94 +606,14 @@ class _PosViewState extends ConsumerState<PosView> {
               ),
             )
           : null,
-      body: isDesktop
-          ? _buildDesktopLayout(
-              context: context,
-              customer: customer,
-              products: products,
-              productState: productState,
-              cart: cart,
-              summary: summary,
-            )
-          : _buildMobileLayout(
-              context: context,
-              customer: customer,
-              products: products,
-              productState: productState,
-              cart: cart,
-              summary: summary,
-            ),
-    );
-  }
-
-  Widget _buildDesktopLayout({
-    required BuildContext context,
-    required CustomerRecord? customer,
-    required List<ProductRecord> products,
-    required ProductDirectoryState productState,
-    required List<CartItem> cart,
-    required CartSummary summary,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          flex: 3,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 20, 12, 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _CustomerBanner(
-                  customer: customer,
-                  onChange: _showNewCustomerModal,
-                  onClear: customer == null
-                      ? null
-                      : () {
-                          ref.read(salesSelectionProvider.notifier).clear();
-                          ref.read(cartProvider.notifier).clear();
-                        },
-                ),
-                const SizedBox(height: 18),
-                _ProductSearchBar(
-                  searchQuery: _localSearch,
-                  onChanged: (value) {
-                    setState(() => _localSearch = value);
-                  },
-                  onClear: () => setState(() => _localSearch = ''),
-                ),
-                const SizedBox(height: 18),
-                _ProductGrid(products: products, onAdd: _addProduct),
-              ],
-            ),
-          ),
-        ),
-        SizedBox(
-          width: 360,
-          child: Container(
-            margin: const EdgeInsets.fromLTRB(0, 20, 20, 20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 18,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: _CartPanel(
-              customer: customer,
-              cart: cart,
-              summary: summary,
-              onCheckout: cart.isEmpty ? null : () => _confirmCheckout(summary),
-              compact: false,
-            ),
-          ),
-        ),
-      ],
+      body: _buildMobileLayout(
+        context: context,
+        customer: customer,
+        products: products,
+        productState: productState,
+        cart: cart,
+        summary: summary,
+      ),
     );
   }
 

@@ -54,21 +54,7 @@ class _AttendanceFormPageState extends ConsumerState<AttendanceFormPage> {
   DateTime? _attendanceDate = DateTime.now();
   bool _isSubmitting = false;
   List<_EmployeeRowState> _rows = [];
-  bool _initialized = false;
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_initialized) {
-      _initialized = true;
-      _initRows();
-    }
-  }
+  bool _initScheduled = false;
 
   void _initRows() {
     final employees = ref.read(employeeDirectoryProvider).employees;
@@ -267,14 +253,30 @@ class _AttendanceFormPageState extends ConsumerState<AttendanceFormPage> {
     final hrState = ref.watch(employeeDirectoryProvider);
     final attState = ref.watch(attendanceDirectoryProvider);
 
-    // Re-init rows when employees or attendance records change
-    if (hrState.employees.isNotEmpty && _rows.isEmpty && !attState.isLoading) {
-      // Use addPostFrameCallback to avoid setState during build
-      WidgetsBinding.instance.addPostFrameCallback((_) => _initRows());
+    // Initialize rows once both employees and attendance data are ready.
+    // Also reconciles when attendance records load after rows already exist.
+    if (!_initScheduled &&
+        hrState.employees.isNotEmpty &&
+        !attState.isLoading) {
+      if (_rows.isEmpty) {
+        // Initial load: create rows
+        _initScheduled = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _initRows();
+          _initScheduled = false;
+        });
+      } else if (attState.records.isNotEmpty &&
+          _rows.every((r) => !r.hasExistingRecord)) {
+        // Rows exist but no records associated yet — reconcile
+        _initScheduled = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _reconcileWithExistingRecords();
+          _initScheduled = false;
+        });
+      }
     }
 
     final employees = hrState.employees;
-    final isDesktopWidth = MediaQuery.of(context).size.width >= 900;
 
     final bodyContent = Column(
       children: [
@@ -416,7 +418,7 @@ class _AttendanceFormPageState extends ConsumerState<AttendanceFormPage> {
                                   employees,
                                   row.employeeId,
                                 );
-                                return _buildRow(row, employee, isDesktopWidth);
+                                return _buildRow(row, employee);
                               },
                             ),
                           ),
@@ -587,7 +589,7 @@ class _AttendanceFormPageState extends ConsumerState<AttendanceFormPage> {
     );
   }
 
-  Widget _buildRow(_EmployeeRowState row, EmployeeRecord? employee, bool wide) {
+  Widget _buildRow(_EmployeeRowState row, EmployeeRecord? employee) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 3),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),

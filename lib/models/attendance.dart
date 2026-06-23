@@ -18,7 +18,12 @@ DateTime? _parseDate(String? value) {
 
 DateTime? _parseTimestamp(String? value) {
   if (value == null || value.isEmpty) return null;
-  return DateTime.tryParse(value);
+  final dt = DateTime.tryParse(value);
+  if (dt == null) return null;
+  // Supabase timestamptz columns always return UTC. Convert to local BST (GMT+6)
+  // so that hours/minutes reflect what the user originally entered.
+  if (dt.isUtc) return dt.toLocal();
+  return dt;
 }
 
 String? _formatDate(DateTime? value) {
@@ -31,7 +36,10 @@ String? _formatDate(DateTime? value) {
 
 String? _formatTimestamp(DateTime? value) {
   if (value == null) return null;
-  return value.toUtc().toIso8601String();
+  // Bangladesh Standard Time (BST) is always UTC+6.
+  // Explicitly append the offset so Supabase stores the entered time as-is.
+  final iso = value.toIso8601String();
+  return '$iso+06:00';
 }
 
 int _parseInt(dynamic value) {

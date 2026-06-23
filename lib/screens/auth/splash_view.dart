@@ -13,11 +13,23 @@ class SplashView extends ConsumerStatefulWidget {
 }
 
 class _SplashViewState extends ConsumerState<SplashView> {
-  bool _hasNavigated = false;
+  static const Duration _minDisplay = Duration(seconds: 3);
 
-  void _navigate(String route) {
+  bool _hasNavigated = false;
+  final DateTime _startTime = DateTime.now();
+
+  Future<void> _navigate(String route) async {
     if (_hasNavigated || !mounted) return;
     _hasNavigated = true;
+
+    // Ensure the splash is visible for at least 3 seconds.
+    final elapsed = DateTime.now().difference(_startTime);
+    final remaining = _minDisplay - elapsed;
+    if (remaining > Duration.zero) {
+      await Future.delayed(remaining);
+    }
+
+    if (!mounted) return;
     context.go(route);
   }
 

@@ -16,11 +16,42 @@ import 'package:erp/widgets/activity_feed.dart';
 import 'package:erp/widgets/kpi_card.dart';
 import 'package:erp/widgets/sales_chart.dart';
 
-class DashboardScreen extends ConsumerWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  void _refreshDashboard() {
+    ref.invalidate(currentProfileProvider);
+    ref.invalidate(revenueSummaryProvider);
+    ref.invalidate(productDirectoryProvider);
+    ref.invalidate(activeHrEmployeeCountProvider);
+    ref.invalidate(pendingAccessRequestsProvider);
+    ref.invalidate(myAccessRequestsProvider);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Detect when the profile role differs from the auth state role
+    // (e.g. an admin approved a viewer's access request server-side)
+    // and refresh the auth session so the UI rebuilds with the new role.
+    ref.listen<AsyncValue<CurrentProfile?>>(currentProfileProvider, (
+      previous,
+      next,
+    ) {
+      if (previous == next) return;
+      next.whenData((profile) {
+        if (profile == null) return;
+        final authRole = ref.read(roleProvider);
+        if (authRole != profile.role && profile.role != null) {
+          ref.read(authProvider.notifier).restoreSession();
+        }
+      });
+    });
+
     final role = ref.watch(roleProvider);
     final isViewer = role == UserRole.viewer;
     final isAdmin = role == UserRole.admin;
@@ -36,7 +67,7 @@ class DashboardScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const _GreetingHeader(),
+                  _GreetingHeader(onRefresh: _refreshDashboard),
                   const SizedBox(height: 20),
                   const _AccessRequestSection(),
                   // Non‑viewer roles see KPIs and role‑specific cards
@@ -66,7 +97,9 @@ class DashboardScreen extends ConsumerWidget {
 }
 
 class _GreetingHeader extends ConsumerWidget {
-  const _GreetingHeader();
+  const _GreetingHeader({required this.onRefresh});
+
+  final VoidCallback onRefresh;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -113,8 +146,14 @@ class _GreetingHeader extends ConsumerWidget {
             ],
           ),
         ),
+        IconButton(
+          icon: const Icon(Icons.refresh_rounded),
+          tooltip: 'Refresh',
+          color: const Color(0xFF464555),
+          onPressed: onRefresh,
+        ),
         if (role == UserRole.admin) ...[
-          const SizedBox(width: 12),
+          const SizedBox(width: 4),
           Stack(
             children: [
               IconButton(
@@ -394,7 +433,7 @@ class _AccessRequestSection extends ConsumerWidget {
               children: [
                 Expanded(
                   child: _AccessButton(
-                    label: 'অপারেশনস',
+                    label: 'এমপ্লয়ি',
                     icon: Icons.inventory_2_outlined,
                     onPressed: hasPendingRequest
                         ? null
@@ -472,6 +511,9 @@ class _AccessRequestSection extends ConsumerWidget {
     try {
       await service.submitRequest(userId: userId, requestedRole: role);
       ref.invalidate(myAccessRequestsProvider);
+      // Refresh profile to pick up any role changes in case
+      // the admin processed the request before the viewer checks again.
+      ref.read(currentProfileProvider.notifier).refresh();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('$role অ্যাক্সেসের অনুরোধ জমা দেওয়া হয়েছে')),
